@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading...</title>
+
+<style>
+  :root{
+    --blue:#3b82f6;
+    --blue-dark:#2563eb;
+    --ink:#111827;
+  }
+
+
+  body{
+    height:100vh;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    position:relative;
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg,#fff,#edf5ff,#dbeafe);
+  }
+
+  body::before,
+  body::after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    filter:blur(40px);
+    background:var(--blue);
+    opacity:.33;
+    animation:float 8s ease-in-out infinite;
+  }
+  body::before{ 
+    width:280px; height:280px; top:-80px; left:-80px; 
+    }
+  body::after{
+     width:220px; height:220px; bottom:-60px; right:-60px; animation-delay:-4s; 
+    }
+
+  .container{ text-align:center; z-index:1; }
+
+  
+  .dots span:nth-child(2){ animation-delay:.2s; }
+  .dots span:nth-child(3){ animation-delay:.4s; }
+
+  .progress{
+    width:320px;
+    height:7px;
+    margin:35px auto 0;
+    border-radius:20px;
+    background:#dbeafe;
+    overflow:hidden;
+  }
+  .progress::after{
+    content:"";
+    display:block;
+    height:100%;
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--blue-dark),#60a5fa);
+    animation:load 2s linear forwards;
+  }
+
+  @keyframes load{ from{ width:0; } to{ width:100%; } }
+
+
+  .logo {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 48px;
+      font-weight: 800; /* Heavy, thick weight */
+      letter-spacing: -1.5px; /* Tighter letter spacing to match the image */
+      user-select: none;
+      cursor: default;
+    }
+
+    /* "Shop" Styling */
+    .black-text {
+      color: #0b0c10; /* Soft black */
+    }
+
+    /* "Cart" Styling */
+    .blue-text {
+      color: #3b82f6; /* Clean brand blue */
+    }
+
+
+</style>
+
+<script>
+  setTimeout(() => window.location.href = "/home/", 2000);
+</script>
+</head>
+<body>
+
+  <div class="container">
+<!-- Logo Markup -->
+  <div class="logo">
+    <span class="black-text">Shop</span><span class="blue-text">Cart</span>
+  </div>
+      <div class="loading">
+      Loading
+      <span class="dots"><span></span><span></span><span></span></span>
+    </div>
+    <div class="progress"></div>
+  </div>
+
+</body>
+</html>

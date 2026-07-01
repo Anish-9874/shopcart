@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Customer Orders</h2>
+
+{% for order %}
+
+<div class="order-box">
+
+    <h3>{{ order.user.username }}</h3>
+
+    <p>Email : {{ order.user.email }}</p>
+
+    <p>Total : Rs. {{ order.total }}</p>
+
+    <p>Status : {{ order.status }}</p>
+
+    <p>Date : {{ order.created_at }}</p>
+
+    <h4>Products</h4>
+
+    <table border="1">
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Qty</th>
+        </tr>
+
+        {% for item in order.orderitem_set.all %}
+
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+        </tr>
+
+        {% endfor %}
+    </table>
+
+</div>
+
+<hr>
+
+{% empty %}
+
+<h3>No Orders Yet.</h3>
+
+{% endfor %}
+
+{% endblock %}

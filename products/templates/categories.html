@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/categories.css' %}">
+
+<div class="categories-container">
+
+    <h1>Product Categories</h1>
+
+    <div class="category-grid">
+
+        {% for category in categories %}
+            <div class="category-card">
+                <h2>{{ category.name }}</h2>
+
+                {% if category.description %}
+                    <p>{{ category.description }}</p>
+                {% endif %}
+
+                <a href="{% url 'category' %}" class="btn">
+                    View Products
+                </a>
+            </div>
+        {% empty %}
+            <h3>No Categories Available.</h3>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

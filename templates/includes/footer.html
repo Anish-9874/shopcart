@@ -1,0 +1,54 @@
+
+
+
+<footer>
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        Shop<span>Cart</span>
+      </div>
+
+      <p class="footer-tagline">
+        Your one-stop shop for quality products. Fast delivery,
+        easy returns, and great prices every day.
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="{% url 'home' %}">All Products</a></li>
+        <li><a href="{% url 'home' %}">Categories</a></li>
+        <li><a href="#">New Arrivals</a></li>
+        <li><a href="#">Sale</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Account</h4>
+      <ul>
+        <li><a href="{% url 'home' %}">My Dashboard</a></li>
+        <li><a href="{% url 'home' %}">Orders</a></li>
+        <li><a href="{% url 'home' %}">Wishlist</a></li>
+        <li><a href="{% url 'home' %}">Settings</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="{% url 'home' %}">Contact Us</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Shipping Policy</a></li>
+        <li><a href="#">Returns</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="footer-bottom">
+    <span>© {% now "Y" %} ShopCart. All rights reserved.</span>
+    <span>Built with Django 🐍</span>
+  </div>
+</footer>

@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+}
+
+.container{
+
+    width:380px;
+    padding:40px;
+
+    background:rgba(255,255,255,.15);
+
+    backdrop-filter:blur(18px);
+    border-radius:20px;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.25);
+}
+
+.container h1{
+    text-align:center;
+    color:white;
+    margin-bottom:25px;
+}
+
+.container input{
+
+    width:100%;
+    padding:14px;
+    margin:12px 0;
+
+    border:none;
+    border-radius:10px;
+
+    outline:none;
+
+    font-size:15px;
+}
+
+button{
+
+    width:100%;
+    padding:14px;
+
+    border:none;
+    border-radius:10px;
+
+    background:#fff;
+
+    color:#2196f3;
+
+    font-size:16px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+button:hover{
+
+    background:#2196f3;
+    color:white;
+
+}
+
+p{
+
+    text-align:center;
+    margin-top:20px;
+    color:white;
+
+}
+
+a{
+
+    color:#fff;
+    font-weight:bold;
+    text-decoration:none;
+
+}
+
+ul.errorlist{
+
+    color:#ffdddd;
+    list-style:none;
+    margin-bottom:10px;
+
+}
+
+</style>
+
+</head>
+<body>
+
+
+<div class="container">
+
+<h1>Welcome Back</h1>
+
+<form method="POST">
+{% csrf_token %}
+Username:<br>
+<input type="text" name="username" placeholder="Username" required><br>
+Password:<br>
+<input type="password" name="password" placeholder="Password" required>
+
+<button type="submit">
+Login
+</button>
+
+</form>
+
+<p>
+Don't have an account?
+<a href="{% url 'signup' %}">Sign Up</a>
+</p>
+
+</div>
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            alert("{{ message }}");
+        </script>
+    {% endfor %}
+{% endif %}
+</body>
+</html>
