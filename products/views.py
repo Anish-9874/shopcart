@@ -47,9 +47,7 @@ def see_product(request):
     })
 
 
-def category(request):
-    categories = Product.objects.all()
-    return render(request, "categories.html", {"categories": categories})
+
 
 
 def edit_product(request, id):
@@ -65,3 +63,9 @@ def edit_product(request, id):
         form = ProductForm(instance=product)
 
     return render(request, 'add_product.html', {'form': form})
+
+
+
+def category(request):
+    categories = Product.objects.all()
+    return render(request, "categories.html", {"categories": categories})
