@@ -47,8 +47,8 @@ def see_product(request):
     })
 
 
-def category(request, category_id):
-    categories = Product.objects.filter(category_id=category_id)
+def category(request):
+    categories = Product.objects.all()
     return render(request, "categories.html", {"categories": categories})
 
 
