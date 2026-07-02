@@ -2,50 +2,81 @@
 
 {% block content %}
 
-<h2>Customer Orders</h2>
+<style>
+.orders{
+    max-width:800px;
+    margin:30px auto;
+}
 
-{% for order %}
+.order{
+    border:1px solid #ddd;
+    padding:15px;
+    margin-bottom:20px;
+}
 
-<div class="order-box">
+table{
+    width:100%;
+    margin-top:10px;
+    border-collapse:collapse;
+}
 
-    <h3>{{ order.user.username }}</h3>
+th,td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+    text-align:left;
+}
+</style>
 
-    <p>Email : {{ order.user.email }}</p>
+<div class="orders">
 
-    <p>Total : Rs. {{ order.total }}</p>
+<h2>My Orders</h2>
 
-    <p>Status : {{ order.status }}</p>
+{% if orders %}
 
-    <p>Date : {{ order.created_at }}</p>
+{% for order in orders %}
 
-    <h4>Products</h4>
+<div class="order">
 
-    <table border="1">
-        <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Qty</th>
-        </tr>
+<h3>Order #{{ order.id }}</h3>
 
-        {% for item in order.orderitem_set.all %}
+<p>Date : {{ order.created_at }}</p>
+<p>Status : {{ order.status }}</p>
+<p>Total : Rs. {{ order.total }}</p>
 
-        <tr>
-            <td>{{ item.product.name }}</td>
-            <td>{{ item.price }}</td>
-            <td>{{ item.quantity }}</td>
-        </tr>
+<table>
 
-        {% endfor %}
-    </table>
+<tr>
+<th>Product</th>
+<th>Price</th>
+<th>Qty</th>
+</tr>
+
+{% for item in order.orderitem_set.all %}
+
+<tr>
+<td>{{ item.product.name }}</td>
+<td>Rs. {{ item.price }}</td>
+<td>{{ item.quantity }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
 
 </div>
 
-<hr>
+{% endfor %}
 
-{% empty %}
+{% else %}
 
 <h3>No Orders Yet.</h3>
 
-{% endfor %}
+<a href="{% url 'product_list' %}">
+Start Shopping
+</a>
+
+{% endif %}
+
+</div>
 
 {% endblock %}

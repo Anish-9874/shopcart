@@ -1,67 +1,61 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect,render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.db import transaction
 
-from .models import Product, Cart, CartItem, Order,OrderItem
+from products.models import Product
+from .models import Cart, CartItem, Order, OrderItem
 
 
 
-from django.contrib import messages
 
 def add_to_cart(request, product_id):
 
     if not request.user.is_authenticated:
         messages.warning(request, "Please login first to add products to your cart.")
-        return redirect("login")   # Replace "login" with your login URL name
+        return redirect("login")
 
     product = get_object_or_404(Product, id=product_id)
 
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    if product.stock <= 0:
+        messages.error(request, f"{product.name} is out of stock.")
+        return redirect("cart")
 
-    item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product
-    )
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
-    if not created:
+    if not created and item.quantity < product.stock:
         item.quantity += 1
         item.save()
-
-    messages.success(request, "Product added to cart successfully!")
+    elif not created:
+        messages.warning(request, f"Only {product.stock} unit(s) of {product.name} available.")
 
     return redirect("cart")
 
 
+
+
+
 @login_required
 def cart(request):
-
-    cart, created = Cart.objects.get_or_create(
-        user=request.user
-    )
-
-    items = cart.items.all()
-
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    items = cart.items.select_related("product").all()
     total = sum(item.subtotal for item in items)
+    return render(request, "cart.html", {"items": items, "total": total})
 
-    return render(request, "cart.html", {
-        "items": items,
-        "total": total
-    })
 
 
 
 
 @login_required
 def increase_quantity(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
 
-    item = get_object_or_404(
-        CartItem,
-        id=item_id,
-        cart__user=request.user
-    )
-
-    item.quantity += 1
-    item.save()
+    if item.quantity < item.product.stock:
+        item.quantity += 1
+        item.save()
+    else:
+        messages.warning(request, "No more stock available for this product.")
 
     return redirect("cart")
 
@@ -71,12 +65,7 @@ def increase_quantity(request, item_id):
 
 @login_required
 def decrease_quantity(request, item_id):
-
-    item = get_object_or_404(
-        CartItem,
-        id=item_id,
-        cart__user=request.user
-    )
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
 
     if item.quantity > 1:
         item.quantity -= 1
@@ -90,18 +79,11 @@ def decrease_quantity(request, item_id):
 
 
 
-
 @login_required
 def remove_item(request, item_id):
-
-    item = get_object_or_404(
-        CartItem,
-        id=item_id,
-        cart__user=request.user
-    )
-
+    item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
     item.delete()
-
+    messages.success(request, "Item removed from cart.")
     return redirect("cart")
 
 
@@ -110,31 +92,50 @@ def remove_item(request, item_id):
 
 @login_required
 def checkout(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    items = cart.items.select_related("product").all()
 
-    cart = Cart.objects.get(user=request.user)
-
-    items = cart.items.all()
-
-    total = sum(item.subtotal for item in items)
-
-    order = Order.objects.create(
-        user=request.user,
-        total=total
-    )
+    if not items:
+        messages.warning(request, "Your cart is empty.")
+        return redirect("cart")
 
     for item in items:
-        OrderItem.objects.create(
-            order=order,
-            product=item.product,
-            quantity=item.quantity,
-            price=item.product.price
-        )
+        if item.quantity > item.product.stock:
+            messages.error(
+                request,
+                f"{item.product.name} only has {item.product.stock} left in stock."
+            )
+            return redirect("cart")
 
-        # Reduce stock
-        item.product.stock -= item.quantity
-        item.product.save()
+    with transaction.atomic():
+        total = sum(item.subtotal for item in items)
+        order = Order.objects.create(user=request.user, total=total)
 
-    # Clear the cart
-    items.delete()
+        for item in items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price,
+            )
+            item.product.stock -= item.quantity
+            item.product.save()
 
-    return redirect("home")
+        items.delete()
+
+    messages.success(request, "Order placed successfully!")
+    return redirect("my_orders")
+
+
+
+
+
+@login_required
+def my_orders(request):
+    orders = (
+        Order.objects
+        .filter(user=request.user)
+        .order_by("-created_at")
+        .prefetch_related("orderitem_set__product")
+    )
+    return render(request, "orders.html", {"orders": orders})
