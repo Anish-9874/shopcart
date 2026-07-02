@@ -74,11 +74,11 @@ a{
         <p>Rs. {{ item.product.price }}</p>
 
         <div class="qty">
-            <a href="{% url 'decrease_quantity' item.id %}">-</a>
+            <a href="{% url 'update_quantity' item.id 'decrease' %}">-</a>
 
             {{ item.quantity }}
 
-            <a href="{% url 'increase_quantity' item.id %}">+</a>
+            <a href="{% url 'update_quantity' item.id 'increase' %}">+</a>
 
             <a href="{% url 'remove_item' item.id %}">Remove</a>
         </div>
