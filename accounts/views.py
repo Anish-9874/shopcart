@@ -1,8 +1,6 @@
-from django.http import HttpResponse
 from django.contrib import messages
 
 from django.shortcuts import render, redirect
-from .forms import UserForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 
