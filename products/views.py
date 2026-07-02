@@ -47,8 +47,21 @@ def see_product(request):
     })
 
 
-def category(request):
-    categories = Product.objects.all()
-    return render(request, "categories.html", {
-        "categories": categories
-    })
+def category(request, category_id):
+    categories = Product.objects.filter(category_id=category_id)
+    return render(request, "categories.html", {"categories": categories})
+
+
+def edit_product(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+
+        if form.is_valid():
+            form.save()
+            return redirect('see_product')
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'add_product.html', {'form': form})
