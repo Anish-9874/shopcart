@@ -16,9 +16,6 @@ from pathlib import Path
 
 
 
-
-from pathlib import Path
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -50,6 +47,7 @@ INSTALLED_APPS = [
     'products',
     'cart',
     'dashboard',
+
 ]
 
 MIDDLEWARE = [
@@ -87,12 +85,11 @@ WSGI_APPLICATION = 'shopcart.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE"),
+        "NAME": BASE_DIR / os.getenv("DB_NAME"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
