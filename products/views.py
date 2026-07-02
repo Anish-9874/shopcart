@@ -66,6 +66,14 @@ def edit_product(request, id):
 
 
 
-def category(request):
-    categories = Product.objects.all()
+def category_list(request):
+    categories = Product.CATEGORY_CHOICES
     return render(request, "categories.html", {"categories": categories})
+
+
+def category(request, category_name):
+    products = Product.objects.filter(category=category_name)
+    return render(request, "category_details.html", {
+        "products": products,
+        "category_name": category_name,
+    })

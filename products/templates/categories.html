@@ -1,7 +1,60 @@
-<h2>{{ categories.name }}</h2>
+{% extends "base.html" %}
 
-{% for product in products %}
-    <p>{{ product.name }}</p>
-{% empty %}
-    <p>No products found.</p>
-{% endfor %}
+{% block content %}
+
+<style>
+.category-container{
+    width:90%;
+    max-width:1000px;
+    margin:40px auto;
+}
+
+.category-container h1{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.category-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    gap:20px;
+}
+
+.category-card{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:30px;
+    text-align:center;
+    text-decoration:none;
+    color:#333;
+    font-size:22px;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+.category-card:hover{
+    background:#0d6efd;
+    color:#fff;
+    transform:translateY(-5px);
+    box-shadow:0 8px 15px rgba(0,0,0,0.2);
+}
+</style>
+
+<div class="category-container">
+
+    <h1>Shop by Category</h1><br><br>
+
+    <div class="category-grid">
+
+        {% for value, label in categories %}
+            <a href="{% url 'category' value %}" class="category-card">
+                {{ label }}
+            </a>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
