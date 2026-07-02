@@ -141,7 +141,7 @@ ul.errorlist{
 <h1>Create Account</h1>
 
 <form method="POST">
-    {% csrf_token %}
+    {% csrf_token %} 
 
     {% if form.non_field_errors %}
         {{ form.non_field_errors }}
