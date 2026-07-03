@@ -12,7 +12,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            if user.username == "anish":
+            if user.is_staff:
                 return redirect("admin_dashboard")
             else:
                 return redirect("customer_dashboard")

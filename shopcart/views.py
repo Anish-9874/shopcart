@@ -1,9 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import HttpResponse
 
 
+from django.shortcuts import redirect, render
+
 def home(request):
-    return render(request, 'index.html')
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect("admin_dashboard")
+        else:
+            return redirect("customer_dashboard")
+
+    return render(request, "index.html")
 
 def about(request):
     return render(request, 'about.html')
