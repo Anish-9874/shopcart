@@ -4,6 +4,8 @@ from . import views
 from accounts import views as acc_views
 
 urlpatterns = [
+
+    path("", include("chat.urls")),
     path("login/", acc_views.login_view, name="login"),
     path("signup/", acc_views.signup_view, name="signup"),
 

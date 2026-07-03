@@ -31,7 +31,7 @@ def customer_chat(request):
     else:
         form = MessageForm()
 
-    messages = room.messages.all()
+    messages = room.messages.select_related("sender").order_by("-created_at")[:50][::-1]
 
     context = {
         "room": room,
@@ -48,7 +48,7 @@ def customer_chat(request):
 @user_passes_test(lambda u: u.is_staff)
 def inbox(request):
 
-    rooms = ChatRoom.objects.all().order_by("-id")
+    rooms = ChatRoom.objects.select_related("customer").order_by("-id")
 
     context = {
         "rooms": rooms,
@@ -81,7 +81,7 @@ def admin_chat(request, room_id):
     else:
         form = MessageForm()
 
-    messages = room.messages.all()
+    messages = room.messages.select_related("sender").order_by("-created_at")[:50][::-1]
 
     context = {
         "room": room,

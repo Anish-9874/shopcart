@@ -2,34 +2,85 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<style>
+.chat-container{
+    max-width:700px;
+    width:100%;
+    margin:40px auto;
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+    padding:20px;
+}
 
-    <h2>Customer Chats</h2>
+.chat-box{
+    height:450px;
+    overflow-y:auto;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:15px;
+    margin-bottom:20px;
+}
+
+.chat-form textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    resize:none;
+}
+
+.chat-form input[type="submit"]{
+    margin-top:10px;
+}
+</style>
+
+<div class="chat-container">
+
+    <h2>Chat With Admin/Support</h2>
 
     <hr>
-{{ form.as_p }}
-<input type="submit" value="Send" class="btn btn-success">
-    {% for room in rooms %}
 
-        <div class="card mb-3">
+    <div class="chat-box">
 
-            <div class="card-body">
+        {% for message in messages %}
 
-                <h5>{{ room.customer.username }}</h5>
+            {% if message.sender == request.user %}
 
-                <a href="{% url 'admin_chat' room.id %}" class="btn btn-primary">
-                    Open Chat
-                </a>
+                <div style="text-align:right;margin-bottom:15px;">
+                    <span style="background:#198754;color:white;padding:10px 15px;border-radius:15px;display:inline-block;">
+                        {{ message.text }}
+                    </span><br>
+                    <small>{{ message.created_at }}</small>
+                </div>
 
-            </div>
+            {% else %}
 
-        </div>
+                <div style="text-align:left;margin-bottom:15px;">
+                    <strong>Support</strong><br>
 
-    {% empty %}
+                    <span style="background:#e9ecef;padding:10px 15px;border-radius:15px;display:inline-block;">
+                        {{ message.text }}
+                    </span><br>
 
-        <p>No chats available.</p>
+                    <small>{{ message.created_at }}</small>
+                </div>
 
-    {% endfor %}
+            {% endif %}
+
+        {% empty %}
+
+            <p>No messages yet.</p>
+
+        {% endfor %}
+
+    </div>
+
+    <form method="POST" class="chat-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Send" class="btn btn-success">
+    </form>
 
 </div>
 

@@ -1,7 +1,157 @@
 
+
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#F8FAFC;
+    color:#1E293B;
+}
+
+/* Layout */
+
+.layout{
+    display:flex;
+    min-height:100vh;
+}
+
+/* Sidebar */
+
+.sidebar{
+    width:250px;
+    background:#0F172A;
+    padding-top:20px;
+}
+
+.sidebar a{
+    display:block;
+    padding:14px 24px;
+    color:#CBD5E1;
+    text-decoration:none;
+    transition:.3s;
+    font-size:15px;
+}
+
+.sidebar a:hover,
+.sidebar a.active{
+    background:#2563EB;
+    color:#fff;
+}
+
+/* Main Content */
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+/* Header */
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.page-header h1{
+    font-size:28px;
+    color:#0F172A;
+}
+
+/* Table */
+
+.product-table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.product-table th{
+    background:#F1F5F9;
+    color:#64748B;
+    text-transform:uppercase;
+    font-size:13px;
+    padding:15px;
+}
+
+.product-table td{
+    padding:15px;
+    border-bottom:1px solid #E2E8F0;
+}
+
+.product-table tr:hover{
+    background:#F8FAFC;
+}
+
+/* Product Image */
+
+.product-image{
+    width:70px;
+    height:70px;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+/* Buttons */
+
+.edit-btn{
+    background:#10B981;
+    color:#fff;
+    padding:8px 16px;
+    text-decoration:none;
+    border-radius:6px;
+    margin-right:8px;
+    font-size:14px;
+}
+
+.edit-btn:hover{
+    background:#059669;
+}
+
+.delete-btn{
+    background:#EF4444;
+    color:#fff;
+    padding:8px 16px;
+    text-decoration:none;
+    border-radius:6px;
+    font-size:14px;
+}
+
+.delete-btn:hover{
+    background:#DC2626;
+}
+
+</style>
+
+
+
+    <div class="layout">
+
+        <div class="sidebar">
+            <a href="{% url 'admin_dashboard' %}" class="active">📊 Dashboard</a>
+            <a href="{% url 'add_product' %}">📦Add Products</a>
+            <a href="{% url 'see_product' %}">🛒 Products</a>
+            <a href="#">👥 Customers</a>
+            <a href="{% url 'inbox' %}">💬 Chats</a>
+            <a href="#">⭐ Reviews</a>
+            <a href="#">📈 Reports</a>
+            <a href="{% url 'logout' %}">🚪 Logout</a>
+        </div>
+
 <div class="container mt-4">
 
-    <h2>Customer Chats</h2>
+    <h2>Customer Chats</h2><br><br><br>
 
     <hr>
 
@@ -11,11 +161,11 @@
 
             <div class="card-body">
 
-                <h5>{{ room.customer.username }}</h5>
+                <h1>{{ room.customer.username }}</h1>
 
                 <a href="{% url 'admin_chat' room.id %}" class="btn btn-primary">
                     Open Chat
-                </a>
+                </a><br><br>
 
             </div>
 
