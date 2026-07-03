@@ -1,10 +1,10 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth.models import User
 
 
 class ChatRoom(models.Model):
     customer = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="chat_room"
     )
@@ -20,7 +20,7 @@ class Message(models.Model):
         related_name="messages"
     )
     sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="sent_messages"
     )
