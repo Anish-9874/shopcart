@@ -1,0 +1,31 @@
+
+<div class="container mt-4">
+
+    <h2>Customer Chats</h2>
+
+    <hr>
+
+    {% for room in rooms %}
+
+        <div class="card mb-3">
+
+            <div class="card-body">
+
+                <h5>{{ room.customer.username }}</h5>
+
+                <a href="{% url 'admin_chat' room.id %}" class="btn btn-primary">
+                    Open Chat
+                </a>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <p>No chats available.</p>
+
+    {% endfor %}
+
+</div>
+

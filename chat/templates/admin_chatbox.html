@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4" style="max-width:700px;">
+
+    <h3>
+        Chat with {{ room.customer.username }}
+    </h3>
+
+    <hr>
+
+    <div style="height:450px; overflow-y:auto; border:1px solid #ddd; padding:15px;">
+
+        {% for message in messages %}
+
+            {% if message.sender == request.user %}
+
+                <div style="text-align:right; margin-bottom:15px;">
+                    <span style="background:#198754;color:white;padding:10px 15px;border-radius:15px;display:inline-block;">
+                        {{ message.text }}
+                    </span>
+                    <br>
+                    <small>{{ message.created_at }}</small>
+                </div>
+
+            {% else %}
+
+                <div style="text-align:left; margin-bottom:15px;">
+                    <strong>{{ room.customer.username }}</strong><br>
+
+                    <span style="background:#e9ecef;padding:10px 15px;border-radius:15px;display:inline-block;">
+                        {{ message.text }}
+                    </span>
+
+                    <br>
+
+                    <small>{{ message.created_at }}</small>
+
+                </div>
+
+            {% endif %}
+
+        {% empty %}
+
+            <p>No messages.</p>
+
+        {% endfor %}
+
+    </div>
+
+    <br>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button class="btn btn-success">
+            Reply
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
