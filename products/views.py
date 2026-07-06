@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ProductForm
+from feedback.forms import FeedbackForm
+
 from .models import Product
 
 # Create your views here.
@@ -76,4 +78,33 @@ def category(request, category_name):
     return render(request, "category_details.html", {
         "products": products,
         "category_name": category_name,
+    })
+
+
+
+
+
+def product_review(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    if request.method == "POST":
+        form = FeedbackForm(request.POST)
+
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.product = product
+            feedback.user = request.user
+            feedback.save()
+
+            return redirect("product_review", id=product.id)
+
+    else:
+        form = FeedbackForm()
+
+    feedbacks = product.feedbacks.all()
+
+    return render(request, "feedback.html", {
+        "product": product,
+        "feedbacks": feedbacks,
+        "form": form,
     })

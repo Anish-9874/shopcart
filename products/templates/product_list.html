@@ -163,6 +163,9 @@ Rs. {{ product.price }}
 <a href="{% url 'add_to_cart' product.id %}" class="btn-delete">
 ADD TO CART
 </a>
+<a href="{% url 'product_review' product.id %}">
+    View Feedback
+</a>
 
 </div>
 

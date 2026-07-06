@@ -1,0 +1,38 @@
+<h2>{{ product.name }}</h2>
+
+<img src="{{ product.image.url }}" width="250">
+
+<p>{{ product.description }}</p>
+
+<hr>
+
+<h3>Write a Review</h3>
+
+<form method="POST"">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">
+        Submit Review
+    </button>
+</form>
+
+<hr>
+
+<h3>Customer Reviews</h3>
+
+{% for feedback in feedbacks %}
+
+    <strong>{{ feedback.user.username }}</strong>
+
+    <small>{{ feedback.created_at }}</small>
+
+    <p>{{ feedback.message }}</p>
+
+    <hr>
+
+{% empty %}
+
+    <p>No reviews yet.</p>
+
+{% endfor %}
