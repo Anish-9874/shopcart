@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.db import transaction
 
-from products.models import Product
+from apps.products.models import Product
 from .models import Cart, CartItem, Order, OrderItem
 
 

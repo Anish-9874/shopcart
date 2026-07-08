@@ -4,7 +4,7 @@ from . import views
 
 
 urlpatterns = [
-    path('', include('dashboard.urls')),
+    path('', include('apps.dashboard.urls')),
     path('add_product/', views.add_product, name='add_product'),
     path('delete_product/<int:id>/', views.delete_product, name='delete_product'),
     path('see_product/', views.see_product, name='see_product'),

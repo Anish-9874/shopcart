@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.urls import include, path
 from . import views
-from accounts import views as acc_views
+from apps.accounts import views as acc_views
 
 urlpatterns = [
 
-    path("", include("chat.urls")),
+    path("", include("apps.chat.urls")),
     path("login/", acc_views.login_view, name="login"),
     path("signup/", acc_views.signup_view, name="signup"),
 

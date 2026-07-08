@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ProductForm
-from feedback.forms import FeedbackForm
+from apps.feedback.forms import FeedbackForm
 
 from .models import Product
 
