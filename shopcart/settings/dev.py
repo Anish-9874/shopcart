@@ -32,6 +32,27 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/day',
         'user': '1000/day'
-    }  
+    },
 
+
+
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "ShopCart API",
+    "DESCRIPTION": "API documentation for ShopCart project",
+    "VERSION": "1.0.0",
+}
+
+
+
+# for cache
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-cache",
+    }
 }

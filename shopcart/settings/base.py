@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.feedback',
     'rest_framework',
     'django_filters',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [

@@ -23,7 +23,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)       #IF WE DO (many=True ) it is for many to many relations
     class Meta:
         model = Order
         fields = "__all__"
@@ -32,7 +32,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    order = serializers.StringRelatedField(read_only=True)
+    order = OrderSerializer()
     product = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = OrderItem

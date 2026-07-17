@@ -3,6 +3,9 @@ from .forms import ProductForm
 from apps.feedback.forms import FeedbackForm
 
 from .models import Product
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+
 
 # Create your views here.
 
@@ -34,12 +37,18 @@ def delete_product(request, id):
 
 
 
+# @cache_page(60 * 15)   can also be done by this this method can Caches the entire HTTP response
 def product_list(request):
-    products = Product.objects.all()
+    products = cache.get("products")        #instead of Product.objects.all() we did this to learn cache (Caches only the data you choose)
+
+    if products is None:
+        print("Loading from database...")       #just to know data is retrived from database or not
+        products = list(Product.objects.all())  #
+        cache.set("products", products, 300)    #cache.set set the cache, we can clear it by cache.clear(), or delete by cache.delete("products")
     return render(request, "product_list.html", {"products": products})
 
 
-
+@cache_page(60 * 15)     #load from cache after first load
 def see_product(request):
 
     products = Product.objects.all()
