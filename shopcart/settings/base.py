@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'apps.cart',
     'apps.dashboard',
     'apps.chat',
-    'apps.feedback'
-
+    'apps.feedback',
+    'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -75,12 +76,10 @@ WSGI_APPLICATION = 'shopcart.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": config("DB_ENGINE"),
-        "NAME": BASE_DIR / config("DB_NAME"),
-    }
-}
+
+
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -126,4 +125,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' #"When I create a model and I do not specify a primary key, use a BigAutoField automatically. "
+
+
+
+LOGIN_URL = '/login/'   # Redirect to login page if user is not authenticated usually work for @loginrequired decorator
