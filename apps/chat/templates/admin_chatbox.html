@@ -1,205 +1,149 @@
+{% extends 'admin_base.html' %}
 
+{% block title %}Admin Chat{% endblock %}
 
+{% block extra_css %}
 
 <style>
-.content{
-    flex:1;
-    display:flex;
-    justify-content:center;   /* Horizontal center */
-    align-items:center;       /* Vertical center */
-    padding:30px;
-}
 
 .chat-container{
-    width:100%;
-    max-width:700px;
+    max-width:800px;
+    margin:0 auto;
     background:#fff;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
-}
-
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:Arial, sans-serif;
-    background:#F8FAFC;
-    color:#1E293B;
-}
-
-/* Layout */
-
-.layout{
-    display:flex;
-    min-height:100vh;
-}
-
-/* Sidebar */
-
-.sidebar{
-    width:250px;
-    background:#0F172A;
-    padding-top:20px;
-}
-
-.sidebar a{
-    display:block;
-    padding:14px 24px;
-    color:#CBD5E1;
-    text-decoration:none;
-    transition:.3s;
-    font-size:15px;
-}
-
-.sidebar a:hover,
-.sidebar a.active{
-    background:#2563EB;
-    color:#fff;
-}
-
-/* Main Content */
-
-.content{
-    flex:1;
-    padding:30px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+    overflow:hidden;
 }
 
 /* Header */
 
-.page-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:25px;
+.chat-header{
+    background:#2563EB;
+    color:#fff;
+    padding:18px 25px;
 }
 
-.page-header h1{
-    font-size:28px;
-    color:#0F172A;
+.chat-header h2{
+    font-size:22px;
 }
 
-/* Table */
+/* Messages */
 
-.product-table{
-    width:100%;
-    border-collapse:collapse;
-    background:#fff;
-    border-radius:10px;
-    overflow:hidden;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
-}
-
-.product-table th{
-    background:#F1F5F9;
-    color:#64748B;
-    text-transform:uppercase;
-    font-size:13px;
-    padding:15px;
-}
-
-.product-table td{
-    padding:15px;
-    border-bottom:1px solid #E2E8F0;
-}
-
-.product-table tr:hover{
+.chat-body{
+    height:450px;
+    overflow-y:auto;
+    padding:20px;
     background:#F8FAFC;
 }
 
-/* Product Image */
+.message{
+    margin-bottom:20px;
+}
 
-.product-image{
-    width:70px;
-    height:70px;
-    object-fit:cover;
+.message.admin{
+    text-align:right;
+}
+
+.message.customer{
+    text-align:left;
+}
+
+.bubble{
+    display:inline-block;
+    max-width:70%;
+    padding:12px 16px;
+    border-radius:15px;
+    word-wrap:break-word;
+}
+
+.admin .bubble{
+    background:#198754;
+    color:#fff;
+}
+
+.customer .bubble{
+    background:#E2E8F0;
+    color:#1E293B;
+}
+
+.time{
+    display:block;
+    margin-top:5px;
+    font-size:12px;
+    color:#64748B;
+}
+
+/* Form */
+
+.chat-footer{
+    padding:20px;
+    border-top:1px solid #E2E8F0;
+    background:#fff;
+}
+
+.chat-footer textarea{
+    width:100%;
+    border:1px solid #CBD5E1;
     border-radius:8px;
+    padding:12px;
+    resize:none;
 }
 
-/* Buttons */
-
-.edit-btn{
-    background:#10B981;
+.chat-footer button{
+    margin-top:15px;
+    background:#2563EB;
     color:#fff;
-    padding:8px 16px;
-    text-decoration:none;
-    border-radius:6px;
-    margin-right:8px;
-    font-size:14px;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
 }
 
-.edit-btn:hover{
-    background:#059669;
-}
-
-.delete-btn{
-    background:#EF4444;
-    color:#fff;
-    padding:8px 16px;
-    text-decoration:none;
-    border-radius:6px;
-    font-size:14px;
-}
-
-.delete-btn:hover{
-    background:#DC2626;
+.chat-footer button:hover{
+    background:#1D4ED8;
 }
 
 </style>
 
+{% endblock %}
 
+{% block content %}
 
-    <div class="layout">
+<div class="page-header">
+    <h1>💬 Chat</h1>
+</div>
 
-        <div class="sidebar">
-            <a href="{% url 'admin_dashboard' %}" class="active">📊 Dashboard</a>
-            <a href="{% url 'add_product' %}">📦Add Products</a>
-            <a href="{% url 'see_product' %}">🛒 Products</a>
-            <a href="#">👥 Customers</a>
-            <a href="{% url 'inbox' %}">💬 Chats</a>
-            <a href="#">⭐ Reviews</a>
-            <a href="#">📈 Reports</a>
-            <a href="{% url 'logout' %}">🚪 Logout</a>
-        </div>
-<div class="content">
+<div class="chat-container">
 
-        <div class="chat-container">
-    <h3>
-        Chat with {{ room.customer.username }}
-    </h3>
+    <div class="chat-header">
+        <h2>Chat with {{ room.customer.username }}</h2>
+    </div>
 
-    <hr>
-
-    <div style="height:450px; overflow-y:auto; border:1px solid #ddd; padding:15px;">
+    <div class="chat-body">
 
         {% for message in messages %}
 
             {% if message.sender == request.user %}
 
-                <div style="text-align:right; margin-bottom:15px;">
-                    <span style="background:#198754;color:white;padding:10px 15px;border-radius:15px;display:inline-block;">
+                <div class="message admin">
+                    <div class="bubble">
                         {{ message.text }}
-                    </span>
-                    <br>
-                    <small>{{ message.created_at }}</small>
+                    </div>
+                    <span class="time">{{ message.created_at }}</span>
                 </div>
 
             {% else %}
 
-                <div style="text-align:left; margin-bottom:15px;">
+                <div class="message customer">
+
                     <strong>{{ room.customer.username }}</strong><br>
 
-                    <span style="background:#e9ecef;padding:10px 15px;border-radius:15px;display:inline-block;">
+                    <div class="bubble">
                         {{ message.text }}
-                    </span>
+                    </div>
 
-                    <br>
-
-                    <small>{{ message.created_at }}</small>
+                    <span class="time">{{ message.created_at }}</span>
 
                 </div>
 
@@ -207,25 +151,28 @@ body{
 
         {% empty %}
 
-            <p>No messages.</p>
+            <p>No messages yet.</p>
 
         {% endfor %}
 
     </div>
 
-    <br>
+    <div class="chat-footer">
 
-    <form method="POST">
+        <form method="POST">
 
-        {% csrf_token %}
+            {% csrf_token %}
 
-        {{ form.as_p }}
+            {{ form.as_p }}
 
-        <button class="btn btn-success">
-            Reply
-        </button>
+            <button type="submit">
+                Send Reply
+            </button>
 
-    </form>
+        </form>
+
+    </div>
 
 </div>
-</div>
+
+{% endblock %}

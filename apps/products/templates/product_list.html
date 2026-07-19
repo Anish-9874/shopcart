@@ -9,6 +9,11 @@
     box-sizing:border-box;
 }
 
+body{
+    background:#f5f5f5;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
 .products-page{
     width:100%;
     max-width:1400px;
@@ -18,7 +23,54 @@
 
 .products-page h2{
     font-size:30px;
+    margin-bottom:20px;
+    text-align:center;
+}
+
+/* Search bar */
+
+.search-bar{
+    display:flex;
+    justify-content:center;
     margin-bottom:30px;
+}
+
+.search-bar form{
+    display:flex;
+    width:100%;
+    max-width:600px;
+    gap:10px;
+}
+
+.search-bar input[type="text"]{
+    flex:1;
+    min-width:0;
+    padding:12px 16px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    font-size:16px;
+    outline:none;
+}
+
+.search-bar input[type="text"]:focus{
+    border-color:#f85606;
+}
+
+.btn-search{
+    flex-shrink:0;
+    padding:12px 24px;
+    background:#f85606;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.btn-search:hover{
+    background:#d94800;
 }
 
 .product-grid{
@@ -30,8 +82,10 @@
 .product-card{
     background:#fff;
     border:1px solid #ddd;
-    border-radius:10px;
+    border-radius:12px;
     overflow:hidden;
+    display:flex;
+    flex-direction:column;
     transition:.3s;
 }
 
@@ -44,72 +98,129 @@
     width:100%;
     height:250px;
     background:#f5f5f5;
+    flex-shrink:0;
 }
 
 .product-thumb img{
     width:100%;
     height:100%;
     object-fit:cover;
+    display:block;
 }
 
 .no-image{
+    height:100%;
     display:flex;
     justify-content:center;
     align-items:center;
-    height:100%;
+    color:#888;
+    font-size:18px;
 }
 
 .product-body{
-    padding:15px;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    flex:1;
 }
 
 .product-name{
-    font-size:20px;
+    font-size:22px;
     font-weight:bold;
     margin-bottom:10px;
+    word-wrap:break-word;
 }
 
 .product-price{
     color:#f85606;
-    font-size:22px;
+    font-size:24px;
     font-weight:bold;
-    margin-bottom:10px;
+    margin-bottom:12px;
 }
 
 .product-desc{
     color:#666;
     margin-bottom:20px;
+    line-height:1.5;
+    word-wrap:break-word;
 }
 
-.btn-delete{
-    display:block;
+/* Buttons */
+
+.product-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
     width:100%;
-    text-align:center;
-    padding:10px;
-    background:red;
-    color:white;
-    text-decoration:none;
-    border-radius:5px;
+    margin-top:auto;
 }
 
-.btn-delete:hover{
-    background:darkred;
+.top-actions{
+    display:flex;
+    gap:10px;
+    width:100%;
+}
+
+.btn-cart,
+.btn-buy,
+.btn-feedback{
+    flex:1 1 0;
+    min-width:0;
+    text-align:center;
+    padding:11px 8px;
+    text-decoration:none;
+    color:#fff;
+    border-radius:6px;
+    font-weight:bold;
+    font-size:14px;
+    transition:.3s;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.btn-cart{
+    background:#f85606;
+}
+
+.btn-cart:hover{
+    background:#d94800;
+}
+
+.btn-buy{
+    background:#198754;
+}
+
+.btn-buy:hover{
+    background:#157347;
+}
+
+.btn-feedback{
+    background:#0d6efd;
+    width:100%;
+}
+
+.btn-feedback:hover{
+    background:#0b5ed7;
 }
 
 .empty-state{
     text-align:center;
     font-size:25px;
     color:gray;
+    margin-top:50px;
 }
 
 /* Tablet */
+
 @media(max-width:992px){
     .product-grid{
         grid-template-columns:repeat(3,1fr);
     }
 }
 
-/* Small tablet */
+/* Small Tablet */
+
 @media(max-width:768px){
     .product-grid{
         grid-template-columns:repeat(2,1fr);
@@ -117,71 +228,102 @@
 }
 
 /* Mobile */
+
 @media(max-width:500px){
     .product-grid{
         grid-template-columns:1fr;
+    }
+
+    .top-actions{
+        flex-direction:column;
+    }
+
+    .search-bar form{
+        flex-direction:column;
     }
 }
 </style>
 
 <div class="products-page">
 
-<h2>All Products</h2>
+    <h2>All Products</h2>
 
-{% if products %}
+    <div class="search-bar">
+        <form method="GET" action="{% url 'product_list' %}">
+            <input type="text" name="q" placeholder="Search products..." value="{{ request.GET.q }}">
+            <button type="submit" class="btn-search">Search</button>
+        </form>
+    </div>
 
-<div class="product-grid">
+    {% if products %}
 
-{% for product in products %}
+    <div class="product-grid">
 
-<div class="product-card">
+        {% for product in products %}
 
-<div class="product-thumb">
+        <div class="product-card">
 
-{% if product.image %}
-<img src="{{ product.image.url }}">
-{% else %}
-<div class="no-image">No Image</div>
-{% endif %}
+            <div class="product-thumb">
 
-</div>
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="no-image">
+                        No Image
+                    </div>
+                {% endif %}
 
-<div class="product-body">
+            </div>
 
-<div class="product-name">
-{{ product.name }}
-</div>
+            <div class="product-body">
 
-<div class="product-price">
-Rs. {{ product.price }}
-</div>
+                <div class="product-name">
+                    {{ product.name }}
+                </div>
 
-<div class="product-desc">
-{{ product.description }}
-</div>
+                <div class="product-price">
+                    Rs. {{ product.price }}
+                </div>
 
-<a href="{% url 'add_to_cart' product.id %}" class="btn-delete">
-ADD TO CART
-</a>
-<a href="{% url 'product_review' product.id %}">
-    View Feedback
-</a>
+                <div class="product-desc">
+                    {{ product.description }}
+                </div>
 
-</div>
+                <div class="product-actions">
 
-</div>
+                    <div class="top-actions">
 
-{% endfor %}
+                        <a href="{% url 'add_to_cart' product.id %}" class="btn-cart">
+                            Add to Cart
+                        </a>
 
-</div>
+                        <a href="{% url 'buy_now' product.id %}" class="btn-buy">
+                            Buy Now
+                        </a>
 
-{% else %}
+                    </div>
 
-<div class="empty-state">
-No Products Available
-</div>
+                    <a href="{% url 'product_review' product.id %}" class="btn-feedback">
+                        View Feedback
+                    </a>
 
-{% endif %}
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        No Products Available
+    </div>
+
+    {% endif %}
 
 </div>
 

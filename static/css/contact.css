@@ -47,110 +47,48 @@
 }
 
 /* ==========================================================
-   Sections
+   Layout
 ========================================================== */
 .section{
     padding:40px 0;
 }
 
-.section-heading{
-    text-align:center;
-    margin-bottom:32px;
-}
-
-.section-heading h2{
-    font-size:26px;
-    font-weight:700;
-    color:var(--ink);
-    margin:0 0 8px;
-}
-
-.section-heading p{
-    color:var(--muted);
-    font-size:15px;
-}
-
-/* ==========================================================
-   Mission split + stats
-========================================================== */
-.about-split{
+.contact-layout{
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:40px;
-    align-items:center;
+    grid-template-columns:1fr 1.2fr;
+    gap:32px;
+    align-items:start;
 }
 
-@media (max-width:780px){
-    .about-split{
+@media (max-width:820px){
+    .contact-layout{
         grid-template-columns:1fr;
     }
 }
 
-.about-split h2{
-    font-size:24px;
-    font-weight:700;
-    color:var(--ink);
-    margin:0 0 14px;
-}
-
-.about-split p{
-    color:var(--muted);
-    line-height:1.7;
-    font-size:15px;
-}
-
-.stat-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:16px;
-}
-
-.stat-card{
-    background:#fff;
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:24px 12px;
-    text-align:center;
-}
-
-.stat-card strong{
-    display:block;
-    font-size:26px;
-    font-weight:800;
-    color:var(--blue);
-}
-
-.stat-card span{
-    font-size:13px;
-    color:var(--muted);
-}
-
 /* ==========================================================
-   Offer cards
+   Info cards
 ========================================================== */
-.card-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
+.contact-cards{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
 }
 
 .info-card{
     background:#fff;
     border-radius:var(--radius);
-    padding:28px 22px;
     box-shadow:var(--shadow);
-    text-align:center;
-    transition:transform .2s ease;
-}
-
-.info-card:hover{
-    transform:translateY(-4px);
+    text-align:left;
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    padding:20px;
 }
 
 .info-card .icon{
     width:56px;
     height:56px;
-    margin:0 auto 16px;
     border-radius:50%;
     background:#eff6ff;
     color:var(--blue);
@@ -158,13 +96,15 @@
     align-items:center;
     justify-content:center;
     font-size:24px;
+    flex-shrink:0;
+    margin:0;
 }
 
 .info-card h3{
     font-size:16px;
     font-weight:700;
     color:var(--ink);
-    margin:0 0 8px;
+    margin:0 0 6px;
 }
 
 .info-card p{
@@ -175,24 +115,66 @@
 }
 
 /* ==========================================================
-   CTA banner
+   Form
 ========================================================== */
-.cta-banner{
-    background:var(--ink);
+.contact-form{
+    background:#fff;
     border-radius:var(--radius);
-    padding:48px 32px;
-    text-align:center;
-    color:#fff;
+    box-shadow:var(--shadow);
+    padding:32px;
 }
 
-.cta-banner h2{
-    margin:0 0 10px;
-    font-size:24px;
+.contact-form h2{
+    margin:0 0 6px;
+    font-size:20px;
     font-weight:700;
+    color:var(--ink);
 }
 
-.cta-banner p{
-    color:#9ca3af;
+.contact-form > p{
+    color:var(--muted);
+    font-size:14px;
     margin:0 0 24px;
-    font-size:15px;
+}
+
+.form-row{
+    margin-bottom:16px;
+}
+
+.form-row label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:6px;
+}
+
+.form-row input,
+.form-row textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    box-sizing:border-box;
+    transition:border-color .15s ease;
+}
+
+.form-row input:focus,
+.form-row textarea:focus{
+    outline:none;
+    border-color:var(--blue);
+}
+
+.form-row-split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+}
+
+@media (max-width:480px){
+    .form-row-split{
+        grid-template-columns:1fr;
+    }
 }

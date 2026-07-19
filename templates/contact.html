@@ -1,34 +1,64 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact.css' %}">
+{% endblock %}
+
 {% block content %}
-<div>
-    <h1>Contact Us</h1><br>
-    <p class="subtitle">
-        We'd love to hear from you! If you have any questions, suggestions, or feedback,
-        feel free to get in touch.
-    </p>
 
-        <div class="contact-info">
-            <br><h2>Get in Touch</h2>
+<div class="page-wrap">
 
-            <p><strong>📍 Address:</strong><br>
-                New Baneshwor, Kathmandu, Nepal
-            </p><br>
+    <!-- Hero -->
+    <div class="page-hero">
+        <h1>Get in <span class="blue">touch</span></h1>
+        <p>
+            Questions about an order, a product, or just want to say hi?
+            We'd love to hear from you.
+        </p>
+    </div>
 
-            <p><strong>📞 Phone:</strong><br>
-                +977-98XXXXXXXX
-            </p><br>
+    <div class="section">
 
-            <p><strong>📧 Email:</strong><br>
-                support@shopcart.com
-            </p><br>
+        <!-- Contact info -->
+        <div class="contact-cards">
 
-            <p><strong>🕒 Working Hours:</strong><br>
-                Sunday – Friday<br>
-                9:00 AM – 6:00 PM
-            </p>
+            <div class="info-card">
+                <div class="icon">📍</div>
+                <div>
+                    <h3>Address</h3>
+                    <p>New Baneshwor, Kathmandu, Nepal</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">📞</div>
+                <div>
+                    <h3>Phone</h3>
+                    <p>+977-98XXXXXXXX</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">📧</div>
+                <div>
+                    <h3>Email</h3>
+                    <p>support@shopcart.com</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">🕒</div>
+                <div>
+                    <h3>Working hours</h3>
+                    <p>Sunday – Friday, 9:00 AM – 6:00 PM</p>
+                </div>
+            </div>
+
         </div>
-    </div>    
+
+    </div>
+
+</div>
 
 {% endblock %}

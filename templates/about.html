@@ -1,46 +1,104 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<div class="about-container">
+<div class="page-wrap">
 
-    <h1>About Shop Cart</h1><br>
+    <!-- Hero -->
+    <div class="page-hero">
+        <h1>Shop<span class="blue">Cart</span> is built around one idea</h1>
+        <p>
+            Online shopping should feel easy, not stressful. We built ShopCart
+            to be the store we'd actually want to use ourselves — fast, honest,
+            and reliable from browsing to doorstep.
+        </p>
+    </div>
 
-    <p>
-        Welcome to <strong>Shop Cart</strong>, your trusted online shopping destination.
-        We aim to provide a smooth, secure, and enjoyable shopping experience with a
-        wide range of quality products at affordable prices.
-    </p>
+    <!-- Mission split -->
+    <div class="section about-split">
+        <div>
+            <h2>Our mission</h2>
+            <p>
+                We started ShopCart to make online shopping simple and accessible
+                for everyone. That means fair pricing, products that are actually
+                worth buying, and a checkout that doesn't get in your way.
+            </p>
+            <p style="margin-top:14px;">
+                Every decision we make — from the products we list to how we
+                handle support — comes back to one question: would this make
+                the experience better for the person on the other end?
+            </p>
+        </div>
 
-    <br><h2>Our Mission</h2>
-    <p>
-        Our mission is to make online shopping easy, reliable, and accessible for everyone.
-        We are committed to delivering quality products with excellent customer service.
-    </p>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <strong>10K+</strong>
+                <span>Happy customers</span>
+            </div>
+            <div class="stat-card">
+                <strong>500+</strong>
+                <span>Products listed</span>
+            </div>
+            <div class="stat-card">
+                <strong>24/7</strong>
+                <span>Support availability</span>
+            </div>
+        </div>
+    </div>
 
-    <br><h2>What We Offer</h2>
-    <ul>
-        <li>High-quality products</li>
-        <li>Affordable pricing</li>
-        <li>Fast and secure delivery</li>
-        <li>Safe payment methods</li>
-        <li>24/7 customer support</li>
-    </ul>
+    <!-- What we offer -->
+    <div class="section">
+        <div class="section-heading">
+            <h2>What we offer</h2>
+            <p>Everything you'd expect from a store you can trust</p>
+        </div>
 
-    <br><h2>Why Choose Us?</h2>
-    <p>
-        At Shop Cart, customer satisfaction comes first. We continuously improve our
-        services to provide a seamless shopping experience from browsing products
-        to doorstep delivery.
-    </p>
+        <div class="card-grid">
+            <div class="info-card">
+                <div class="icon">✨</div>
+                <h3>Quality products</h3>
+                <p>Every listing is checked before it goes live — no filler, no fakes.</p>
+            </div>
 
-    <br><h2>Contact Us</h2>
-    <p>
-        📧 Email: support@shopcart.com<br>
-        📞 Phone: +977-98XXXXXXXX<br>
-        📍 Address: Kathmandu, Nepal
-    </p>
+            <div class="info-card">
+                <div class="icon">💰</div>
+                <h3>Fair pricing</h3>
+                <p>Competitive prices without the constant fake-discount games.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">🚚</div>
+                <h3>Fast delivery</h3>
+                <p>Orders are packed quickly and tracked from warehouse to your door.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">🔒</div>
+                <h3>Secure payments</h3>
+                <p>Your payment details are encrypted and never stored unsafely.</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">💬</div>
+                <h3>Real support</h3>
+                <p>A real person on the other end, available around the clock.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="section">
+        <div class="cta-banner">
+            <h2>Have a question before you order?</h2>
+            <p>Our team typically replies within a few hours.</p>
+            <a href="{% url 'contact' %}" class="btn btn-primary">Get in touch</a>
+        </div>
+    </div>
 
 </div>
 

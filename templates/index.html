@@ -1,4 +1,145 @@
 {% extends 'base.html' %}
-{% block content%}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-wrap">
+
+    <!-- Hero banner -->
+    <div class="hero-banner">
+        <h1>Everything you need,<br>Shop<span class="blue">Cart</span>-ed to your door</h1>
+        <p>
+            Quality products, fair prices, and delivery you can actually count on.
+            Browse thousands of items picked to be worth your money.
+        </p>
+        <div class="hero-actions">
+            <a href="{% url 'product_list' %}" class="btn btn-primary">Browse Products</a>
+            <a href="{% url 'category_list' %}" class="btn btn-outline">Explore Categories</a>
+        </div>
+    </div>
+
+    <!-- USP strip -->
+    <div class="section">
+        <div class="usp-strip">
+            <div class="usp-item">
+                <div class="icon">🚚</div>
+                <div>
+                    <h4>Fast delivery</h4>
+                    <span class="sub">Tracked, doorstep drop-off</span>
+                </div>
+            </div>
+
+            <div class="usp-item">
+                <div class="icon">🔒</div>
+                <div>
+                    <h4>Secure payments</h4>
+                    <span class="sub">Your data stays protected</span>
+                </div>
+            </div>
+
+            <div class="usp-item">
+                <div class="icon">↩️</div>
+                <div>
+                    <h4>Easy returns</h4>
+                    <span class="sub">Hassle-free, no fine print</span>
+                </div>
+            </div>
+
+            <div class="usp-item">
+                <div class="icon">💬</div>
+                <div>
+                    <h4>24/7 support</h4>
+                    <span class="sub">Real people, real fast</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Featured products -->
+    <div class="section">
+        <div class="section-heading">
+            <h2>Featured products</h2>
+            <p>Handpicked and ready to ship</p>
+        </div>
+
+        {% if featured_products %}
+            <div class="product-grid">
+                {% for product in featured_products %}
+                    <a href="{% url 'product_list' %}" class="product-card">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="thumb" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="thumb-fallback">📦</div>
+                        {% endif %}
+                        <div class="body">
+                            <h4>{{ product.name }}</h4>
+                            <span class="price">${{ product.price }}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                No featured products yet —
+                <a href="{% url 'product_list' %}" class="blue">browse all products</a>
+                instead.
+            </div>
+        {% endif %}
+    </div>
+
+
+
+
+    <!-- Shop by category -->
+    <div class="section">
+        <div class="section-heading">
+            <h2>Shop by category</h2>
+            <p>Find exactly what you're looking for</p>
+        </div>
+
+        {% if categories %}
+            <div class="card-grid">
+                {% for category in categories %}
+                    <a href="{% url 'category_list' %}" class="product-card">
+                        {% if category.image %}
+                            <img src="{{ category.image.url }}" class="thumb" alt="{{ category.name }}">
+                        {% else %}
+                            <div class="thumb-fallback">🛍️</div>
+                        {% endif %}
+                        <div class="body">
+                            <h4>{{ category.name }}</h4>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                Categories will show up here once they're added.
+            </div>
+        {% endif %}
+    </div>
+
     
+    <!-- Newsletter / signup CTA -->
+    <div class="section">
+        <div class="cta-banner">
+            {% if user.is_authenticated %}
+                <h2>Welcome back, {{ user.username }} 👋</h2>
+                <p>Pick up right where you left off.</p>
+                <a href="{% url 'product_list' %}" class="btn btn-primary">Continue Shopping</a>
+            {% else %}
+                <h2>New here?</h2>
+                <p>Create an account to track orders and check out faster.</p>
+                <a href="{% url 'signup' %}" class="btn btn-primary">Create Account</a>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}

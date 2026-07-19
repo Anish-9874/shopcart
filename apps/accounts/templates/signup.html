@@ -20,114 +20,118 @@
 }
 
 body{
-
-    height:100vh;
-
+    min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-
+    padding:30px 15px;
     background:linear-gradient(135deg,#8E2DE2,#4A00E0);
-
 }
 
 .container{
-
-    width:420px;
-    padding:40px;
-
+    width:500px;
     background:rgba(255,255,255,.15);
-
     backdrop-filter:blur(18px);
-
     border-radius:20px;
-
     box-shadow:0 15px 35px rgba(0,0,0,.25);
-
+    padding:35px;
 }
 
 .container h1{
-
-    color:white;
     text-align:center;
+    color:#fff;
     margin-bottom:25px;
-
 }
 
-.container input{
+.form-row{
+    display:flex;
+    gap:15px;
+}
 
+.form-group{
+    flex:1;
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    color:#fff;
+    font-size:14px;
+    font-weight:500;
+    margin-bottom:6px;
+}
+
+input{
     width:100%;
-
-    padding:14px;
-    margin:12px 0;
-
+    padding:13px 15px;
     border:none;
-
     border-radius:10px;
-
     outline:none;
-
     font-size:15px;
+}
 
+input:focus{
+    box-shadow:0 0 0 2px rgba(255,255,255,.5);
 }
 
 button{
-
     width:100%;
-
     padding:14px;
-
+    margin-top:10px;
     border:none;
-
     border-radius:10px;
-
-    background:white;
-
+    background:#fff;
     color:#4A00E0;
-
-    font-weight:bold;
-
+    font-size:16px;
+    font-weight:600;
     cursor:pointer;
-
     transition:.3s;
-
 }
 
 button:hover{
-
     background:#4A00E0;
-    color:white;
-
+    color:#fff;
 }
 
 p{
-
     text-align:center;
+    color:#fff;
     margin-top:20px;
-    color:white;
-
 }
 
 a{
-
-    color:white;
-    font-weight:bold;
+    color:#fff;
     text-decoration:none;
+    font-weight:600;
+}
 
+a:hover{
+    text-decoration:underline;
 }
 
 ul.errorlist{
-
-    color:#ffdcdc;
     list-style:none;
-    margin-bottom:10px;
-
+    color:#FFD4D4;
+    margin-top:5px;
+    font-size:13px;
 }
 
 .helptext{
-
-    color:#eee;
+    color:#EEE;
     font-size:12px;
+}
+
+@media(max-width:600px){
+
+    .container{
+        width:100%;
+        padding:25px;
+    }
+
+    .form-row{
+        flex-direction:column;
+        gap:0;
+    }
 
 }
 
@@ -138,50 +142,80 @@ ul.errorlist{
 
 <div class="container">
 
-<h1>Create Account</h1>
+    <h1>Create Account</h1>
 
-<form method="POST">
-    {% csrf_token %} 
+    <form method="POST">
 
-    {% if form.non_field_errors %}
+        {% csrf_token %}
+
         {{ form.non_field_errors }}
-    {% endif %}
 
-    Username<br>
-    <input
-        type="text" name="username" placeholder="Enter Username" value="{{ form.username.value|default:'' }}">
+        <div class="form-row">
 
-    {{ form.username.errors }}
+            <div class="form-group">
+                <label>First Name</label>
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+            </div>
 
-    <br><br>
+            <div class="form-group">
+                <label>Last Name</label>
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+            </div>
 
-    Password<br>
-    <input
-        type="password" name="password1" placeholder="Enter Password">
+        </div>
 
-    {{ form.password1.errors }}
+        <div class="form-group">
+            <label>Username</label>
+            {{ form.username }}
+            {{ form.username.errors }}
+        </div>
 
-    <br><br>
+        <div class="form-group">
+            <label>Email Address</label>
+            {{ form.email }}
+            {{ form.email.errors }}
+        </div>
 
-    Confirm Password<br>
-    <input
-        type="password" name="password2" placeholder="Re-enter Password">
+        <div class="form-row">
 
-    {{ form.password2.errors }}
+            <div class="form-group">
+                <label>Phone Number</label>
+                {{ form.phone }}
+                {{ form.phone.errors }}
+            </div>
 
-    <br><br>
+            <div class="form-group">
+                <label>Address</label>
+                {{ form.address }}
+                {{ form.address.errors }}
+            </div>
 
-    <button type="submit">Create Account</button>
+        </div>
 
-</form>
+        <div class="form-group">
+            <label>Password</label>
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+        </div>
 
-<p>
+        <div class="form-group">
+            <label>Confirm Password</label>
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+        </div>
 
-Already have an account?
+        <button type="submit">
+            Create Account
+        </button>
 
-<a href="{% url 'login' %}">Login</a>
+    </form>
 
-</p>
+    <p>
+        Already have an account?
+        <a href="{% url 'login' %}">Login</a>
+    </p>
 
 </div>
 

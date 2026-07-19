@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q, F
+from django.db.models import Q
 from django.contrib.auth.models import User
 from apps.products.models import Product
 
@@ -31,30 +31,59 @@ class CartItem(models.Model):
 
     class Meta:
         constraints = [
-            # One product can appear only once in a cart
             models.UniqueConstraint(
                 fields=["cart", "product"],
                 name="unique_cart_product"
             ),
 
-            # Quantity must be greater than zero
             models.CheckConstraint(
                 condition=Q(quantity__gt=0),
                 name="cartitem_quantity_gt_0"
             ),
         ]
 
+    def __str__(self):
+        return f"{self.product.name} ({self.quantity})"
+
+
+# -----------------------------
+# Order
+# -----------------------------
 
 class Order(models.Model):
 
     STATUS = (
         ("Pending", "Pending"),
+        ("Confirmed", "Confirmed"),
         ("Packed", "Packed"),
         ("Shipped", "Shipped"),
         ("Delivered", "Delivered"),
+        ("Cancelled", "Cancelled"),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    PAYMENT_METHOD = (
+        ("COD", "Cash on Delivery"),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="orders"
+    )
+
+    full_name = models.CharField(max_length=100)
+
+    phone = models.CharField(max_length=20)
+
+    address = models.TextField()
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD,
+        default="COD"
+    )
+
+    payment_status = models.BooleanField(default=False)
 
     total = models.DecimalField(
         max_digits=10,
@@ -69,21 +98,30 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         constraints = [
-            # Total cannot be negative
             models.CheckConstraint(
                 condition=Q(total__gte=0),
                 name="order_total_gte_0"
             ),
         ]
 
+    def __str__(self):
+        return f"Order #{self.id}"
+
+
+# -----------------------------
+# Order Item
+# -----------------------------
 
 class OrderItem(models.Model):
 
     order = models.ForeignKey(
         Order,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="items"
     )
 
     product = models.ForeignKey(
@@ -91,30 +129,37 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE
     )
 
-    quantity = models.PositiveIntegerField()
+    product_name = models.CharField(max_length=200)
 
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2
     )
 
+    quantity = models.PositiveIntegerField()
+
+    @property
+    def subtotal(self):
+        return self.price * self.quantity
+
     class Meta:
         constraints = [
-            # Prevent duplicate products in the same order
+
             models.UniqueConstraint(
                 fields=["order", "product"],
                 name="unique_order_product"
             ),
 
-            # Quantity must be positive
             models.CheckConstraint(
                 condition=Q(quantity__gt=0),
                 name="orderitem_quantity_gt_0"
             ),
 
-            # Price cannot be negative
             models.CheckConstraint(
                 condition=Q(price__gte=0),
                 name="orderitem_price_gte_0"
             ),
         ]
+
+    def __str__(self):
+        return self.product_name

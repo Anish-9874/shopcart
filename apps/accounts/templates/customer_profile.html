@@ -1,0 +1,193 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block title %}
+Customer Profile
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+.profile-wrapper{
+    max-width:900px;
+    margin:auto;
+}
+
+.profile-card{
+    background:#fff;
+    border-radius:15px;
+    padding:40px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:30px;
+    margin-bottom:35px;
+}
+
+.profile-image{
+    width:160px;
+    height:160px;
+    border-radius:50%;
+    object-fit:cover;
+    border:5px solid #2563EB;
+}
+
+.user-details h1{
+    color:#0F172A;
+    margin-bottom:10px;
+    font-size:32px;
+}
+
+.user-details p{
+    color:#64748B;
+    font-size:16px;
+}
+
+.info-box{
+    margin-top:20px;
+}
+
+.info-row{
+    display:flex;
+    justify-content:space-between;
+    padding:18px 0;
+    border-bottom:1px solid #E2E8F0;
+}
+
+.info-row span{
+    font-weight:bold;
+    color:#334155;
+}
+
+.info-row p{
+    color:#64748B;
+}
+
+.buttons{
+    margin-top:35px;
+    display:flex;
+    gap:15px;
+}
+
+.back-btn{
+    text-decoration:none;
+    padding:12px 22px;
+    border-radius:8px;
+    color:#fff;
+    font-weight:bold;
+    background:#64748B;
+    transition:.3s;
+}
+
+.back-btn:hover{
+    background:#475569;
+}
+
+.chat-btn{
+    text-decoration:none;
+    padding:12px 22px;
+    border-radius:8px;
+    color:#fff;
+    font-weight:bold;
+    background:#2563EB;
+    transition:.3s;
+}
+
+.chat-btn:hover{
+    background:#1D4ED8;
+}
+
+@media(max-width:768px){
+
+    .header{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .info-row{
+        flex-direction:column;
+        gap:8px;
+    }
+
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>👤 Customer Profile</h1>
+</div>
+
+<div class="profile-wrapper">
+
+    <div class="profile-card">
+
+        <div class="header">
+
+            {% if profile.profile_image %}
+                <img src="{{ profile.profile_image.url }}" class="profile-image">
+            {% else %}
+                <img src="{% static 'images/default-profile.png' %}" class="profile-image">
+            {% endif %}
+
+            <div class="user-details">
+                <h1>{{ customer.username }}</h1>
+                <p>{{ customer.email }}</p>
+            </div>
+
+        </div>
+
+        <div class="info-box">
+
+            <div class="info-row">
+                <span>Username</span>
+                <p>{{ customer.username }}</p>
+            </div>
+
+            <div class="info-row">
+                <span>Email</span>
+                <p>{{ customer.email }}</p>
+            </div>
+
+            <div class="info-row">
+                <span>Phone</span>
+                <p>{{ profile.phone|default:"Not Added" }}</p>
+            </div>
+
+            <div class="info-row">
+                <span>Address</span>
+                <p>{{ profile.address|default:"Not Added" }}</p>
+            </div>
+
+            <div class="info-row">
+                <span>Date Joined</span>
+                <p>{{ customer.date_joined|date:"F d, Y" }}</p>
+            </div>
+
+        </div>
+
+        <div class="buttons">
+
+            <a href="{% url 'customer_list' %}" class="back-btn">
+                ← Back
+            </a>
+
+            {% comment %}
+            Optional: Add chat button here later
+            <a href="{% url 'admin_chat' room.id %}" class="chat-btn">
+                💬 Open Chat
+            </a>
+            {% endcomment %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

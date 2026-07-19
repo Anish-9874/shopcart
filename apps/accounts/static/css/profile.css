@@ -1,0 +1,215 @@
+/* ---------------------------------
+   Design tokens
+--------------------------------- */
+:root{
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --accent: #0d6efd;
+    --accent-dark: #0b5ed7;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 8px 20px rgba(17, 24, 39, .06);
+}
+
+body{
+    background: var(--bg);
+    font-family: -apple-system, "Segoe UI", Arial, Helvetica, sans-serif;
+    color: var(--text);
+}
+
+/* ---------------------------------
+   Layout
+--------------------------------- */
+.profile-page{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap:32px;
+    margin:60px auto;
+    padding:0 20px;
+    flex-wrap:wrap;
+}
+
+.profile-container{
+    display:flex;
+    justify-content:center;
+    margin:60px 0;
+    padding:0 20px;
+}
+
+/* ---------------------------------
+   Profile card
+--------------------------------- */
+.profile-card{
+    width:440px;
+    max-width:100%;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding:32px;
+    box-shadow: var(--shadow);
+}
+
+.profile-card h2{
+    text-align:center;
+    margin:0 0 24px;
+    font-size:20px;
+    font-weight:600;
+}
+
+.profile-image{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    margin:0 auto 20px;
+    border:3px solid var(--accent);
+}
+
+.profile-info{
+    margin-top:8px;
+}
+
+.info-row{
+    margin-bottom:14px;
+}
+
+.info-row span{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color: var(--accent);
+    margin-bottom:4px;
+}
+
+.info-row p{
+    margin:0;
+    background: var(--bg);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:14px;
+    color: var(--text);
+}
+
+/* ---------------------------------
+   Form (edit profile)
+--------------------------------- */
+.form-group{
+    margin-bottom:16px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+    color: var(--text-muted);
+}
+
+.form-group input,
+.form-group textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    color: var(--text);
+    box-sizing:border-box;
+    transition: border-color .15s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+    outline:none;
+    border-color: var(--accent);
+}
+
+.form-group input[readonly]{
+    background: var(--bg);
+    color: var(--text-muted);
+}
+
+/* ---------------------------------
+   Buttons
+--------------------------------- */
+.save-btn,
+.edit-btn{
+    display:block;
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border:none;
+    background: var(--accent);
+    color:#fff;
+    text-decoration:none;
+    text-align:center;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .15s ease;
+}
+
+.save-btn:hover,
+.edit-btn:hover{
+    background: var(--accent-dark);
+}
+
+/* ---------------------------------
+   Support card
+--------------------------------- */
+.support-card{
+    width:260px;
+    max-width:100%;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding:28px 24px;
+    text-align:center;
+    box-shadow: var(--shadow);
+}
+
+.support-icon{
+    width:56px;
+    height:56px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background: var(--bg);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:24px;
+}
+
+.support-card h3{
+    margin:0 0 10px;
+    font-size:16px;
+    font-weight:600;
+}
+
+.support-card p{
+    color: var(--text-muted);
+    font-size:14px;
+    line-height:1.5;
+    margin:0 0 20px;
+}
+
+.chat-btn{
+    display:block;
+    background: var(--accent);
+    color:#fff;
+    text-decoration:none;
+    padding:11px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    transition: background .15s ease;
+}
+
+.chat-btn:hover{
+    background: var(--accent-dark);
+}

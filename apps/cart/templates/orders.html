@@ -1,81 +1,197 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
 
 <style>
-.orders{
-    max-width:800px;
-    margin:30px auto;
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-.order{
-    border:1px solid #ddd;
-    padding:15px;
+body{
+    background:#f5f5f5;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+.orders-container{
+    max-width:1100px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.orders-title{
+    text-align:center;
+    margin-bottom:30px;
+    font-size:32px;
+}
+
+.order-card{
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    padding:25px;
+    margin-bottom:30px;
+}
+
+.order-header{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
     margin-bottom:20px;
+    border-bottom:1px solid #eee;
+    padding-bottom:15px;
 }
 
-table{
-    width:100%;
+.order-header h3{
+    color:#0d6efd;
+}
+
+.order-status{
+    background:#198754;
+    color:white;
+    padding:5px 15px;
+    border-radius:20px;
+    font-size:14px;
+}
+
+.order-info{
     margin-top:10px;
-    border-collapse:collapse;
+    color:#666;
 }
 
-th,td{
-    padding:8px;
-    border-bottom:1px solid #ddd;
+.product-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+.product-table th,
+.product-table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
     text-align:left;
 }
+
+.product-table th{
+    background:#0d6efd;
+    color:white;
+}
+
+.total-row{
+    text-align:right;
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.empty-orders{
+    background:white;
+    padding:50px;
+    border-radius:10px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+@media(max-width:768px){
+
+.order-header{
+    flex-direction:column;
+    gap:10px;
+}
+
+.product-table{
+    display:block;
+    overflow-x:auto;
+}
+
+}
+
 </style>
 
-<div class="orders">
+<div class="orders-container">
 
-<h2>My Orders</h2>
-
-{% if orders %}
+<h1 class="orders-title">
+    My Orders
+</h1>
 
 {% for order in orders %}
 
-<div class="order">
+<div class="order-card">
 
-<h3>Order #{{ order.id }}</h3>
+<div class="order-header">
 
-<p>Date : {{ order.created_at }}</p>
-<p>Status : {{ order.status }}</p>
-<p>Total : Rs. {{ order.total }}</p>
+<div>
 
-<table>
+<h3>
+Order #{{ order.id }}
+</h3>
+
+<div class="order-info">
+{{ order.created_at }}
+</div>
+
+</div>
+
+<div class="order-status">
+{{ order.status }}
+</div>
+
+</div>
+
+<table class="product-table">
 
 <tr>
+
 <th>Product</th>
+
 <th>Price</th>
-<th>Qty</th>
+
+<th>Quantity</th>
+
+<th>Subtotal</th>
+
 </tr>
 
 {% for item in order.items.all %}
 
 <tr>
-<td>{{ item.product.name }}</td>
+
+<td>{{ item.product_name }}</td>
+
 <td>Rs. {{ item.price }}</td>
+
 <td>{{ item.quantity }}</td>
+
+<td>Rs. {{ item.subtotal }}</td>
+
 </tr>
 
 {% endfor %}
 
 </table>
 
+<div class="total-row">
+
+Total :
+Rs. {{ order.total }}
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="empty-orders">
+
+<h2>No Orders Yet</h2>
+
+<p>You haven't placed any orders.</p>
+
 </div>
 
 {% endfor %}
-
-{% else %}
-
-<h3>No Orders Yet.</h3>
-
-<a href="{% url 'product_list' %}">
-Start Shopping
-</a>
-
-{% endif %}
 
 </div>
 
