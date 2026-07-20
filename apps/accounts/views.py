@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from .models import CustomerProfile
+# from .tasks import send_signup_message
 
 # Create your views here.
 def login_view(request):
@@ -43,6 +44,7 @@ def signup_view(request):
             profile.address = request.POST.get("address", "")
             profile.save()
 
+           # send_signup_message.delay(user.id)
             login(request, user)
 
             return redirect("home")

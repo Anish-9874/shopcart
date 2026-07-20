@@ -37,15 +37,34 @@ def delete_product(request, id):
 
 
 
-# @cache_page(60 * 15)   can also be done by this this method can Caches the entire HTTP response
+
+
+
+from django.db.models import Q
+
 def product_list(request):
-    products = cache.get("products")        #instead of Product.objects.all() we did this to learn cache (Caches only the data you choose)
+    q = request.GET.get("q", "").strip()
+
+    cache_key = f"products_{q}"
+
+    products = cache.get(cache_key)          #instead of Product.objects.all() we did this to learn cache (Caches only the data you choose)
 
     if products is None:
-        print("Loading from database...")       #just to know data is retrived from database or not
-        products = list(Product.objects.all())  #
-        cache.set("products", products, 300)    #cache.set set the cache, we can clear it by cache.clear(), or delete by cache.delete("products")
-    return render(request, "product_list.html", {"products": products})
+        print("Loading from database...")         #just to know data is retrived from database or not
+
+        if q:
+            products = list(Product.objects.filter(
+                Q(name__icontains=q) |
+                Q(description__icontains=q)
+            ))
+        else:
+            products = list(Product.objects.all())
+
+        cache.set(cache_key, products, 300)     #cache.set set the cache, we can clear it by cache.clear(), or delete by cache.delete("products")
+
+    return render(request, "product_list.html", {
+        "products": products
+    })
 
 
 @cache_page(60 * 15)     #load from cache after first load
@@ -77,18 +96,26 @@ def edit_product(request, id):
 
 
 
+from .models import Category
+
 def category_list(request):
-    categories = Product.CATEGORY_CHOICES
-    return render(request, "categories.html", {"categories": categories})
+    categories = Category.objects.all()
 
-
-def category(request, category_name):
-    products = Product.objects.filter(category=category_name)
-    return render(request, "category_details.html", {
-        "products": products,
-        "category_name": category_name,
+    return render(request, "categories.html", {
+        "categories": categories
     })
 
+
+from django.shortcuts import get_object_or_404
+
+def category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    products = Product.objects.filter(category=category)
+
+    return render(request, "category_details.html", {
+        "products": products,
+        "category": category,
+    })
 
 
 
