@@ -16,6 +16,7 @@ def add_product(request):
 
         if form.is_valid():
             form.save()
+            cache.clear()
 
             return redirect('add_product')
 
@@ -31,6 +32,7 @@ def delete_product(request, id):
 
     if request.method == "POST":
         product.delete()
+        cache.clear()
         return redirect('see_product')
 
     return render(request, "delete_product.html", {"product": product})
