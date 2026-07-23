@@ -1,4 +1,5 @@
 from django import forms
+
 from .models import Message
 
 
@@ -8,12 +9,7 @@ class MessageForm(forms.ModelForm):
         fields = ["text"]
         widgets = {
             "text": forms.Textarea(
-                attrs={
-                    "rows": 2,
-                    "placeholder": "Type your message..."
-                }
+                attrs={"rows": 2, "placeholder": "Type your message..."}
             )
         }
-        labels = {
-            "text": ""
-        }
+        labels = {"text": ""}

@@ -1,21 +1,23 @@
+from rest_framework.pagination import CursorPagination, PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
-from .serializers import CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
+
 from .models import Cart, CartItem, Order, OrderItem
-from rest_framework.pagination import PageNumberPagination, CursorPagination
+from .serializers import (CartItemSerializer, CartSerializer,
+                          OrderItemSerializer, OrderSerializer)
 
 
 class CartPagination1(PageNumberPagination):
-    page_size = 5;
+    page_size = 5
+
 
 class CartPagination2(CursorPagination):
-    page_size = 2;
+    page_size = 2
     ordering = "id"
 
 
 class CartViewSet(ModelViewSet):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
-
 
 
 class CartItemViewSet(ModelViewSet):
@@ -29,8 +31,7 @@ class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
 
+
 class OrderItemViewSet(ModelViewSet):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
-
-    

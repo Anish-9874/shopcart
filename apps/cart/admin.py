@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Cart, CartItem, Order, OrderItem
 
 
@@ -50,9 +51,7 @@ class OrderAdmin(admin.ModelAdmin):
         "user__username",
     )
 
-    list_editable = (
-        "status",
-    )
+    list_editable = ("status",)
 
     readonly_fields = (
         "created_at",

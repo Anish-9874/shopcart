@@ -1,12 +1,10 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 
 class ChatRoom(models.Model):
     customer = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="chat_room"
+        User, on_delete=models.CASCADE, related_name="chat_room"
     )
 
     def __str__(self):
@@ -15,14 +13,10 @@ class ChatRoom(models.Model):
 
 class Message(models.Model):
     room = models.ForeignKey(
-        ChatRoom,
-        on_delete=models.CASCADE,
-        related_name="messages"
+        ChatRoom, on_delete=models.CASCADE, related_name="messages"
     )
     sender = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="sent_messages"
+        User, on_delete=models.CASCADE, related_name="sent_messages"
     )
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

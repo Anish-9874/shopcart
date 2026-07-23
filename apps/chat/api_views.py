@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
-from .serializers import MessageSerializer, ChatRoomSerializer
-from .models import Message, ChatRoom
+
+from .models import ChatRoom, Message
+from .serializers import ChatRoomSerializer, MessageSerializer
 
 
 class MessageViewSet(ModelViewSet):
@@ -11,4 +12,3 @@ class MessageViewSet(ModelViewSet):
 class ChatRoomViewSet(ModelViewSet):
     queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomSerializer
-    

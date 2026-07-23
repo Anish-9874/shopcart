@@ -1,12 +1,14 @@
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.shortcuts import redirect, render
+
 from .forms import SignupForm
 from .models import CustomerProfile
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
-from .models import CustomerProfile
+
 # from .tasks import send_signup_message
+
 
 # Create your views here.
 def login_view(request):
@@ -20,13 +22,13 @@ def login_view(request):
                 return redirect("admin_dashboard")
             else:
                 return redirect("customer_dashboard")
-        
+
         else:
             messages.error(request, "Invalid login credentials. Please try again.")
 
     else:
         form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, "login.html", {"form": form})
 
 
 def signup_view(request):
@@ -44,7 +46,7 @@ def signup_view(request):
             profile.address = request.POST.get("address", "")
             profile.save()
 
-           # send_signup_message.delay(user.id)
+            # send_signup_message.delay(user.id)
             login(request, user)
 
             return redirect("home")
@@ -57,28 +59,19 @@ def signup_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
-
-
-
-
-
+    return redirect("login")
 
 
 @login_required
 def profile(request):
     profile = request.user.customerprofile
 
-    return render(request, "profile.html", {
-        "profile": profile
-    })
+    return render(request, "profile.html", {"profile": profile})
 
 
 @login_required
 def edit_profile(request):
-    profile, created = CustomerProfile.objects.get_or_create(
-        user=request.user
-    )
+    profile, created = CustomerProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         # Update User model
@@ -96,26 +89,28 @@ def edit_profile(request):
 
         return redirect("profile")
 
-    return render(request, "edit_profile.html", {
-        "profile": profile
-    })
+    return render(request, "edit_profile.html", {"profile": profile})
 
 
-
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
+
 from .models import CustomerProfile
+
 
 def customer_profile(request, id):
 
     customer = get_object_or_404(User, id=id)
     profile = get_object_or_404(CustomerProfile, user=customer)
 
-    return render(request, "my_customer.html", {
-        "customer": customer,
-        "profile": profile,
-    })
-
+    return render(
+        request,
+        "my_customer.html",
+        {
+            "customer": customer,
+            "profile": profile,
+        },
+    )
 
 
 def customer_list(request):
@@ -126,9 +121,11 @@ def customer_list(request):
     if search:
         customers = customers.filter(username__icontains=search)
 
-    return render(request, "customer_list.html", {
-        "customers": customers,
-        "search": search,
-    })
-
-
+    return render(
+        request,
+        "customer_list.html",
+        {
+            "customers": customers,
+            "search": search,
+        },
+    )

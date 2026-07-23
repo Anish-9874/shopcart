@@ -14,19 +14,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import include, path
-from . import views
 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 
-
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
+from . import views
 
 #      # JWT URLs(USED FOR JWT AUTHENTICATION)
 # from rest_framework_simplejwt.views import (
@@ -36,46 +32,38 @@ from drf_spectacular.views import (
 # )
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('apps.products.api_urls')),
-    path('api/', include('apps.feedback.api_urls')),
-    path('api/', include('apps.chat.api_urls')),
-    path('api/', include('apps.cart.api_urls')),
-
-
-
+    path("admin/", admin.site.urls),
+    path("api/", include("apps.products.api_urls")),
+    path("api/", include("apps.feedback.api_urls")),
+    path("api/", include("apps.chat.api_urls")),
+    path("api/", include("apps.cart.api_urls")),
     # # JWT URLs(USED FOR JWT AUTHENTICATION)
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),    
-
-
-
-
-    path('', include('apps.accounts.urls')),
-    path('', include('apps.dashboard.urls')),
-    path('', include('apps.products.urls')),
-    path('', include('apps.cart.urls')),
-    path('', include('apps.chat.urls')),
-    path('home/', views.home, name='home'),
-    path('', views.loading, name='loading'),
-    path('about/', views.about, name="about"),
-    path('contact/', views.contact, name="contact"),
-
-
-
-    #for drf-spectacular
-
+    # path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path("", include("apps.accounts.urls")),
+    path("", include("apps.dashboard.urls")),
+    path("", include("apps.products.urls")),
+    path("", include("apps.cart.urls")),
+    path("", include("apps.chat.urls")),
+    path("home/", views.home, name="home"),
+    path("", views.loading, name="loading"),
+    path("about/", views.about, name="about"),
+    path("contact/", views.contact, name="contact"),
+    # for drf-spectacular
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-
-    path("api/docs/",SpectacularSwaggerView.as_view(url_name="schema"),name="swagger-ui",),
-
-    path("api/redoc/",SpectacularRedocView.as_view(url_name="schema"),name="redoc",),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "api/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
 ]
-
 
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-

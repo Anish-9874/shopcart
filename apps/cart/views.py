@@ -1,13 +1,13 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import F
+from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.products.models import Product
-from .models import Cart, CartItem, Order, OrderItem
 
-from django.db.models import F
 from .forms import CheckoutForm
+from .models import Cart, CartItem, Order, OrderItem
 
 
 @login_required
@@ -26,7 +26,9 @@ def add_to_cart(request, product_id):
             item.quantity += 1
             item.save()
         else:
-            messages.warning(request, f"Only {product.stock} unit(s) of {product.name} available.")
+            messages.warning(
+                request, f"Only {product.stock} unit(s) of {product.name} available."
+            )
 
     return redirect("cart")
 
@@ -67,6 +69,7 @@ def remove_item(request, item_id):
     messages.success(request, "Item removed from cart.")
     return redirect("cart")
 
+
 @login_required
 def checkout(request):
 
@@ -95,24 +98,18 @@ def checkout(request):
 
                         messages.error(
                             request,
-                            f"{item.product.name} only has {item.product.stock} item(s) left."
+                            f"{item.product.name} only has {item.product.stock} item(s) left.",
                         )
 
                         return redirect("cart")
 
                 # Create Order
                 order = Order.objects.create(
-
                     user=request.user,
-
                     full_name=form.cleaned_data["full_name"],
-
                     phone=form.cleaned_data["phone"],
-
                     address=form.cleaned_data["address"],
-
                     payment_method=form.cleaned_data["payment_method"],
-
                     total=total,
                 )
 
@@ -120,22 +117,15 @@ def checkout(request):
                 for item in items:
 
                     OrderItem.objects.create(
-
                         order=order,
-
                         product=item.product,
-
                         product_name=item.product.name,
-
                         quantity=item.quantity,
-
                         price=item.product.price,
                     )
 
                     # Reduce stock safely
-                    Product.objects.filter(
-                        id=item.product.id
-                    ).update(
+                    Product.objects.filter(id=item.product.id).update(
                         stock=F("stock") - item.quantity
                     )
 
@@ -158,22 +148,22 @@ def checkout(request):
 
     return render(request, "checkout.html", context)
 
+
 @login_required
 def my_orders(request):
 
     orders = (
-        Order.objects
-        .filter(user=request.user)
+        Order.objects.filter(user=request.user)
         .order_by("-created_at")
         .prefetch_related("items__product")
     )
 
-    return render(request, "orders.html", {
-        "orders": orders
-    })
+    return render(request, "orders.html", {"orders": orders})
 
 
 from decimal import Decimal
+
+
 @login_required
 def buy_now(request, product_id):
 
@@ -198,36 +188,23 @@ def buy_now(request, product_id):
                     return redirect("products")
 
                 order = Order.objects.create(
-
                     user=request.user,
-
                     full_name=form.cleaned_data["full_name"],
-
                     phone=form.cleaned_data["phone"],
-
                     address=form.cleaned_data["address"],
-
                     payment_method=form.cleaned_data["payment_method"],
-
                     total=Decimal(product.price),
                 )
 
                 OrderItem.objects.create(
-
                     order=order,
-
                     product=product,
-
                     product_name=product.name,
-
                     quantity=1,
-
                     price=product.price,
                 )
 
-                Product.objects.filter(id=product.id).update(
-                    stock=F("stock") - 1
-                )
+                Product.objects.filter(id=product.id).update(stock=F("stock") - 1)
 
             messages.success(request, "Order placed successfully.")
 
@@ -238,13 +215,9 @@ def buy_now(request, product_id):
         form = CheckoutForm()
 
     context = {
-
         "form": form,
-
         "product": product,
-
         "total": product.price,
-
     }
 
     return render(request, "buy_now.html", context)

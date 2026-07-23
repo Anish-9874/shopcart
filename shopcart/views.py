@@ -1,8 +1,6 @@
-from django.shortcuts import redirect, render
 from django.http import HttpResponse
-
-
 from django.shortcuts import redirect, render
+
 
 def home(request):
     if request.user.is_authenticated:
@@ -13,13 +11,14 @@ def home(request):
 
     return render(request, "index.html")
 
+
 def about(request):
-    return render(request, 'about.html')
+    return render(request, "about.html")
 
 
 def contact(request):
-    return render(request, 'contact.html')
+    return render(request, "contact.html")
 
 
 def loading(request):
-    return render(request, 'loading.html')
+    return render(request, "loading.html")

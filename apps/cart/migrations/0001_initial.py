@@ -10,71 +10,179 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0001_initial'),
+        ("products", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Cart',
+            name="Cart",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('full_name', models.CharField(max_length=100)),
-                ('phone', models.CharField(max_length=20)),
-                ('address', models.TextField()),
-                ('payment_method', models.CharField(choices=[('COD', 'Cash on Delivery')], default='COD', max_length=20)),
-                ('payment_status', models.BooleanField(default=False)),
-                ('total', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('status', models.CharField(choices=[('Pending', 'Pending'), ('Confirmed', 'Confirmed'), ('Packed', 'Packed'), ('Shipped', 'Shipped'), ('Delivered', 'Delivered'), ('Cancelled', 'Cancelled')], default='Pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("full_name", models.CharField(max_length=100)),
+                ("phone", models.CharField(max_length=20)),
+                ("address", models.TextField()),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[("COD", "Cash on Delivery")],
+                        default="COD",
+                        max_length=20,
+                    ),
+                ),
+                ("payment_status", models.BooleanField(default=False)),
+                ("total", models.DecimalField(decimal_places=2, max_digits=10)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("Pending", "Pending"),
+                            ("Confirmed", "Confirmed"),
+                            ("Packed", "Packed"),
+                            ("Shipped", "Shipped"),
+                            ("Delivered", "Delivered"),
+                            ("Cancelled", "Cancelled"),
+                        ],
+                        default="Pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="orders",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('product_name', models.CharField(max_length=200)),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('quantity', models.PositiveIntegerField()),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='cart.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("product_name", models.CharField(max_length=200)),
+                ("price", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("quantity", models.PositiveIntegerField()),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="cart.order",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="products.product",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CartItem',
+            name="CartItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField(default=1)),
-                ('cart', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='cart.cart')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField(default=1)),
+                (
+                    "cart",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="cart.cart",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="products.product",
+                    ),
+                ),
             ],
             options={
-                'constraints': [models.UniqueConstraint(fields=('cart', 'product'), name='unique_cart_product'), models.CheckConstraint(condition=models.Q(('quantity__gt', 0)), name='cartitem_quantity_gt_0')],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("cart", "product"), name="unique_cart_product"
+                    ),
+                    models.CheckConstraint(
+                        condition=models.Q(("quantity__gt", 0)),
+                        name="cartitem_quantity_gt_0",
+                    ),
+                ],
             },
         ),
         migrations.AddConstraint(
-            model_name='order',
-            constraint=models.CheckConstraint(condition=models.Q(('total__gte', 0)), name='order_total_gte_0'),
+            model_name="order",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("total__gte", 0)), name="order_total_gte_0"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='orderitem',
-            constraint=models.UniqueConstraint(fields=('order', 'product'), name='unique_order_product'),
+            model_name="orderitem",
+            constraint=models.UniqueConstraint(
+                fields=("order", "product"), name="unique_order_product"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='orderitem',
-            constraint=models.CheckConstraint(condition=models.Q(('quantity__gt', 0)), name='orderitem_quantity_gt_0'),
+            model_name="orderitem",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("quantity__gt", 0)), name="orderitem_quantity_gt_0"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='orderitem',
-            constraint=models.CheckConstraint(condition=models.Q(('price__gte', 0)), name='orderitem_price_gte_0'),
+            model_name="orderitem",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("price__gte", 0)), name="orderitem_price_gte_0"
+            ),
         ),
     ]

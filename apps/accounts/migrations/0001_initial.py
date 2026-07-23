@@ -15,13 +15,28 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='CustomerProfile',
+            name="CustomerProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phone', models.CharField(blank=True, max_length=15)),
-                ('address', models.TextField(blank=True)),
-                ('profile_image', models.ImageField(blank=True, upload_to='profiles/')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='customerprofile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("phone", models.CharField(blank=True, max_length=15)),
+                ("address", models.TextField(blank=True)),
+                ("profile_image", models.ImageField(blank=True, upload_to="profiles/")),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="customerprofile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

@@ -12,5 +12,3 @@
 
 # # Automatically discover tasks.py from all installed apps
 # app.autodiscover_tasks()
-
-

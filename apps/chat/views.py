@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import ChatRoom
 from .forms import MessageForm
+from .models import ChatRoom
 
 
 # ==========================
@@ -11,9 +11,7 @@ from .forms import MessageForm
 @login_required
 def customer_chat(request):
 
-    room, created = ChatRoom.objects.get_or_create(
-        customer=request.user
-    )
+    room, created = ChatRoom.objects.get_or_create(customer=request.user)
 
     if request.method == "POST":
 
