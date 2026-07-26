@@ -1,0 +1,25 @@
+services:
+
+  web:
+    build: .
+    container_name: shopcart_web
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  celery:
+    build: .
+    container_name: shopcart_celery
+    command: celery -A shopcart worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7
+    container_name: shopcart_redis

@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render
 from .forms import SignupForm
 from .models import CustomerProfile
 
-# from .tasks import send_signup_message
+from .tasks import send_signup_message
 
 
 # Create your views here.
@@ -46,7 +46,7 @@ def signup_view(request):
             profile.address = request.POST.get("address", "")
             profile.save()
 
-            # send_signup_message.delay(user.id)
+            send_signup_message.delay(user.id)
             login(request, user)
 
             return redirect("home")
