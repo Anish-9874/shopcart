@@ -9,7 +9,6 @@ from apps.feedback.forms import FeedbackForm
 from .forms import ProductForm
 from .models import Category, Product
 
-
 # ============================================================
 # ADD PRODUCT
 # ============================================================
@@ -84,15 +83,12 @@ def product_list(request):
         if q:
             products = list(
                 Product.objects.filter(
-                    Q(name__icontains=q)
-                    | Q(description__icontains=q)
+                    Q(name__icontains=q) | Q(description__icontains=q)
                 )
             )
 
         else:
-            products = list(
-                Product.objects.all()
-            )
+            products = list(Product.objects.all())
 
         # Store products in cache for 5 minutes
         cache.set(

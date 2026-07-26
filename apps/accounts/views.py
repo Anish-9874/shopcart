@@ -6,7 +6,6 @@ from django.shortcuts import redirect, render
 
 from .forms import SignupForm
 from .models import CustomerProfile
-
 from .tasks import send_signup_message
 
 
