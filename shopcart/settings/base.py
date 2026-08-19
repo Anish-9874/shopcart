@@ -43,10 +43,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "drf_spectacular",
+    "apps.notifications",
+    "channels",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -73,7 +76,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "shopcart.wsgi.application"
+# WSGI_APPLICATION = "shopcart.wsgi.application"
+ASGI_APPLICATION = "shopcart.asgi.application"
 
 
 # Database
@@ -116,6 +120,16 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 MEDIA_URL = "/media/"
@@ -128,3 +142,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # "When I create a model a
 
 
 LOGIN_URL = "/login/"  # Redirect to login page if user is not authenticated usually work for @loginrequired decorator
+
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

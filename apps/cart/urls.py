@@ -18,4 +18,9 @@ urlpatterns = [
         views.buy_now,
         name="buy_now",
     ),
+    path(
+        "order-success/",
+        views.order_success,
+        name="order_success",
+    ),
 ]

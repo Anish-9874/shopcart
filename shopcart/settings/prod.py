@@ -79,14 +79,14 @@ LOGGING = {
         # 5 MB per file
         # 3 backup files
         # ---------------------------------------------
-        "rotating_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOG_DIR / "debug.log",
-            "maxBytes": 5 * 1024 * 1024,
-            "backupCount": 3,
-            "formatter": "json",
-            "encoding": "utf-8",
-        },
+        # "rotating_file": {
+        #     "class": "logging.handlers.RotatingFileHandler",
+        #     "filename": LOG_DIR / "debug.log",
+        #     "maxBytes": 5 * 1024 * 1024,
+        #     "backupCount": 3,
+        #     "formatter": "json",
+        #     "encoding": "utf-8",
+        # },
         # ---------------------------------------------
         # General Log File
         # rotate daily midnight

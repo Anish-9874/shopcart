@@ -2,7 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.shortcuts import redirect, render
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import SignupForm
 from .models import CustomerProfile
@@ -89,12 +90,6 @@ def edit_profile(request):
         return redirect("profile")
 
     return render(request, "edit_profile.html", {"profile": profile})
-
-
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
-
-from .models import CustomerProfile
 
 
 def customer_profile(request, id):

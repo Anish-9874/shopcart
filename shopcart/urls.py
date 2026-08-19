@@ -46,6 +46,7 @@ urlpatterns = [
     path("", include("apps.products.urls")),
     path("", include("apps.cart.urls")),
     path("", include("apps.chat.urls")),
+    path("", include("apps.notifications.urls")),
     path("home/", views.home, name="home"),
     path("", views.loading, name="loading"),
     path("about/", views.about, name="about"),

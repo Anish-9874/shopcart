@@ -3,67 +3,119 @@
 {% block content %}
 
 <style>
-.chat-container{
-    max-width:700px;
-    width:100%;
-    margin:40px auto;
-    background:#fff;
-    border-radius:10px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
-    padding:20px;
-}
+    .chat-container {
+        max-width: 700px;
+        width: 100%;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
 
-.chat-box{
-    height:450px;
-    overflow-y:auto;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:15px;
-    margin-bottom:20px;
-}
+    .chat-box {
+        height: 450px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
 
-.chat-form textarea{
-    width:100%;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    resize:none;
-}
+    .chat-form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        resize: none;
+    }
 
-.chat-form input[type="submit"]{
-    margin-top:10px;
-}
+    .chat-form input[type="submit"] {
+        margin-top: 10px;
+    }
+
+    .connection-status {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .status-connected {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-disconnected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
 </style>
+
 
 <div class="chat-container">
 
     <h2>Chat With Admin/Support</h2>
 
+    <div class="connection-status status-connected" id="connectionStatus">✅ Connected</div>
+
     <hr>
 
-    <div class="chat-box">
+    <div class="chat-box" id="chatBox">
 
         {% for message in messages %}
 
             {% if message.sender == request.user %}
 
-                <div style="text-align:right;margin-bottom:15px;">
-                    <span style="background:#198754;color:white;padding:10px 15px;border-radius:15px;display:inline-block;">
+                <div style="text-align: right; margin-bottom: 15px;">
+
+                    <span
+                        style="
+                            background: #198754;
+                            color: white;
+                            padding: 10px 15px;
+                            border-radius: 15px;
+                            display: inline-block;
+                        "
+                    >
                         {{ message.text }}
-                    </span><br>
-                    <small>{{ message.created_at }}</small>
+                    </span>
+
+                    <br>
+
+                    <small>
+                        {{ message.created_at|date:"M d, Y H:i" }}
+                    </small>
+
                 </div>
 
             {% else %}
 
-                <div style="text-align:left;margin-bottom:15px;">
-                    <strong>Support</strong><br>
+                <div style="text-align: left; margin-bottom: 15px;">
 
-                    <span style="background:#e9ecef;padding:10px 15px;border-radius:15px;display:inline-block;">
+                    <strong>
+                        Support
+                    </strong>
+
+                    <br>
+
+                    <span
+                        style="
+                            background: #e9ecef;
+                            padding: 10px 15px;
+                            border-radius: 15px;
+                            display: inline-block;
+                        "
+                    >
                         {{ message.text }}
-                    </span><br>
+                    </span>
 
-                    <small>{{ message.created_at }}</small>
+                    <br>
+
+                    <small>
+                        {{ message.created_at|date:"M d, Y H:i" }}
+                    </small>
+
                 </div>
 
             {% endif %}
@@ -76,12 +128,130 @@
 
     </div>
 
-    <form method="POST" class="chat-form">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Send" class="btn btn-success">
-    </form>
+    <div class="chat-form">
+        <textarea id="messageInput" placeholder="Type a message..." rows="3"></textarea>
+        <button id="sendBtn" class="btn btn-success" onclick="sendMessage()">Send</button>
+    </div>
 
 </div>
+<script>
+    const roomId = "{{ room.id }}";
+    const username = "{{ request.user.username }}";
+
+    const protocol = location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(
+        `${protocol}://${location.host}/ws/chat/${roomId}/`
+    );
+
+    const input = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const chatBox = document.getElementById("chatBox");
+    const status = document.getElementById("connectionStatus");
+
+
+    // WebSocket connected
+    chatSocket.onopen = () => {
+        status.textContent = "✅ Connected";
+        status.className = "connection-status status-connected";
+        sendBtn.disabled = false;
+    };
+
+
+    // Receive message
+    chatSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "chat") {
+            displayMessage(data.message, data.created_at, data.sender);
+        }
+    };
+
+
+    // WebSocket error
+    chatSocket.onerror = () => {
+        status.textContent = "❌ Connection Error";
+        status.className = "connection-status status-disconnected";
+        sendBtn.disabled = true;
+    };
+
+
+    // WebSocket disconnected
+    chatSocket.onclose = () => {
+        status.textContent = "❌ Disconnected";
+        status.className = "connection-status status-disconnected";
+        sendBtn.disabled = true;
+    };
+
+
+    // Send message
+    function sendMessage() {
+        const message = input.value.trim();
+
+        if (!message || chatSocket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+
+        chatSocket.send(JSON.stringify({
+            message: message
+        }));
+
+        input.value = "";
+        input.focus();
+    }
+
+
+    // Display message
+    function displayMessage(text, timestamp, sender) {
+        const div = document.createElement("div");
+
+        const ownMessage = sender === username;
+
+        div.style.cssText = `
+            margin-bottom: 15px;
+            text-align: ${ownMessage ? "right" : "left"};
+        `;
+
+        div.innerHTML = `
+            ${ownMessage ? "" : "<strong>Support</strong><br>"}
+
+            <span style="
+                background: ${ownMessage ? "#198754" : "#e9ecef"};
+                color: ${ownMessage ? "white" : "black"};
+                padding: 10px 15px;
+                border-radius: 15px;
+                display: inline-block;
+            ">
+                ${text}
+            </span>
+
+            <br>
+            <small>${formatTime(timestamp)}</small>
+        `;
+
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+
+    // Format time
+    function formatTime(timestamp) {
+        return new Date(timestamp).toLocaleString();
+    }
+
+
+    // Press Enter to send
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // Initial state
+    sendBtn.disabled = true;
+    status.textContent = "🔄 Connecting...";
+</script>
 
 {% endblock %}

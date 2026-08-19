@@ -1,9 +1,12 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.notifications.services import send_notification
 from apps.products.models import Product
 
 from .forms import CheckoutForm
@@ -134,6 +137,12 @@ def checkout(request):
 
             messages.success(request, "Order placed successfully!")
 
+            send_notification(
+                user=request.user,
+                title="Order Placed",
+                message=f"Your order #{order.id} has been placed successfully.",
+            )
+
             return redirect("order_success")
 
     else:
@@ -159,9 +168,6 @@ def my_orders(request):
     )
 
     return render(request, "orders.html", {"orders": orders})
-
-
-from decimal import Decimal
 
 
 @login_required
@@ -221,3 +227,7 @@ def buy_now(request, product_id):
     }
 
     return render(request, "buy_now.html", context)
+
+
+def order_success(request):
+    return render(request, "order_success.html")

@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import include, path
 
 from apps.accounts import views as acc_views

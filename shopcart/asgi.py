@@ -1,16 +1,27 @@
-"""
-ASGI config for shopcart project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
-"""
-
 import os
 
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    "shopcart.settings.dev",
+)
+
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shopcart.settings.dev")
+django_asgi_application = get_asgi_application()
 
-application = get_asgi_application()
+from apps.chat.routing import websocket_urlpatterns as chat_urlpatterns
+from apps.notifications.routing import \
+    websocket_urlpatterns as notification_urlpatterns
+
+# Combine websocket URL patterns from multiple apps
+websocket_urlpatterns = chat_urlpatterns + notification_urlpatterns
+
+
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_application,
+        "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+    }
+)

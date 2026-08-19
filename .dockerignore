@@ -1,0 +1,44 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Git
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Django
+db.sqlite3
+
+# Environment variables / secrets
+.env
+
+# Logs
+logs/
+*.log
+
+# IDE / editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
