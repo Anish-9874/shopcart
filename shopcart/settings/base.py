@@ -144,4 +144,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # "When I create a model a
 LOGIN_URL = "/login/"  # Redirect to login page if user is not authenticated usually work for @loginrequired decorator
 
 
-CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
+}

@@ -119,7 +119,7 @@ def product_list(request):
 def see_product(request):
     products = Product.objects.all().order_by("-id")
 
-    paginator = Paginator(products, 2)
+    paginator = Paginator(products, 20)
 
     page_number = request.GET.get("page")
 
