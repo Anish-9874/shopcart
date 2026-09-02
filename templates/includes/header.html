@@ -1,89 +1,243 @@
-<nav>
+<nav class="site-nav">
+
   <a class="nav-brand" href="{% url 'home' %}">
-    Shop<span>Cart</span>
+    <span class="brand-black">Shop</span><span class="brand-blue">Cart</span>
   </a>
 
-  <ul class="nav-links">
-    <li>
-      <a href="{% url 'home' %}"
-         class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-        Home
-      </a>
-    </li>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+    <span></span><span></span><span></span>
+  </button>
 
-    <li>
-      <a href="{% url 'product_list' %}"
-         class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">
-        Products
-      </a>
-    </li>
+  <div class="nav-menu" id="navMenu">
 
-    <li>
-      <a href="{% url 'category_list' %}">
-        Categories
-      </a>
-    </li>
+    <ul class="nav-links">
+      <li>
+        <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+      </li>
+      <li>
+        <a href="{% url 'product_list' %}" class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">Products</a>
+      </li>
+      <li><a href="{% url 'category_list' %}">Categories</a></li>
+      <li><a href="{% url 'about' %}">About</a></li>
+      <li><a href="{% url 'contact' %}">Contact</a></li>
+    </ul>
 
-    <li>
-      <a href="{% url 'about' %}">
-        About
-      </a>
-    </li>
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
 
-    <li>
-      <a href="{% url 'contact' %}">
-        Contact
-      </a>
-    </li>
-  </ul>
+        <a href="{% url 'profile' %}" class="btn btn-outline">👤 {{ user.username }}</a>
 
-  <div class="nav-actions">
-    {% if user.is_authenticated %}
+        <a href="{% url 'notifications:list' %}" class="notification-btn">
+          🔔
+          {% if unread_notification_count %}
+            <span class="notification-badge">{{ unread_notification_count }}</span>
+          {% endif %}
+        </a>
 
-      <!-- Profile -->
-      <a href="{% url 'profile' %}" class="btn btn-outline">
-        👤 {{ user.username }}
-      </a>
+        <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
 
-      <!-- Notifications -->
-      <a href="{% url 'notifications:list' %}" class="notification-btn">
-    🔔
+        <a href="{% url 'cart' %}" class="cart-btn">
+          🛒 Cart
+          {% if cart_count %}
+            <span class="cart-badge">{{ cart_count }}</span>
+          {% endif %}
+        </a>
 
-    {% if unread_notification_count %}
-        <span class="notification-badge">
-            {{ unread_notification_count }}
-        </span>
-    {% endif %}
-</a>
+      {% else %}
 
-      <!-- Logout -->
-      <a href="{% url 'logout' %}" class="btn btn-outline">
-        Logout
-      </a>
+        <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
+        <a href="{% url 'signup' %}" class="btn btn-primary">Sign Up</a>
 
-      <!-- Cart -->
-      <a href="{% url 'cart' %}" class="cart-btn">
-        🛒 Cart
-        {% if cart_count %}
-          <span class="cart-badge">{{ cart_count }}</span>
-        {% endif %}
-      </a>
+      {% endif %}
+    </div>
 
-    {% else %}
-
-      <a href="{% url 'login' %}" class="btn btn-outline">
-        Login
-      </a>
-
-      <a href="{% url 'signup' %}" class="btn btn-primary">
-        Sign Up
-      </a>
-
-    {% endif %}
   </div>
+
 </nav>
 
+<style>
+/* BASE / DESKTOP LAYOUT
+   (this block was previously nested inside the 900px media query,
+   so on desktop .site-nav had no flex layout at all — that was the main bug) */
+.site-nav {
+  display: flex;
+  align-items: center;
+  padding: 16px 5%;
+  position: relative;
+}
 
+.nav-brand {
+  font-size: 24px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brand-black { color: #000000; }
+.brand-blue { color: #2563eb; }
 
+/* nav-menu spans the remaining space next to the brand so we can
+   truly center nav-links in the middle of the bar and push
+   nav-actions to the far right */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
 
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 
+  /* true centering in the middle of the nav, independent of
+     brand width on the left and actions width on the right */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #334155;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: .2s ease;
+}
+.nav-links a:hover,
+.nav-links a.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto; /* pushes actions to the far right */
+}
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 15px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; transition: .2s ease; }
+.btn-outline { color: #334155; border: 1px solid #e2e8f0; }
+.btn-outline:hover { border-color: #2563eb; color: #2563eb; }
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+
+.notification-btn, .cart-btn { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; color: #334155; background: #f8fafc; border: 1px solid #e2e8f0; }
+.notification-btn:hover, .cart-btn:hover { border-color: #2563eb; color: #2563eb; }
+
+.notification-badge, .cart-badge { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; }
+.notification-badge { background: #ef4444; }
+.cart-badge { background: #2563eb; }
+
+/* HAMBURGER (hidden on desktop) */
+.nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 34px; height: 34px; border: none; background: transparent; cursor: pointer; padding: 0; }
+.nav-toggle span { display: block; height: 2px; width: 100%; background: #0f172a; border-radius: 2px; transition: .25s ease; }
+.nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* MOBILE — single consolidated breakpoint (previously duplicated
+   in two separate @media blocks with conflicting rules) */
+@media (max-width: 900px) {
+
+  .site-nav {
+    justify-content: space-between;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-menu {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+
+    flex-direction: column;
+    align-items: stretch;
+
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 12px 24px rgba(15,23,42,.08);
+
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+  }
+
+  .nav-menu.open {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .nav-links {
+    /* undo the desktop absolute-centering trick for the stacked mobile menu */
+    position: static;
+    transform: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 6%;
+  }
+
+  .nav-links li {
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 13px 0;
+    border-bottom: none;
+  }
+
+  .nav-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 14px 6% 20px;
+    margin-left: 0;
+  }
+
+  .btn,
+  .notification-btn,
+  .cart-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-nav { padding: 12px 5%; }
+  .nav-brand { font-size: 21px; }
+}
+</style>
+
+<script>
+(function () {
+  var toggle = document.getElementById('navToggle');
+  var menu = document.getElementById('navMenu');
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener('click', function () {
+    var isOpen = menu.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', isOpen);
+  });
+
+  menu.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', function () {
+      menu.classList.remove('open');
+      toggle.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+})();
+</script>

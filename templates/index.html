@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/customer.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/index.css' %}">{% endblock %}
 
 {% block content %}
 <div class="home-page">
@@ -100,12 +100,12 @@
 
   <section class="signup-cta">
     <div>
-        <span>SHOPCART</span>
-        <h2>Find something you'll love.</h2>
-        <p>Explore our latest products and discover something new today.</p>
-      </div>
-      <a href="{% url 'product_list' %}">Browse Products →</a>
-    </section>
+      <span>JOIN SHOPCART</span>
+      <h2>Ready to start shopping?</h2>
+      <p>Create an account to track your orders, checkout faster, and enjoy a better shopping experience.</p>
+      <a href="{% url 'signup' %}">Create Account →</a>
+    </div>
+  </section>
 
 </div>
 {% endblock %}

@@ -1,29 +1,484 @@
-<h2>Order Summary</h2>
 
-<div class="order-item">
+{% extends 'base.html' %}
 
-    <div>
+{% block content %}
 
-        <strong>{{ product.name }}</strong>
+<style>
+:root {
+    --accent: #1D4ED8;
+    --accent-dark: #0B0C10;
+    --accent-soft: #EFF4FF;
+    --accent-ring: rgba(29, 78, 216, .18);
+    --highlight: #3B82F6;
 
-        <br>
+    --ink: #0B0C10;
+    --muted: #64748B;
+    --border: #E2E8F0;
 
-        Qty : 1
+    --gradient: linear-gradient(135deg, var(--accent-dark), var(--accent));
+}
+
+.checkout-container {
+    max-width: 1100px;
+    margin: 48px auto;
+    padding: 0 20px;
+
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 28px;
+
+    align-items: start;
+
+    font-family: system-ui, sans-serif;
+    color: var(--ink);
+}
+
+/* Cards */
+.card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+}
+
+.card h2 {
+    margin: 0 0 20px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* Messages */
+.msg {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.msg.error {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.msg.success {
+    color: #166534;
+    border-color: #86EFAC;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 11px 13px;
+    box-sizing: border-box;
+
+    border: 1px solid var(--border);
+    border-radius: 5px;
+
+    background: #fff;
+    color: var(--ink);
+
+    font-size: 14px;
+    outline: none;
+
+    transition: .2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-ring);
+}
+
+.field-errors {
+    margin: 5px 0 0;
+    padding: 0;
+    list-style: none;
+
+    color: var(--accent);
+    font-size: 12px;
+}
+
+/* Place Order */
+.place-order {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px;
+
+    border: none;
+    border-radius: 5px;
+
+    background: var(--gradient);
+    color: #fff;
+
+    font-size: 14.5px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: .25s;
+}
+
+.place-order:hover {
+    background: linear-gradient(
+        135deg,
+        var(--accent),
+        var(--accent-dark)
+    );
+
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px var(--accent-ring);
+}
+
+/* Order Summary */
+.summary {
+    position: sticky;
+    top: 24px;
+}
+
+.summary-product {
+    display: flex;
+    gap: 12px;
+
+    padding-bottom: 18px;
+    margin-bottom: 16px;
+
+    border-bottom: 1px dashed var(--border);
+}
+
+.summary-thumb {
+    position: relative;
+
+    width: 60px;
+    height: 60px;
+
+    flex-shrink: 0;
+
+    overflow: hidden;
+    border-radius: 5px;
+
+    background: var(--accent-soft);
+}
+
+.summary-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.qty {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+
+    padding: 1px 6px;
+
+    border-radius: 10px;
+
+    background: var(--accent);
+    color: #fff;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.summary-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.summary-unit {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* Summary Lines */
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+
+    margin-bottom: 8px;
+
+    color: var(--muted);
+    font-size: 13.5px;
+}
+
+.summary-line span:last-child {
+    color: var(--ink);
+}
+
+/* Total */
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    margin-top: 14px;
+    padding-top: 14px;
+
+    border-top: 2px solid var(--accent);
+}
+
+.summary-total .label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.summary-total .amount {
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* COD */
+.cod {
+    margin-top: 16px;
+    padding: 11px 12px;
+
+    border-left: 3px solid var(--accent);
+    border-radius: 5px;
+
+    background: var(--accent-soft);
+    color: var(--accent);
+
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    .checkout-container {
+        grid-template-columns: 1fr;
+    }
+
+    .summary {
+        position: static;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .checkout-container {
+        margin: 25px auto;
+        padding: 0 14px;
+    }
+
+    .card {
+        padding: 24px 20px;
+    }
+
+    .card h2 {
+        font-size: 18px;
+    }
+}
+</style>
+
+
+<div class="checkout-container">
+
+    <!-- Shipping -->
+    <div class="card">
+
+        <h2>Shipping Information</h2>
+
+        {% for message in messages %}
+            <div class="msg {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <input type="hidden"
+                   name="quantity"
+                   value="{{ quantity }}">
+
+            {{ form.non_field_errors }}
+
+
+            <div class="form-group">
+
+                {{ form.full_name.label_tag }}
+
+                {{ form.full_name }}
+
+                <ul class="field-errors">
+                    {{ form.full_name.errors }}
+                </ul>
+
+            </div>
+
+
+            <div class="form-group">
+
+                {{ form.phone.label_tag }}
+
+                {{ form.phone }}
+
+                <ul class="field-errors">
+                    {{ form.phone.errors }}
+                </ul>
+
+            </div>
+
+
+            <div class="form-group">
+
+                {{ form.address.label_tag }}
+
+                {{ form.address }}
+
+                <ul class="field-errors">
+                    {{ form.address.errors }}
+                </ul>
+
+            </div>
+
+
+            <div class="form-group">
+
+                {{ form.payment_method.label_tag }}
+
+                {{ form.payment_method }}
+
+                <ul class="field-errors">
+                    {{ form.payment_method.errors }}
+                </ul>
+
+            </div>
+
+
+            <button class="place-order" type="submit">
+                Place Order
+            </button>
+
+        </form>
 
     </div>
 
-    <div>
 
-        Rs. {{ product.price }}
+    <!-- Order Summary -->
+    <div class="card summary">
+
+        <h2>Order Summary</h2>
+
+
+        <div class="summary-product">
+
+            <div class="summary-thumb">
+
+                {% if product.image %}
+
+                    <img src="{{ product.image.url }}"
+                         alt="{{ product.name }}">
+
+                {% else %}
+
+                    <div class="no-image">
+                        No Image
+                    </div>
+
+                {% endif %}
+
+
+                <span class="qty">
+                    &times;{{ quantity }}
+                </span>
+
+            </div>
+
+
+            <div>
+
+                <div class="summary-name">
+                    {{ product.name }}
+                </div>
+
+                <div class="summary-unit">
+                    Rs. {{ product.price }} each
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-line">
+
+            <span>
+                Subtotal
+            </span>
+
+            <span>
+                Rs. {{ total }}
+            </span>
+
+        </div>
+
+
+        <div class="summary-line">
+
+            <span>
+                Shipping
+            </span>
+
+            <span>
+                Free
+            </span>
+
+        </div>
+
+
+        <div class="summary-total">
+
+            <span class="label">
+                Total
+            </span>
+
+            <span class="amount">
+                Rs. {{ total }}
+            </span>
+
+        </div>
+
+
+        <div class="cod">
+            Cash on Delivery &mdash; pay when your order arrives.
+        </div>
 
     </div>
 
 </div>
 
-<div class="total">
+{% endblock %}
 
-    <span>Total</span>
-
-    <span>Rs. {{ total }}</span>
-
-</div>

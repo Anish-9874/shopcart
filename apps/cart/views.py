@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.contrib import messages
@@ -12,6 +13,19 @@ from apps.products.models import Product
 from .forms import CheckoutForm
 from .models import Cart, CartItem, Order, OrderItem
 
+logger = logging.getLogger(__name__)
+
+
+def _parse_quantity(raw, stock, default=1):
+    """Safely parse a quantity from POST data and clamp it to [1, stock]."""
+    try:
+        quantity = int(raw)
+    except (TypeError, ValueError):
+        quantity = default
+    if stock is not None:
+        return max(1, min(quantity, stock))
+    return max(1, quantity)
+
 
 @login_required
 def add_to_cart(request, product_id):
@@ -21,14 +35,24 @@ def add_to_cart(request, product_id):
         messages.error(request, f"{product.name} is out of stock.")
         return redirect("cart")
 
+    # Previously this ignored the "quantity" field entirely and always
+    # added exactly 1 unit, no matter what was selected in the qty stepper.
+    quantity = _parse_quantity(request.POST.get("quantity"), product.stock)
+
     cart, _ = Cart.objects.get_or_create(user=request.user)
     item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
-    if not created:
-        if item.quantity < product.stock:
-            item.quantity += 1
+    if created:
+        item.quantity = quantity
+        item.save()
+    else:
+        new_quantity = item.quantity + quantity
+        if new_quantity <= product.stock:
+            item.quantity = new_quantity
             item.save()
         else:
+            item.quantity = product.stock
+            item.save()
             messages.warning(
                 request, f"Only {product.stock} unit(s) of {product.name} available."
             )
@@ -137,13 +161,29 @@ def checkout(request):
 
             messages.success(request, "Order placed successfully!")
 
-            send_notification(
-                user=request.user,
-                title="Order Placed",
-                message=f"Your order #{order.id} has been placed successfully.",
-            )
+            # A broken/misconfigured notification must never block checkout —
+            # the order is already committed at this point, so a failure here
+            # shouldn't turn into a 500 that strands the user before they
+            # reach order_success.
+            try:
+                send_notification(
+                    user=request.user,
+                    title="Order Placed",
+                    message=f"Your order #{order.id} has been placed successfully.",
+                )
+            except Exception:
+                logger.exception(
+                    "send_notification failed for order #%s (user_id=%s)",
+                    order.id,
+                    request.user.id,
+                )
 
             return redirect("order_success")
+
+        else:
+            # Without this, an invalid form just re-renders checkout.html
+            # with no visible feedback at all.
+            messages.error(request, "Please fix the errors below and try again.")
 
     else:
 
@@ -177,9 +217,21 @@ def buy_now(request, product_id):
 
     if product.stock <= 0:
         messages.error(request, "Product is out of stock.")
-        return redirect("products")
+        return redirect("product_list")
 
-    if request.method == "POST":
+    # quantity comes from either the qty stepper on product_list.html
+    # (first POST) or the hidden "quantity" field on buy_now.html
+    # (final checkout POST).
+    quantity = _parse_quantity(request.POST.get("quantity"), product.stock)
+
+    # The first POST here (straight from product_list.html) only sends
+    # "quantity" — no full_name/phone/address yet. Binding CheckoutForm to
+    # that incomplete POST data would make every required field show
+    # "This field is required." before the user has even seen the form,
+    # so only bind it once the checkout fields have actually been submitted.
+    is_checkout_submission = request.method == "POST" and "full_name" in request.POST
+
+    if is_checkout_submission:
 
         form = CheckoutForm(request.POST)
 
@@ -189,9 +241,12 @@ def buy_now(request, product_id):
 
                 product.refresh_from_db()
 
-                if product.stock <= 0:
-                    messages.error(request, "Product is out of stock.")
-                    return redirect("products")
+                if product.stock < quantity:
+                    messages.error(
+                        request,
+                        f"Only {product.stock} unit(s) of {product.name} available.",
+                    )
+                    return redirect("product_list")
 
                 order = Order.objects.create(
                     user=request.user,
@@ -199,22 +254,40 @@ def buy_now(request, product_id):
                     phone=form.cleaned_data["phone"],
                     address=form.cleaned_data["address"],
                     payment_method=form.cleaned_data["payment_method"],
-                    total=Decimal(product.price),
+                    total=Decimal(product.price) * quantity,
                 )
 
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     product_name=product.name,
-                    quantity=1,
+                    quantity=quantity,
                     price=product.price,
                 )
 
-                Product.objects.filter(id=product.id).update(stock=F("stock") - 1)
+                Product.objects.filter(id=product.id).update(
+                    stock=F("stock") - quantity
+                )
 
             messages.success(request, "Order placed successfully.")
 
+            try:
+                send_notification(
+                    user=request.user,
+                    title="Order Placed",
+                    message=f"Your order #{order.id} has been placed successfully.",
+                )
+            except Exception:
+                logger.exception(
+                    "send_notification failed for order #%s (user_id=%s)",
+                    order.id,
+                    request.user.id,
+                )
+
             return redirect("order_success")
+
+        else:
+            messages.error(request, "Please fix the errors below and try again.")
 
     else:
 
@@ -223,11 +296,13 @@ def buy_now(request, product_id):
     context = {
         "form": form,
         "product": product,
-        "total": product.price,
+        "quantity": quantity,
+        "total": product.price * quantity,
     }
 
     return render(request, "buy_now.html", context)
 
 
+@login_required
 def order_success(request):
     return render(request, "order_success.html")

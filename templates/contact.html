@@ -7,58 +7,63 @@
 
 {% block content %}
 
-<div class="page-wrap">
-
-    <!-- Hero -->
-    <div class="page-hero">
-        <h1>Get in <span class="blue">touch</span></h1>
-        <p>
-            Questions about an order, a product, or just want to say hi?
-            We'd love to hear from you.
-        </p>
+<section class="hero-dark">
+    <div class="hero-glow one"></div>
+    <div class="hero-glow two"></div>
+    <div class="hero-inner">
+        <span class="eyebrow">CONTACT</span>
+        <h1>Let's <span class="blue">talk</span></h1>
+        <p>Got a question? Send us a message and we'll get back to you soon.</p>
     </div>
+</section>
 
-    <div class="section">
+<div class="page-wrap">
+    <div class="contact-layout">
 
-        <!-- Contact info -->
         <div class="contact-cards">
+            <div class="info-card"><div class="icon">📍</div><div><h3>Address</h3><p>Dudhpati 1, Bhaktapur</p></div></div>
+            <div class="info-card"><div class="icon">📞</div><div><h3>Phone</h3><p>+977-9826679874</p></div></div>
+            <div class="info-card"><div class="icon">📧</div><div><h3>Email</h3><p>support@shopcart.com</p></div></div>
+            <div class="info-card"><div class="icon">🕒</div><div><h3>Hours</h3><p>Sun – Fri, 9AM – 6PM</p></div></div>
+        </div>
 
-            <div class="info-card">
-                <div class="icon">📍</div>
-                <div>
-                    <h3>Address</h3>
-                    <p>New Baneshwor, Kathmandu, Nepal</p>
+        <div class="contact-form-card">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="form-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_name">Name</label>
+                        <input type="text" id="id_name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_email">Email</label>
+                        <input type="email" id="id_email" name="email" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="info-card">
-                <div class="icon">📞</div>
-                <div>
-                    <h3>Phone</h3>
-                    <p>+977-98XXXXXXXX</p>
+                <div class="form-group">
+                    <label for="id_subject">Subject</label>
+                    <input type="text" id="id_subject" name="subject" required>
                 </div>
-            </div>
 
-            <div class="info-card">
-                <div class="icon">📧</div>
-                <div>
-                    <h3>Email</h3>
-                    <p>support@shopcart.com</p>
+                <div class="form-group">
+                    <label for="id_message">Message</label>
+                    <textarea id="id_message" name="message" rows="5" required></textarea>
                 </div>
-            </div>
 
-            <div class="info-card">
-                <div class="icon">🕒</div>
-                <div>
-                    <h3>Working hours</h3>
-                    <p>Sunday – Friday, 9:00 AM – 6:00 PM</p>
-                </div>
-            </div>
-
+                <button type="submit" class="btn-cta full">Send Message →</button>
+            </form>
         </div>
 
     </div>
-
 </div>
 
 {% endblock %}

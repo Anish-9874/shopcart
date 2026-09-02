@@ -1,112 +1,399 @@
+
 {% extends "base.html" %}
 
 {% block content %}
 
 <style>
-.cart{
-    max-width:800px;
-    margin:30px auto;
+:root {
+    --accent: #1D4ED8;
+    --accent-dark: #0B0C10;
+    --accent-soft: #EFF4FF;
+    --accent-ring: rgba(29, 78, 216, .18);
+    --highlight: #3B82F6;
+
+    --ink: #0B0C10;
+    --muted: #64748B;
+    --border: #E2E8F0;
+
+    --gradient: linear-gradient(135deg, var(--accent-dark), var(--accent));
 }
 
-.item{
-    display:flex;
-    gap:15px;
-    align-items:center;
-    padding:15px 0;
-    border-bottom:1px solid #ddd;
+.cart-page {
+    max-width: 850px;
+    margin: 48px auto;
+    padding: 0 20px;
+    font-family: system-ui, sans-serif;
+    color: var(--ink);
 }
 
-.item img{
-    width:80px;
-    height:80px;
-    object-fit:cover;
+.cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
 }
 
-.info{
-    flex:1;
+.cart-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
 }
 
-a{
-    text-decoration:none;
+.orders-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+
+    transition: .2s;
 }
 
-.qty a{
-    padding:2px 8px;
-    border:1px solid #ccc;
+.orders-link:hover {
+    color: #fff;
+    background: var(--gradient);
+    border-color: transparent;
 }
 
-.checkout{
-    display:block;
-    margin-top:20px;
-    padding:12px;
-    background:#f85606;
-    color:#fff;
-    text-align:center;
+.msg {
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 13px;
 }
 
-.total{
-    margin-top:20px;
-    text-align:right;
-    font-size:20px;
+.msg.error {
+    color: #B42318;
+    border-color: #F0B8B3;
+}
+
+.msg.warning {
+    color: #8A5A00;
+    border-color: #E8D49A;
+}
+
+.msg.success {
+    color: var(--accent);
+    border-color: #AFC6F5;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px dashed var(--border);
+}
+
+.cart-item img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 7px;
+    flex-shrink: 0;
+    background: var(--accent-soft);
+}
+
+.item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-info h3 {
+    margin: 0 0 4px;
+    font-size: 14.5px;
+    font-weight: 600;
+}
+
+.item-info p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qty-controls form {
+    display: inline;
+}
+
+.qty-btn {
+    width: 27px;
+    height: 27px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+
+    background: #fff;
+    color: var(--ink);
+
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.qty-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.qty-value {
+    min-width: 16px;
+    text-align: center;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.remove-btn {
+    margin-left: 6px;
+    border: none;
+    background: none;
+
+    color: #B42318;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    text-decoration: underline;
+}
+
+.item-subtotal {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: 14.5px;
+    font-weight: 700;
+}
+
+.cart-total {
+    margin-top: 20px;
+    text-align: right;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.checkout-btn {
+    display: block;
+    margin-top: 16px;
+    padding: 15px;
+
+    border-radius: 7px;
+
+    background: var(--gradient);
+    color: #fff;
+
+    text-align: center;
+    text-decoration: none;
+
+    font-size: 14.5px;
+    font-weight: 700;
+
+    transition: .25s;
+}
+
+.checkout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px var(--accent-ring);
+}
+
+.empty-cart {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.empty-cart h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.empty-cart a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.empty-cart a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .cart-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .cart-item {
+        align-items: flex-start;
+    }
+
+    .item-subtotal {
+        font-size: 13px;
+    }
+
+    .qty-controls {
+        flex-wrap: wrap;
+    }
 }
 </style>
 
-<div class="cart">
 
-<h2>Shopping Cart</h2>
+<div class="cart-page">
 
-{% for message in messages %}
-<p>{{ message }}</p>
-{% endfor %}
+    <div class="cart-header">
 
+        <h2>Shopping Cart</h2>
 
+        <a href="{% url 'my_orders' %}" class="orders-link">
 
-{% if items %}
+            <svg width="14" height="14"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
 
-{% for item in items %}
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
 
-<div class="item">
+            </svg>
 
-    <img src="{{ item.product.image.url }}" alt="">
+            View My Orders
 
-    <div class="info">
-        <h3>{{ item.product.name }}</h3>
-        <p>Rs. {{ item.product.price }}</p>
+        </a>
 
-        <div class="qty">
-            <a href="{% url 'update_quantity' item.id 'decrease' %}">-</a>
-
-            {{ item.quantity }}
-
-            <a href="{% url 'update_quantity' item.id 'increase' %}">+</a>
-
-            <a href="{% url 'remove_item' item.id %}">Remove</a>
-        </div>
     </div>
 
-    <strong>Rs. {{ item.subtotal }}</strong>
+    <hr>
 
-</div>
+    {% for message in messages %}
 
-{% endfor %}
+        <div class="msg {{ message.tags }}">
+            {{ message }}
+        </div>
 
-<div class="total">
-    Total : Rs. {{ total }}
-</div>
+    {% endfor %}
 
-<a href="{% url 'checkout' %}" class="checkout">
-    Checkout
-</a>
 
-{% else %}
+    {% if items %}
 
-<h3>Your cart is empty.</h3>
+        {% for item in items %}
 
-<a href="{% url 'product_list' %}">
-Browse Products
-</a>
+        <div class="cart-item">
 
-{% endif %}
+            <img
+                src="{{ item.product.image.url }}"
+                alt="{{ item.product.name }}"
+            >
+
+            <div class="item-info">
+
+                <h3>
+                    {{ item.product.name }}
+                </h3>
+
+                <p>
+                    Rs. {{ item.product.price }}
+                </p>
+
+                <div class="qty-controls">
+
+                    <form method="POST"
+                          action="{% url 'update_quantity' item.id 'decrease' %}">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="qty-btn">
+                            −
+                        </button>
+
+                    </form>
+
+
+                    <span class="qty-value">
+                        {{ item.quantity }}
+                    </span>
+
+
+                    <form method="POST"
+                          action="{% url 'update_quantity' item.id 'increase' %}">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="qty-btn">
+                            +
+                        </button>
+
+                    </form>
+
+
+                    <form method="POST"
+                          action="{% url 'remove_item' item.id %}">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="remove-btn">
+                            Remove
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <div class="item-subtotal">
+                Rs. {{ item.subtotal }}
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+
+        <div class="cart-total">
+            Total: Rs. {{ total }}
+        </div>
+
+
+        <a href="{% url 'checkout' %}" class="checkout-btn">
+            Proceed to Checkout →
+        </a>
+
+
+    {% else %}
+
+        <div class="empty-cart">
+
+            <h3>
+                Your cart is empty.
+            </h3>
+
+            <a href="{% url 'product_list' %}">
+                Browse Products →
+            </a>
+
+        </div>
+
+    {% endif %}
 
 </div>
 

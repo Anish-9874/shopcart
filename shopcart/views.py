@@ -5,15 +5,19 @@ from apps.products.models import Category, Product
 
 
 def home(request):
+    # Logged-in users should not see the public homepage
     if request.user.is_authenticated:
+
+        # Admin/staff
         if request.user.is_staff:
             return redirect("admin_dashboard")
-        else:
-            return redirect("customer_dashboard")
 
-    # NOTE: authenticated users are always redirected above, so this view
-    # (and index.html) only ever renders for anonymous visitors.
+        # Normal customer
+        return redirect("customer_dashboard")
+
+    # Guest / anonymous user
     featured_products = Product.objects.filter(is_featured=True).order_by("-id")[:8]
+
     categories = Category.objects.all().order_by("name")[:8]
 
     context = {

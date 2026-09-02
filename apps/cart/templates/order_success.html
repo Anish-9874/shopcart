@@ -3,62 +3,236 @@
 {% block content %}
 
 <style>
-
-.success-box{
-
-    max-width:600px;
-
-    margin:80px auto;
-
-    background:white;
-
-    padding:40px;
-
-    text-align:center;
-
-    border-radius:10px;
-
-    box-shadow:0 5px 15px rgba(0,0,0,.1);
-
+:root {
+    --accent: #1D4ED8;
+    --accent-dark: #0B0C10;
+    --accent-soft: #EFF4FF;
+    --accent-ring: rgba(29, 78, 216, .18);
+    --ink: #0B0C10;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --gradient: linear-gradient(135deg, var(--accent-dark), var(--accent));
 }
 
-.success-box h1{
-
-    color:green;
-
-    margin-bottom:20px;
-
+.success-page {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    font-family: system-ui, sans-serif;
+    background: #F8FAFC;
 }
 
-.success-box a{
-
-    display:inline-block;
-
-    margin-top:20px;
-
-    padding:12px 25px;
-
-    background:#0d6efd;
-
-    color:white;
-
-    text-decoration:none;
-
-    border-radius:5px;
-
+.success-box {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    padding: 48px 40px;
+    text-align: center;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(11,12,16,.08);
+    animation: appear .5s ease;
 }
 
+.success-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--gradient);
+    border-radius: 14px 14px 0 0;
+}
+
+.success-mark {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gradient);
+    color: #fff;
+    font-size: 34px;
+    font-weight: 700;
+    box-shadow: 0 10px 25px var(--accent-ring);
+    animation: pop .5s ease;
+}
+
+.success-label {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+}
+
+.success-box h1 {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-size: 27px;
+}
+
+.success-box p {
+    max-width: 390px;
+    margin: auto;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.order-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 26px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.order-info-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--gradient);
+    color: #fff;
+}
+
+.success-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.success-actions a {
+    padding: 12px 22px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: .25s;
+}
+
+.primary-btn {
+    background: var(--gradient);
+    color: #fff;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px var(--accent-ring);
+}
+
+.secondary-btn {
+    color: var(--ink);
+    border: 1px solid var(--border);
+    background: #fff;
+}
+
+.secondary-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-2px);
+}
+
+.success-footer {
+    margin-top: 22px;
+    color: var(--muted);
+    font-size: 11.5px;
+}
+
+@keyframes appear {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop {
+    0% { transform: scale(.6); opacity: 0; }
+    70% { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 600px) {
+    .success-box {
+        padding: 40px 24px;
+    }
+
+    .success-box h1 {
+        font-size: 23px;
+    }
+
+    .success-actions {
+        flex-direction: column;
+    }
+
+    .success-actions a {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
 </style>
 
-<div class="success-box">
 
-    <h1>✅ Order Placed Successfully</h1>
+<div class="success-page">
 
-    <p>Your order has been placed successfully.</p>
+    <div class="success-box">
 
-    <a href="{% url 'my_orders' %}">
-        View My Orders
-    </a>
+        <div class="success-mark">&#10003;</div>
+
+        <div class="success-label">
+            Order Confirmed
+        </div>
+
+        <h1>Order placed successfully!</h1>
+
+        <p>
+            Thank you for your order. We've received your request
+            and your order is now being prepared.
+        </p>
+
+        <div class="order-info">
+            <div class="order-info-icon">&#10003;</div>
+            <span>Your order has been successfully received.</span>
+        </div>
+
+        <div class="success-actions">
+
+            <a href="{% url 'my_orders' %}" class="primary-btn">
+                View My Orders →
+            </a>
+
+            <a href="{% url 'home' %}" class="secondary-btn">
+                Continue Shopping
+            </a>
+
+        </div>
+
+        <div class="success-footer">
+            We appreciate your business with ShopCart.
+        </div>
+
+    </div>
 
 </div>
 

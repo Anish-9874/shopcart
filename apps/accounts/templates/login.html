@@ -4,147 +4,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Login</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+  .logo {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 48px;
+      font-weight: 800; /* Heavy, thick weight */
+      letter-spacing: -1.5px; /* Tighter letter spacing to match the image */
+      user-select: none;
+      cursor: default;
+    }
+
+    /* "Shop" Styling */
+    .black-text {
+      color: #0b0c10; /* Soft black */
+    }
+
+    /* "Cart" Styling */
+    .blue-text {
+      color: #3b82f6; /* Clean brand blue */
+    }
+
+body { min-height: 100vh; display: flex; background: #f1f5f9; }
+
+/* BRAND PANEL */
+.brand-panel { position: relative; width: 42%; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 60px; background: linear-gradient(135deg, #0b0c10, #1d4ed8); }
+.brand-panel::before { content: ''; position: absolute; width: 380px; height: 380px; border-radius: 50%; top: -120px; right: -120px; background: radial-gradient(circle, rgba(124,58,237,.35), transparent 70%); }
+.brand-panel::after { content: ''; position: absolute; width: 300px; height: 300px; border-radius: 50%; bottom: -100px; left: -80px; background: radial-gradient(circle, rgba(37,99,235,.35), transparent 70%); }
+
+.brand-mark { position: relative; display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+.brand-mark .icon { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #7c3aed); font-size: 22px; }
+.brand-mark span { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+
+.brand-panel h1 { position: relative; color: #fff; font-size: 32px; font-weight: 700; line-height: 1.3; max-width: 380px; }
+.brand-panel p { position: relative; color: #94a3b8; margin-top: 14px; font-size: 14px; max-width: 340px; line-height: 1.7; }
+
+.brand-features { position: relative; margin-top: 45px; display: flex; flex-direction: column; gap: 16px; }
+.brand-features div { display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 13px; }
+.brand-features span { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: rgba(255,255,255,.08); font-size: 15px; }
+
+/* FORM PANEL */
+.form-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+.form-box { width: 100%; max-width: 380px; }
+.form-box h2 { color: #0f172a; font-size: 26px; font-weight: 800; }
+.form-box > p { color: #64748b; font-size: 13px; margin-top: 6px; margin-bottom: 28px; }
+
+.message { padding: 10px 14px; margin-bottom: 15px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; font-size: 13px; text-align: center; border: 1px solid #bfdbfe; }
+
+label { display: block; color: #334155; font-size: 13px; font-weight: 600; margin: 16px 0 6px; }
+
+input { width: 100%; padding: 13px 14px; border: 1px solid #e2e8f0; border-radius: 10px; outline: none; font-size: 14px; color: #0f172a; background: #f8fafc; transition: .2s ease; }
+input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+.remember { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 4px; }
+.remember label { display: flex; align-items: center; gap: 8px; margin: 0; color: #64748b; font-size: 13px; font-weight: 500; }
+.remember input { width: auto; }
+.remember a { color: #2563eb; font-size: 13px; font-weight: 600; text-decoration: none; }
+.remember a:hover { text-decoration: underline; }
+
+button { width: 100%; padding: 14px; margin-top: 22px; border: none; border-radius: 10px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; transition: .2s ease; box-shadow: 0 10px 20px rgba(37,99,235,.25); }
+button:hover { transform: translateY(-1px); box-shadow: 0 14px 26px rgba(37,99,235,.32); }
+
+p.switch { text-align: center; margin-top: 24px; color: #64748b; font-size: 13px; }
+p.switch a { color: #2563eb; font-weight: 700; text-decoration: none; }
+p.switch a:hover { text-decoration: underline; }
+
+ul.errorlist { color: #dc2626; list-style: none; font-size: 12px; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .brand-panel { display: none; }
+  .form-panel { width: 100%; }
 }
-
-body{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:linear-gradient(135deg,#4facfe,#00f2fe);
-}
-
-.container{
-
-    width:380px;
-    padding:40px;
-
-    background:rgba(255,255,255,.15);
-
-    backdrop-filter:blur(18px);
-    border-radius:20px;
-
-    box-shadow:0 15px 35px rgba(0,0,0,.25);
-}
-
-.container h1{
-    text-align:center;
-    color:white;
-    margin-bottom:25px;
-}
-
-.container input{
-
-    width:100%;
-    padding:14px;
-    margin:12px 0;
-
-    border:none;
-    border-radius:10px;
-
-    outline:none;
-
-    font-size:15px;
-}
-
-button{
-
-    width:100%;
-    padding:14px;
-
-    border:none;
-    border-radius:10px;
-
-    background:#fff;
-
-    color:#2196f3;
-
-    font-size:16px;
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:.3s;
-}
-
-button:hover{
-
-    background:#2196f3;
-    color:white;
-
-}
-
-p{
-
-    text-align:center;
-    margin-top:20px;
-    color:white;
-
-}
-
-a{
-
-    color:#fff;
-    font-weight:bold;
-    text-decoration:none;
-
-}
-
-ul.errorlist{
-
-    color:#ffdddd;
-    list-style:none;
-    margin-bottom:10px;
-
-}
-
 </style>
-
 </head>
 <body>
 
-
-<div class="container">
-
-<h1>Welcome Back</h1>
-
-<form method="POST">
-{% csrf_token %}
-Username:<br>
-<input type="text" name="username" placeholder="Username" required><br>
-Password:<br>
-<input type="password" name="password" placeholder="Password" required>
-
-<button type="submit">
-Login
-</button>
-
-</form>
-
-<p>
-Don't have an account?
-<a href="{% url 'signup' %}">Sign Up</a>
-</p>
-
+<div class="brand-panel">
+  <div class="logo">
+    <span class="black-text">Shop</span><span class="blue-text">Cart</span>
+  </div>
+  <h1>Everything you need, all in one place.</h1>
+  <p>Sign in to track orders, manage your wishlist, and check out faster.</p>
+  <div class="brand-features">
+    <div><span>🚚</span> Fast, reliable delivery</div>
+    <div><span>🔒</span> Secure checkout, every time</div>
+    <div><span>↩️</span> Easy, hassle-free returns</div>
+  </div>
 </div>
-{% if messages %}
-    {% for message in messages %}
-        <script>
-            alert("{{ message }}");
-        </script>
-    {% endfor %}
-{% endif %}
+
+<div class="form-panel">
+  <div class="form-box">
+    <h2>Welcome back</h2>
+    <p>Login to continue to your account.</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <label for="id_username">Username</label>
+      <input type="text" id="id_username" name="username" autocomplete="username" required autofocus>
+
+      <label for="id_password">Password</label>
+      <input type="password" id="id_password" name="password" autocomplete="current-password" required>
+
+      <div class="remember">
+        <label><input type="checkbox" name="remember"> Remember me</label>
+        <a href="#">Forgot password?</a>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <p class="switch">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+  </div>
+</div>
+
 </body>
 </html>

@@ -7,97 +7,41 @@
 
 {% block content %}
 
+<section class="hero-dark">
+    <div class="hero-glow one"></div>
+    <div class="hero-glow two"></div>
+    <div class="hero-inner">
+        <span class="eyebrow">ABOUT US</span>
+        <h1><span class="ink">Shop</span><span class="blue">Cart</span></h1>
+        <p>Online shopping, done simply. Fair prices, real products, fast delivery — that's the whole idea.</p>
+    </div>
+</section>
+
 <div class="page-wrap">
 
-    <!-- Hero -->
-    <div class="page-hero">
-        <h1>Shop<span class="blue">Cart</span> is built around one idea</h1>
-        <p>
-            Online shopping should feel easy, not stressful. We built ShopCart
-            to be the store we'd actually want to use ourselves — fast, honest,
-            and reliable from browsing to doorstep.
-        </p>
+    <div class="stats-row">
+        <div class="stat"><strong>10K+</strong><span>Happy customers</span></div>
+        <div class="stat"><strong>500+</strong><span>Products listed</span></div>
+        <div class="stat"><strong>24/7</strong><span>Support</span></div>
     </div>
 
-    <!-- Mission split -->
-    <div class="section about-split">
-        <div>
-            <h2>Our mission</h2>
-            <p>
-                We started ShopCart to make online shopping simple and accessible
-                for everyone. That means fair pricing, products that are actually
-                worth buying, and a checkout that doesn't get in your way.
-            </p>
-            <p style="margin-top:14px;">
-                Every decision we make — from the products we list to how we
-                handle support — comes back to one question: would this make
-                the experience better for the person on the other end?
-            </p>
-        </div>
-
-        <div class="stat-grid">
-            <div class="stat-card">
-                <strong>10K+</strong>
-                <span>Happy customers</span>
-            </div>
-            <div class="stat-card">
-                <strong>500+</strong>
-                <span>Products listed</span>
-            </div>
-            <div class="stat-card">
-                <strong>24/7</strong>
-                <span>Support availability</span>
-            </div>
-        </div>
+    <div class="section-heading">
+        <h2>Why shop with us</h2>
     </div>
 
-    <!-- What we offer -->
-    <div class="section">
-        <div class="section-heading">
-            <h2>What we offer</h2>
-            <p>Everything you'd expect from a store you can trust</p>
-        </div>
-
-        <div class="card-grid">
-            <div class="info-card">
-                <div class="icon">✨</div>
-                <h3>Quality products</h3>
-                <p>Every listing is checked before it goes live — no filler, no fakes.</p>
-            </div>
-
-            <div class="info-card">
-                <div class="icon">💰</div>
-                <h3>Fair pricing</h3>
-                <p>Competitive prices without the constant fake-discount games.</p>
-            </div>
-
-            <div class="info-card">
-                <div class="icon">🚚</div>
-                <h3>Fast delivery</h3>
-                <p>Orders are packed quickly and tracked from warehouse to your door.</p>
-            </div>
-
-            <div class="info-card">
-                <div class="icon">🔒</div>
-                <h3>Secure payments</h3>
-                <p>Your payment details are encrypted and never stored unsafely.</p>
-            </div>
-
-            <div class="info-card">
-                <div class="icon">💬</div>
-                <h3>Real support</h3>
-                <p>A real person on the other end, available around the clock.</p>
-            </div>
-        </div>
+    <div class="card-grid">
+        <div class="info-card"><div class="icon">✨</div><h3>Quality checked</h3><p>Every product is verified before it goes live.</p></div>
+        <div class="info-card"><div class="icon">💰</div><h3>Fair pricing</h3><p>No fake discounts, just honest prices.</p></div>
+        <div class="info-card"><div class="icon">🚚</div><h3>Fast delivery</h3><p>Packed quick, tracked all the way to your door.</p></div>
+        <div class="info-card"><div class="icon">🔒</div><h3>Secure payments</h3><p>Your data stays encrypted, always.</p></div>
+        <div class="info-card"><div class="icon">💬</div><h3>Real support</h3><p>Real humans, available around the clock.</p></div>
+        <div class="info-card"><div class="icon">↩️</div><h3>Easy returns</h3><p>Changed your mind? No hassle, no questions.</p></div>
     </div>
 
-    <!-- CTA -->
-    <div class="section">
-        <div class="cta-banner">
-            <h2>Have a question before you order?</h2>
-            <p>Our team typically replies within a few hours.</p>
-            <a href="{% url 'contact' %}" class="btn btn-primary">Get in touch</a>
-        </div>
+    <div class="cta-banner">
+        <h2>Got a question?</h2>
+        <p>We usually reply within a few hours.</p>
+        <a href="{% url 'contact' %}" class="btn-cta">Contact Us →</a>
     </div>
 
 </div>

@@ -1,198 +1,236 @@
+
 {% extends 'base.html' %}
 
 {% block content %}
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+:root{
+    --accent:#1D4ED8;
+    --dark:#0B0C10;
+    --soft:#EFF4FF;
+    --muted:#64748B;
+    --border:#E2E8F0;
+    --gradient:linear-gradient(135deg,#0B0C10,#1D4ED8);
 }
 
-body{
-    background:#f5f5f5;
-    font-family:Arial, Helvetica, sans-serif;
+.orders-page{
+    max-width:1050px;
+    margin:45px auto;
+    padding:0 20px;
+    font-family:system-ui,sans-serif;
+    color:var(--dark);
 }
 
-.orders-container{
-    max-width:1100px;
-    margin:40px auto;
-    padding:20px;
-}
-
-.orders-title{
-    text-align:center;
-    margin-bottom:30px;
-    font-size:32px;
-}
+.orders-heading{margin-bottom:30px}
+.orders-heading h1{margin:0;font-size:30px}
+.orders-heading p{margin:6px 0;color:var(--muted);font-size:14px}
 
 .order-card{
     background:#fff;
-    border-radius:10px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-    padding:25px;
-    margin-bottom:30px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    margin-bottom:24px;
+    box-shadow:0 8px 30px rgba(11,12,16,.06);
 }
 
-.order-header{
+.order-top{
     display:flex;
     justify-content:space-between;
-    flex-wrap:wrap;
-    margin-bottom:20px;
-    border-bottom:1px solid #eee;
-    padding-bottom:15px;
+    align-items:center;
+    padding:20px 24px;
+    background:var(--soft);
+    border-bottom:1px solid var(--border);
 }
 
-.order-header h3{
-    color:#0d6efd;
+.order-number{display:flex;align-items:center;gap:12px}
+
+.order-icon,.empty-icon{
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:var(--gradient);
+    color:#fff;
 }
+
+.order-icon{width:42px;height:42px}
+.order-number h3{margin:0;font-size:16px}
+.order-date{color:var(--muted);font-size:12px;margin-top:3px}
 
 .order-status{
-    background:#198754;
-    color:white;
-    padding:5px 15px;
+    padding:6px 13px;
     border-radius:20px;
-    font-size:14px;
+    background:#fff;
+    color:var(--accent);
+    border:1px solid #C7D7FE;
+    font-size:12px;
+    font-weight:700;
 }
 
-.order-info{
-    margin-top:10px;
-    color:#666;
+.order-products{padding:5px 24px}
+
+.product-head,.product-row{
+    display:grid;
+    grid-template-columns:1fr 100px 80px 110px;
+    gap:15px;
+    align-items:center;
 }
 
-.product-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
+.product-head{
+    padding:14px 0 8px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
 }
 
-.product-table th,
-.product-table td{
-    padding:12px;
-    border-bottom:1px solid #eee;
-    text-align:left;
+.product-row{
+    padding:16px 0;
+    border-bottom:1px solid var(--border);
+    font-size:13px;
 }
 
-.product-table th{
-    background:#0d6efd;
-    color:white;
+.product-name{font-weight:600}
+.product-price,.product-qty{color:var(--muted)}
+.product-subtotal{text-align:right;font-weight:700}
+
+.product-label{display:none}
+
+.order-bottom{
+    display:flex;
+    justify-content:flex-end;
+    gap:18px;
+    padding:18px 24px;
+    background:#FAFBFF;
 }
 
-.total-row{
-    text-align:right;
-    margin-top:20px;
-    font-size:20px;
-    font-weight:bold;
-}
+.total-label{color:var(--muted);font-size:13px}
+.total-price{color:var(--accent);font-size:21px;font-weight:750}
 
 .empty-orders{
-    background:white;
-    padding:50px;
-    border-radius:10px;
+    padding:60px 20px;
     text-align:center;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:14px;
 }
 
-@media(max-width:768px){
-
-.order-header{
-    flex-direction:column;
-    gap:10px;
+.empty-icon{
+    width:60px;
+    height:60px;
+    margin:0 auto 15px;
+    border-radius:50%;
+    font-size:25px;
 }
 
-.product-table{
-    display:block;
-    overflow-x:auto;
-}
+.empty-orders h2{margin:0 0 7px;font-size:21px}
+.empty-orders p{margin:0;color:var(--muted);font-size:14px}
 
+@media(max-width:700px){
+    .orders-page{margin:30px auto;padding:0 14px}
+    .orders-heading h1{font-size:25px}
+    .order-top{padding:17px}
+    .product-head{display:none}
+    .order-products{padding:5px 17px}
+    .product-row{grid-template-columns:1fr auto}
+    .product-subtotal{text-align:right}
+    .product-label{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}
+    .order-bottom{padding:17px}
 }
-
 </style>
 
-<div class="orders-container">
 
-<h1 class="orders-title">
-    My Orders
-</h1>
+<div class="orders-page">
 
-{% for order in orders %}
+    <div class="orders-heading">
+        <h1>My Orders</h1>
+        <p>View and track all your recent orders.</p>
+    </div>
 
-<div class="order-card">
+    {% for order in orders %}
 
-<div class="order-header">
+    <div class="order-card">
 
-<div>
+        <div class="order-top">
 
-<h3>
-Order #{{ order.id }}
-</h3>
+            <div class="order-number">
+                <div class="order-icon">&#128230;</div>
 
-<div class="order-info">
-{{ order.created_at }}
-</div>
+                <div>
+                    <h3>Order #{{ order.id }}</h3>
+                    <div class="order-date">{{ order.created_at }}</div>
+                </div>
+            </div>
 
-</div>
+            <div class="order-status">
+                {{ order.status }}
+            </div>
 
-<div class="order-status">
-{{ order.status }}
-</div>
+        </div>
 
-</div>
 
-<table class="product-table">
+        <div class="order-products">
 
-<tr>
+            <div class="product-head">
+                <span>Product</span>
+                <span>Price</span>
+                <span>Qty</span>
+                <span>Subtotal</span>
+            </div>
 
-<th>Product</th>
+            {% for item in order.items.all %}
 
-<th>Price</th>
+            <div class="product-row">
 
-<th>Quantity</th>
+                <div>
+                    <span class="product-label">Product</span>
+                    <span class="product-name">{{ item.product_name }}</span>
+                </div>
 
-<th>Subtotal</th>
+                <div>
+                    <span class="product-label">Price</span>
+                    <span class="product-price">Rs. {{ item.price }}</span>
+                </div>
 
-</tr>
+                <div>
+                    <span class="product-label">Qty</span>
+                    <span class="product-qty">{{ item.quantity }}</span>
+                </div>
 
-{% for item in order.items.all %}
+                <div class="product-subtotal">
+                    <span class="product-label">Subtotal</span>
+                    Rs. {{ item.subtotal }}
+                </div>
 
-<tr>
+            </div>
 
-<td>{{ item.product_name }}</td>
+            {% endfor %}
 
-<td>Rs. {{ item.price }}</td>
+        </div>
 
-<td>{{ item.quantity }}</td>
 
-<td>Rs. {{ item.subtotal }}</td>
+        <div class="order-bottom">
+            <span class="total-label">Order Total</span>
+            <span class="total-price">Rs. {{ order.total }}</span>
+        </div>
 
-</tr>
+    </div>
 
-{% endfor %}
+    {% empty %}
 
-</table>
+    <div class="empty-orders">
 
-<div class="total-row">
+        <div class="empty-icon">&#128230;</div>
 
-Total :
-Rs. {{ order.total }}
+        <h2>No Orders Yet</h2>
 
-</div>
+        <p>You haven't placed any orders yet.</p>
 
-</div>
+    </div>
 
-{% empty %}
-
-<div class="empty-orders">
-
-<h2>No Orders Yet</h2>
-
-<p>You haven't placed any orders.</p>
-
-</div>
-
-{% endfor %}
+    {% endfor %}
 
 </div>
 
 {% endblock %}
+

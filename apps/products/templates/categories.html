@@ -1,61 +1,86 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{% endblock %}
 
 {% block content %}
-
 <style>
-.category-container{
-    width:90%;
-    max-width:1000px;
-    margin:40px auto;
+    .products-page { width: 100%; max-width: 1400px; margin: auto; padding: 40px 30px; }
+
+.products-page h2 { font-size: 30px; font-weight: 800; color: #0b0c10; margin-bottom: 24px; text-align: center; }
+
+/* GRID */
+.product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+
+.product-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: .25s ease; text-decoration: none; }
+.product-card:hover, .product-card:focus-visible { transform: translateY(-5px); border-color: #93c5fd; box-shadow: 0 15px 30px rgba(37,99,235,.12); }
+.product-card:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+
+.product-thumb { position: relative; width: 100%; height: 230px; background: linear-gradient(135deg, #0b0c10, #2563eb); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.no-image { color: #fff; font-size: 40px; }
+
+.product-body { padding: 18px; display: flex; flex-direction: column; flex: 1; align-items: center; text-align: center; }
+
+.product-name { font-size: 17px; font-weight: 700; color: #0b0c10; word-wrap: break-word; }
+
+.empty-state { text-align: center; font-size: 18px; color: #64748b; margin-top: 60px; }
+
+/* RESPONSIVE */
+@media (max-width: 992px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-.category-container h1{
-    text-align:center;
-    margin-bottom:30px;
+@media (max-width: 768px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .product-thumb { height: 130px; }
+  .product-body { padding: 12px; }
+  .product-name { font-size: 14px; }
+  .no-image { font-size: 26px; }
 }
 
-.category-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
-    gap:20px;
-}
-
-.category-card{
-    background:#fff;
-    border:1px solid #ddd;
-    border-radius:8px;
-    padding:30px;
-    text-align:center;
-    text-decoration:none;
-    color:#333;
-    font-size:22px;
-    font-weight:bold;
-    transition:0.3s;
-}
-
-.category-card:hover{
-    background:#0d6efd;
-    color:#fff;
-    transform:translateY(-5px);
-    box-shadow:0 8px 15px rgba(0,0,0,0.2);
+@media (max-width: 380px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .product-thumb { height: 180px; }
 }
 </style>
 
-<div class="category-container">
+<div class="products-page">
 
-    <h1>Shop by Category</h1><br><br>
+    <h2>All Categories</h2>
 
-    <div class="category-grid">
+    {% if categories %}
+
+    <div class="product-grid">
 
         {% for category in categories %}
-    <a href="{% url 'category' category.id %}" class="category-card">
-        {{ category.name }}
-    </a>
-{% empty %}
-    <p>No categories available.</p>
-{% endfor %}
+
+        <a href="{% url 'category' category.id %}" class="product-card">
+
+            <div class="product-thumb">
+                {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+                {% else %}
+                    <span class="no-image">🛍️</span>
+                {% endif %}
+            </div>
+
+            <div class="product-body">
+                <div class="product-name">{{ category.name }}</div>
+            </div>
+
+        </a>
+
+        {% endfor %}
 
     </div>
+
+    {% else %}
+
+    <div class="empty-state">No Categories Available</div>
+
+    {% endif %}
 
 </div>
 

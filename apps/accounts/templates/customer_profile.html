@@ -8,110 +8,156 @@ Customer Profile
 {% block extra_css %}
 <style>
 
-.profile-wrapper{
-    max-width:900px;
-    margin:auto;
+* { box-sizing: border-box; }
+
+.profile-wrapper {
+    max-width: 900px;
+    margin: auto;
 }
 
-.profile-card{
-    background:#fff;
-    border-radius:15px;
-    padding:40px;
-    box-shadow:0 5px 20px rgba(0,0,0,.08);
+.profile-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.08);
 }
 
-.header{
-    display:flex;
-    align-items:center;
-    gap:30px;
-    margin-bottom:35px;
+.header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 35px;
 }
 
-.profile-image{
-    width:160px;
-    height:160px;
-    border-radius:50%;
-    object-fit:cover;
-    border:5px solid #2563EB;
+.profile-image {
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #2563EB;
 }
 
-.user-details h1{
-    color:#0F172A;
-    margin-bottom:10px;
-    font-size:32px;
+.user-details h2 {
+    color: #0F172A;
+    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: 800;
+    word-break: break-word;
 }
 
-.user-details p{
-    color:#64748B;
-    font-size:16px;
+.user-details p {
+    color: #64748B;
+    font-size: 16px;
+    word-break: break-word;
 }
 
-.info-box{
-    margin-top:20px;
+.info-box {
+    margin-top: 20px;
 }
 
-.info-row{
-    display:flex;
-    justify-content:space-between;
-    padding:18px 0;
-    border-bottom:1px solid #E2E8F0;
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid #E2E8F0;
 }
 
-.info-row span{
-    font-weight:bold;
-    color:#334155;
+.info-row:last-child {
+    border-bottom: none;
 }
 
-.info-row p{
-    color:#64748B;
+.info-row span {
+    flex-shrink: 0;
+    font-weight: bold;
+    color: #334155;
 }
 
-.buttons{
-    margin-top:35px;
-    display:flex;
-    gap:15px;
+.info-row p {
+    margin: 0;
+    color: #64748B;
+    text-align: right;
+    word-break: break-word;
 }
 
-.back-btn{
-    text-decoration:none;
-    padding:12px 22px;
-    border-radius:8px;
-    color:#fff;
-    font-weight:bold;
-    background:#64748B;
-    transition:.3s;
+.buttons {
+    margin-top: 35px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
-.back-btn:hover{
-    background:#475569;
+.back-btn {
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+    background: #64748B;
+    transition: .2s ease;
 }
 
-.chat-btn{
-    text-decoration:none;
-    padding:12px 22px;
-    border-radius:8px;
-    color:#fff;
-    font-weight:bold;
-    background:#2563EB;
-    transition:.3s;
+.back-btn:hover {
+    background: #475569;
 }
 
-.chat-btn:hover{
-    background:#1D4ED8;
+.chat-btn {
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+    background: #2563EB;
+    transition: .2s ease;
 }
 
-@media(max-width:768px){
+.chat-btn:hover {
+    background: #1D4ED8;
+}
 
-    .header{
-        flex-direction:column;
-        text-align:center;
+@media (max-width: 768px) {
+
+    .profile-card { padding: 26px 20px; }
+
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 18px;
+        margin-bottom: 26px;
     }
 
-    .info-row{
-        flex-direction:column;
-        gap:8px;
+    .profile-image { width: 120px; height: 120px; border-width: 4px; }
+
+    .user-details h2 { font-size: 22px; }
+
+    .info-row {
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px 0;
     }
 
+    .info-row p { text-align: left; }
+
+    .buttons { justify-content: center; }
+    .back-btn, .chat-btn { flex: 1 1 auto; text-align: center; }
+}
+
+@media (max-width: 420px) {
+
+    .page-header h1 { font-size: 20px; }
+
+    .profile-card { padding: 20px 16px; border-radius: 12px; }
+
+    .profile-image { width: 96px; height: 96px; border-width: 3px; }
+
+    .user-details h2 { font-size: 19px; margin-bottom: 6px; }
+    .user-details p { font-size: 14px; }
+
+    .info-row span { font-size: 14px; }
+    .info-row p { font-size: 14px; }
+
+    .back-btn, .chat-btn { padding: 11px 16px; font-size: 14px; }
 }
 
 </style>
@@ -130,13 +176,13 @@ Customer Profile
         <div class="header">
 
             {% if profile.profile_image %}
-                <img src="{{ profile.profile_image.url }}" class="profile-image">
+                <img src="{{ profile.profile_image.url }}" class="profile-image" alt="{{ customer.username }}">
             {% else %}
-                <img src="{% static 'images/default-profile.png' %}" class="profile-image">
+                <img src="{% static 'images/default-profile.png' %}" class="profile-image" alt="{{ customer.username }}">
             {% endif %}
 
             <div class="user-details">
-                <h1>{{ customer.username }}</h1>
+                <h2>{{ customer.username }}</h2>
                 <p>{{ customer.email }}</p>
             </div>
 

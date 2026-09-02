@@ -3,7 +3,168 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<style>
+* { box-sizing: border-box; }
+
+.profile-page {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* PROFILE CARD */
+.profile-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, .06);
+    padding: 32px;
+    text-align: center;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #eff6ff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, .15);
+    margin-bottom: 16px;
+}
+
+.profile-card h2 {
+    color: #0b0c10;
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    word-break: break-word;
+}
+
+.profile-info {
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-row:last-child { border-bottom: none; }
+
+.info-row span {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.info-row p {
+    margin: 0;
+    color: #0b0c10;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: right;
+    word-break: break-word;
+}
+
+.edit-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #0b0c10, #1d4ed8);
+    transition: .2s ease;
+}
+
+.edit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, .28);
+}
+
+/* SUPPORT CARD */
+.support-card {
+    background: linear-gradient(135deg, #0b0c10, #1d4ed8);
+    border-radius: 14px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, .12);
+    padding: 32px 28px;
+    text-align: center;
+    color: #fff;
+}
+
+.support-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.support-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.support-card p {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.chat-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: #0b0c10;
+    background: #fff;
+    transition: .2s ease;
+}
+
+.chat-btn:hover {
+    background: #e2e8f0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 820px) {
+    .profile-page {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-page { margin: 24px auto; padding: 0 14px; gap: 16px; }
+    .profile-card, .support-card { padding: 24px 20px; }
+    .profile-image { width: 96px; height: 96px; }
+    .profile-card h2 { font-size: 19px; }
+    .info-row { flex-direction: column; gap: 4px; padding: 12px 0; }
+    .info-row p { text-align: left; }
+}
+</style>
 
 <div class="profile-page">
 
@@ -11,9 +172,9 @@
     <div class="profile-card">
 
         {% if profile.profile_image %}
-            <img src="{{ profile.profile_image.url }}" class="profile-image">
+            <img src="{{ profile.profile_image.url }}" class="profile-image" alt="{{ request.user.username }}">
         {% else %}
-            <img src="{% static 'images/default-profile.png' %}" class="profile-image">
+            <img src="{% static 'images/default-profile.png' %}" class="profile-image" alt="{{ request.user.username }}">
         {% endif %}
 
         <h2>{{ request.user.username }}</h2>
