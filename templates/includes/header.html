@@ -7,57 +7,83 @@
     <li>
       <a href="{% url 'home' %}"
          class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-         Home
+        Home
       </a>
     </li>
 
     <li>
       <a href="{% url 'product_list' %}"
          class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">
-         Products
+        Products
       </a>
     </li>
 
     <li>
-      <a href="{% url 'category_list' %}">Categories</a>
+      <a href="{% url 'category_list' %}">
+        Categories
+      </a>
     </li>
 
     <li>
-      <a href="{% url 'notifications:list' %}">Notifications</a>
+      <a href="{% url 'about' %}">
+        About
+      </a>
     </li>
 
     <li>
-      <a href="{% url 'about' %}">About</a>
-    </li>
-
-    <li>
-      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'contact' %}">
+        Contact
+      </a>
     </li>
   </ul>
 
   <div class="nav-actions">
     {% if user.is_authenticated %}
+
+      <!-- Profile -->
       <a href="{% url 'profile' %}" class="btn btn-outline">
         👤 {{ user.username }}
       </a>
+
+      <!-- Notifications -->
+      <a href="{% url 'notifications:list' %}" class="notification-btn">
+    🔔
+
+    {% if unread_notification_count %}
+        <span class="notification-badge">
+            {{ unread_notification_count }}
+        </span>
+    {% endif %}
+</a>
+
+      <!-- Logout -->
       <a href="{% url 'logout' %}" class="btn btn-outline">
         Logout
       </a>
+
+      <!-- Cart -->
       <a href="{% url 'cart' %}" class="cart-btn">
-      🛒 Cart
-      {% if cart_count %}
-        <span class="cart-badge">{{ cart_count }}</span>
-      {% endif %}
-    </a>
+        🛒 Cart
+        {% if cart_count %}
+          <span class="cart-badge">{{ cart_count }}</span>
+        {% endif %}
+      </a>
+
     {% else %}
+
       <a href="{% url 'login' %}" class="btn btn-outline">
         Login
       </a>
+
       <a href="{% url 'signup' %}" class="btn btn-primary">
         Sign Up
       </a>
-    {% endif %}
 
-    
+    {% endif %}
   </div>
 </nav>
+
+
+
+
+

@@ -8,6 +8,10 @@ ALLOWED_HOSTS = [
     "localhost",
 ]
 
+DATABASE_ROUTERS = {
+    "shopcart.routers.ReplicaRouter",
+}
+
 
 DATABASES = {
     "default": {
@@ -17,7 +21,15 @@ DATABASES = {
         "PASSWORD": config("PDB_PASSWORD"),
         "HOST": config("PDB_HOST"),
         "PORT": config("PDB_PORT"),
-    }
+    },
+    "replica": {
+        "ENGINE": config("RPDB_ENGINE"),
+        "NAME": config("RPDB_NAME"),
+        "USER": config("RPDB_USER"),
+        "PASSWORD": config("RPDB_PASSWORD"),
+        "HOST": config("RPDB_HOST"),
+        "PORT": config("RPDB_PORT"),
+    },
 }
 
 
