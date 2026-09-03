@@ -2,8 +2,12 @@ from rest_framework.pagination import CursorPagination, PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Cart, CartItem, Order, OrderItem
-from .serializers import (CartItemSerializer, CartSerializer,
-                          OrderItemSerializer, OrderSerializer)
+from .serializers import (
+    CartItemSerializer,
+    CartSerializer,
+    OrderItemSerializer,
+    OrderSerializer,
+)
 
 
 class CartPagination1(PageNumberPagination):
