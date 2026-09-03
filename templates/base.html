@@ -5,16 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Cart</title>
+
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
 
     {% include 'includes/header.html' %}
+
     {% block content %}
-    <!-- Page content goes here -->
     {% endblock %}
+
     {% include 'includes/footer.html' %}
 
+    <script src="{% static 'js/base.js' %}"></script>
 </body>
 </html>

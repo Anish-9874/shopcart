@@ -159,8 +159,6 @@ def checkout(request):
                 # Clear cart
                 items.delete()
 
-            messages.success(request, "Order placed successfully!")
-
             # A broken/misconfigured notification must never block checkout —
             # the order is already committed at this point, so a failure here
             # shouldn't turn into a 500 that strands the user before they
@@ -268,8 +266,6 @@ def buy_now(request, product_id):
                 Product.objects.filter(id=product.id).update(
                     stock=F("stock") - quantity
                 )
-
-            messages.success(request, "Order placed successfully.")
 
             try:
                 send_notification(

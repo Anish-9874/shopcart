@@ -29,9 +29,7 @@
 
         <a href="{% url 'notifications:list' %}" class="notification-btn">
           🔔
-          {% if unread_notification_count %}
-            <span class="notification-badge">{{ unread_notification_count }}</span>
-          {% endif %}
+          <span id="notification-badge" class="notification-badge" style="display: none;"></span>
         </a>
 
         <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>

@@ -145,7 +145,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # "When I create a model a
 
 LOGIN_URL = "/login/"  # Redirect to login page if user is not authenticated usually work for @loginrequired decorator
 
-REDIS_HOST = config("REDIS_HOST", default="127.0.0.1")
+REDIS_HOST = config("REDIS_HOST", default="redis")
 REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
 
 

@@ -31,8 +31,14 @@ def mark_as_read(request, notification_id):
         id=notification_id, recipient=request.user
     ).first()
 
-    if notification:
-        notification.is_read = True
-        notification.save(update_fields=["is_read"])
+    was_unread = False
 
-    return JsonResponse({"success": True})
+    if notification:
+        was_unread = not notification.is_read
+        if was_unread:
+            notification.is_read = True
+            notification.save(update_fields=["is_read"])
+
+    # was_unread tells the client whether the badge count should actually
+    # decrement (clicking an already-read notification shouldn't touch it).
+    return JsonResponse({"success": bool(notification), "was_unread": was_unread})

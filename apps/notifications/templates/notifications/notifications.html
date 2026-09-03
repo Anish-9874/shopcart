@@ -3,314 +3,239 @@
 {% block content %}
 
 <style>
-    .notification-page {
-        max-width: 700px;
-        margin: 40px auto;
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
+.notifications {
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
 
-    .notification-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
+.card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,.06);
+}
 
-    .notification-header h2 {
-        margin: 0;
-    }
+.header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
 
-    .notification-item {
-        display: flex;
-        gap: 15px;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 8px;
-        cursor: pointer;
-    }
+.header h1 {
+    margin: 0;
+    font-size: 21px;
+    color: #111827;
+}
 
-    .notification-item:hover {
-        background: #f2f2f2;
-    }
+.header p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
 
-    .notification-item.unread {
-        background: #eaf3ff;
-    }
+.day {
+    padding: 12px 24px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+}
 
-    .notification-avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
+.notification {
+    display: flex;
+    gap: 14px;
+    padding: 15px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: .2s;
+}
 
-    .notification-content {
-        flex: 1;
-    }
+.notification:hover {
+    background: #f8fafc;
+}
 
-    .notification-text {
-        margin: 0;
-        font-size: 15px;
-    }
+.notification.unread {
+    background: #99b1a5;
+    border-left: 3px solid #0020645d;
+    padding-left: 21px;
+}
 
-    .notification-message {
-        margin-top: 5px;
-        color: #666;
-        font-size: 14px;
-    }
+.icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #497c9f;
+    font-size: 17px;
+}
 
-    .notification-time {
-        margin-top: 5px;
-        font-size: 12px;
-        color: #888;
-    }
+.unread .icon {
+    background: #001530;
+}
 
-    .unread-dot {
-        width: 10px;
-        height: 10px;
-        background: #1877f2;
-        border-radius: 50%;
-        align-self: center;
-    }
+.info {
+    flex: 1;
+}
 
-    .empty-notifications {
-        text-align: center;
-        padding: 50px 20px;
-        color: #888;
-    }
+.info p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #1e293b;
+}
+
+.time {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6f6161;
+}
+
+.empty {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty h3 {
+    margin: 0 0 6px;
+    color: #001e4f;
+}
+
+.empty p {
+    margin: 0 0 16px;
+    color: #001027;
+    font-size: 14px;
+}
+
+.empty a {
+    color: #004aeb;
+    font-weight: 600;
+    text-decoration: none;
+}
 </style>
 
 
-<div class="notification-page">
+<div class="notifications">
+    <div class="card">
 
-    {% csrf_token %}
+        <div class="header">
+            <h1>Notifications</h1>
+            <p>
+                {% if unread_count %}
+                    {{ unread_count }} unread
+                {% else %}
+                    You're all caught up
+                {% endif %}
+            </p>
+        </div>
 
-    <div class="notification-header">
-        <h2>Notifications</h2>
-    </div>
+        <div id="notificationList">
 
+            {% regroup notifications by day_bucket as groups %}
 
-    <div id="notificationList">
+            {% for group in groups %}
 
-        {% for notification in notifications %}
+                <div class="day-group" data-day="{{ group.grouper }}">
 
-            <div
-                class="notification-item {% if not notification.is_read %}unread{% endif %}"
-                data-id="{{ notification.id }}"
-                data-read-url="{% url 'notifications:mark_as_read' notification.id %}"
-            >
-
-                <div class="notification-avatar">
-                    {{ notification.sender.username|first|upper }}
-                </div>
-
-
-                <div class="notification-content">
-
-                    <p class="notification-text">
-                        {{ notification.text }}
-                    </p>
-
-                    <div class="notification-time">
-                        {{ notification.created_at|timesince }} ago
+                    <div class="day">
+                        {{ group.grouper }}
                     </div>
 
+                    {% for notification in group.list %}
+
+                        <div class="notification
+                            {% if not notification.is_read %}unread{% endif %}"
+                            data-id="{{ notification.id }}"
+                            data-read-url="{% url 'notifications:mark_as_read' notification.id %}">
+
+                            <div class="icon">
+                                {% if notification.chat_message %}💬{% else %}🔔{% endif %}
+                            </div>
+
+                            <div class="info">
+                                <p>{{ notification.text }}</p>
+                                <div class="time">
+                                    {{ notification.created_at|timesince }} ago
+                                </div>
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
                 </div>
 
+            {% empty %}
 
-                {% if not notification.is_read %}
-                    <div class="unread-dot"></div>
-                {% endif %}
+                <div class="empty" id="emptyNotifications">
+                    <h3>No notifications yet</h3>
+                    <p>New messages and order updates will appear here.</p>
+                    <a href="{% url 'product_list' %}">Browse products</a>
+                </div>
 
-            </div>
+            {% endfor %}
 
-        {% empty %}
-
-            <div class="empty-notifications" id="emptyNotifications">
-                <h3>No notifications</h3>
-                <p>You're all caught up.</p>
-            </div>
-
-        {% endfor %}
-
+        </div>
     </div>
-
 </div>
 
 
 <script>
+const list = document.getElementById("notificationList");
 
-const notificationList = document.getElementById("notificationList");
-const markAsReadUrlTemplate = "{% url 'notifications:mark_as_read' 0 %}".replace("/0/", "/__ID__/");
+function bindNotification(row) {
+    row.onclick = async () => {
+        if (!row.classList.contains("unread")) return;
 
-
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== "") {
-
-        const cookies = document.cookie.split(";");
-
-        for (let cookie of cookies) {
-
-            cookie = cookie.trim();
-
-            if (cookie.substring(0, name.length + 1) === name + "=") {
-
-                cookieValue = decodeURIComponent(
-                    cookie.substring(name.length + 1)
-                );
-
-                break;
-            }
-        }
-    }
-
-    return cookieValue;
-}
-
-
-function getCsrfToken() {
-    const cookieToken = getCookie("csrftoken");
-    const formToken = document.querySelector("[name=csrfmiddlewaretoken]");
-
-    return cookieToken || (formToken && formToken.value);
-}
-
-
-function markAsRead(notificationId) {
-    const item = document.querySelector(`[data-id="${notificationId}"]`);
-
-    if (!item) {
-        return;
-    }
-
-    fetch(
-        item.dataset.readUrl,
-        {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCsrfToken(),
-                "Content-Type": "application/json"
-            }
-        }
-    )
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Request failed with status ${response.status}`);
-        }
-
-        return response.json();
-    })
-    .then(data => {
+        const data = await window.Notifications.markAsRead(
+            row.dataset.id,
+            row.dataset.readUrl
+        );
 
         if (data.success) {
-
-            const item = document.querySelector(
-                `[data-id="${notificationId}"]`
-            );
-
-            if (item) {
-                item.classList.remove("unread");
-
-                const dot = item.querySelector(".unread-dot");
-
-                if (dot) {
-                    dot.remove();
-                }
-            }
+            row.classList.remove("unread");
         }
-    })
-    .catch((error) => {
-        console.error("Unable to mark notification as read.", error);
-    });
-
+    };
 }
 
-
-function bindItem(item) {
-    item.addEventListener("click", () => markAsRead(item.dataset.id));
-}
+document.querySelectorAll(".notification").forEach(bindNotification);
 
 
-document.querySelectorAll(".notification-item").forEach(bindItem);
+document.addEventListener("notification:new", e => {
 
+    document.getElementById("emptyNotifications")?.remove();
 
-// ---------------------------------------------------------
-// Live updates over WebSocket
-// ---------------------------------------------------------
+    const n = e.detail;
+    let today = list.querySelector('[data-day="Today"]');
 
-const protocol = location.protocol === "https:" ? "wss" : "ws";
-const notificationSocket = new WebSocket(
-    `${protocol}://${location.host}/ws/notifications/`
-);
-
-
-notificationSocket.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "notification") {
-        prependNotification(data);
-        bumpUnreadBadge();
-    }
-};
-
-
-notificationSocket.onerror = () => {
-    console.error("Notification socket error.");
-};
-
-
-function prependNotification(data) {
-    const empty = document.getElementById("emptyNotifications");
-
-    if (empty) {
-        empty.remove();
+    if (!today) {
+        today = document.createElement("div");
+        today.className = "day-group";
+        today.dataset.day = "Today";
+        today.innerHTML = '<div class="day">Today</div>';
+        list.prepend(today);
     }
 
-    const div = document.createElement("div");
+    const row = document.createElement("div");
 
-    div.className = "notification-item unread";
-    div.dataset.id = data.id;
-    div.dataset.readUrl = markAsReadUrlTemplate.replace("__ID__", data.id);
+    row.className = "notification unread";
+    row.dataset.id = n.id;
+    row.dataset.readUrl =
+        "{% url 'notifications:mark_as_read' 0 %}".replace("0/", `${n.id}/`);
 
-    div.innerHTML = `
-        <div class="notification-avatar">•</div>
-        <div class="notification-content">
-            <p class="notification-text">${data.text}</p>
-            <div class="notification-time">just now</div>
+    row.innerHTML = `
+        <div class="icon">🔔</div>
+        <div class="info">
+            <p></p>
+            <div class="time">just now</div>
         </div>
-        <div class="unread-dot"></div>
     `;
 
-    bindItem(div);
+    row.querySelector("p").textContent = n.text;
 
-    notificationList.prepend(div);
-}
-
-
-// Update any unread-count badge elsewhere on the page (e.g. in the navbar),
-// if the base template exposes one with this id.
-function bumpUnreadBadge() {
-    const badge = document.getElementById("notification-badge");
-
-    if (!badge) {
-        return;
-    }
-
-    const current = parseInt(badge.textContent, 10) || 0;
-    badge.textContent = current + 1;
-    badge.style.display = "inline-block";
-}
-
+    bindNotification(row);
+    today.appendChild(row);
+});
 </script>
 
 {% endblock %}
