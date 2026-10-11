@@ -1,10 +1,17 @@
-<nav class="site-nav">
+{# Requires: 'django.template.context_processors.request' in TEMPLATES -> context_processors #}
+{% with vn=request.resolver_match.url_name|default:'' ns=request.resolver_match.namespace|default:'' %}
 
-  <a class="nav-brand" href="{% url 'home' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<nav class="site-nav" aria-label="Main">
+
+  <a class="nav-brand" href="{% url 'home' %}" aria-label="ShopCart home">
     <span class="brand-black">Shop</span><span class="brand-blue">Cart</span>
   </a>
 
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+  <button class="nav-toggle" id="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
     <span></span><span></span><span></span>
   </button>
 
@@ -12,29 +19,39 @@
 
     <ul class="nav-links">
       <li>
-        <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'home' %}" class="{% if vn == 'home' %}active{% endif %}" {% if vn == 'home' %}aria-current="page"{% endif %}>Home</a>
       </li>
       <li>
-        <a href="{% url 'product_list' %}" class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">Products</a>
+        <a href="{% url 'product_list' %}" class="{% if 'product' in vn %}active{% endif %}" {% if 'product' in vn %}aria-current="page"{% endif %}>Products</a>
       </li>
-      <li><a href="{% url 'category_list' %}">Categories</a></li>
-      <li><a href="{% url 'about' %}">About</a></li>
-      <li><a href="{% url 'contact' %}">Contact</a></li>
+      <li>
+        <a href="{% url 'category_list' %}" class="{% if 'category' in vn %}active{% endif %}" {% if 'category' in vn %}aria-current="page"{% endif %}>Categories</a>
+      </li>
+      <li>
+        <a href="{% url 'about' %}" class="{% if vn == 'about' %}active{% endif %}" {% if vn == 'about' %}aria-current="page"{% endif %}>About</a>
+      </li>
+      <li>
+        <a href="{% url 'contact' %}" class="{% if vn == 'contact' %}active{% endif %}" {% if vn == 'contact' %}aria-current="page"{% endif %}>Contact</a>
+      </li>
     </ul>
 
     <div class="nav-actions">
       {% if user.is_authenticated %}
 
-        <a href="{% url 'profile' %}" class="btn btn-outline">👤 {{ user.username }}</a>
+        <a href="{% url 'profile' %}" class="btn btn-outline {% if vn == 'profile' %}active{% endif %}">👤 {{ user.username }}</a>
 
-        <a href="{% url 'notifications:list' %}" class="notification-btn">
+        <a href="{% url 'notifications:list' %}" class="notification-btn {% if ns == 'notifications' %}active{% endif %}" aria-label="Notifications">
           🔔
           <span id="notification-badge" class="notification-badge" style="display: none;"></span>
         </a>
 
-        <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+        {# Django 5+ only allows logout via POST (a GET link returns 405) #}
+        <form method="post" action="{% url 'logout' %}" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline">Logout</button>
+        </form>
 
-        <a href="{% url 'cart' %}" class="cart-btn">
+        <a href="{% url 'cart' %}" class="cart-btn {% if vn == 'cart' %}active{% endif %}">
           🛒 Cart
           {% if cart_count %}
             <span class="cart-badge">{{ cart_count }}</span>
@@ -43,8 +60,8 @@
 
       {% else %}
 
-        <a href="{% url 'login' %}" class="btn btn-outline">Login</a>
-        <a href="{% url 'signup' %}" class="btn btn-primary">Sign Up</a>
+        <a href="{% url 'login' %}" class="btn btn-outline {% if vn == 'login' %}active{% endif %}">Login</a>
+        <a href="{% url 'signup' %}" class="btn btn-primary {% if vn == 'signup' %}active{% endif %}">Sign Up</a>
 
       {% endif %}
     </div>
@@ -53,147 +70,311 @@
 
 </nav>
 
+{% endwith %}
+
 <style>
-/* BASE / DESKTOP LAYOUT
-   (this block was previously nested inside the 900px media query,
-   so on desktop .site-nav had no flex layout at all — that was the main bug) */
+/* ===== TOKENS (same palette as the loading screen) ===== */
+:root {
+  --logo-black: #0b0c10;
+  --logo-blue: #3b82f6;
+
+  --accent: #f97316;
+  --accent-dark: #c2410c;
+  --accent-darker: #9a3412;
+  --accent-light: #fdba74;
+  --accent-tint: #ffedd5;
+
+  --nav-bg: #fffdfa;
+  --surface: #fff7ed;
+  --border: #fde0c4;
+  --border-soft: #ffedd5;
+  --text: #44403c;
+  --text-strong: #1c1917;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+/* ===== BASE / DESKTOP ===== */
 .site-nav {
   display: flex;
   align-items: center;
-  padding: 16px 5%;
+  gap: 24px;
+  padding: 14px 5%;
   position: relative;
+  z-index: 100;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  background: linear-gradient(135deg, #fffdfa, #fff4e8);
+  border-bottom: 1px solid var(--border);
 }
+.site-nav *, .site-nav *::before, .site-nav *::after { box-sizing: border-box; }
 
+/* ===== LOGO: identical to the loading screen =====
+   Inter 800, line-height 1.1, black "Shop" + blue "Cart".
+   Letter-spacing is kept at the same proportion (-1.5px at 56px = -0.027em). */
 .nav-brand {
-  font-size: 24px;
+  font-family: var(--font);
+  font-size: 28px;
   font-weight: 800;
+  letter-spacing: -0.027em;
+  line-height: 1.1;
   text-decoration: none;
   white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
 }
-.brand-black { color: #000000; }
-.brand-blue { color: #2563eb; }
+/* Logo colors are fixed: "Shop" = black, "Cart" = blue.
+   High specificity + !important so no global link/span/active/hover/visited rule can recolor them. */
+.site-nav .nav-brand,
+.site-nav .nav-brand:link,
+.site-nav .nav-brand:visited,
+.site-nav .nav-brand:hover,
+.site-nav .nav-brand:active,
+.site-nav .nav-brand:focus {
+  text-decoration: none !important;
+  border: 0 !important;
+  background: none !important;
+}
+.site-nav .nav-brand .brand-black {
+  color: #0b0c10 !important;
+  -webkit-text-fill-color: #0b0c10 !important;
+}
+.site-nav .nav-brand .brand-blue {
+  color: #3b82f6 !important;
+  -webkit-text-fill-color: #3b82f6 !important;
+}
 
-/* nav-menu spans the remaining space next to the brand so we can
-   truly center nav-links in the middle of the bar and push
-   nav-actions to the far right */
 .nav-menu {
   display: flex;
   align-items: center;
   flex: 1;
-  position: relative;
+  min-width: 0;
+  gap: 24px;
 }
 
+/* No more absolute centering: links can never overlap the buttons */
 .nav-links {
   display: flex;
   align-items: center;
   gap: 28px;
   list-style: none;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
-
-  /* true centering in the middle of the nav, independent of
-     brand width on the left and actions width on the right */
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .nav-links a {
+  display: inline-block;
   text-decoration: none;
-  color: #334155;
+  color: var(--text);
   font-weight: 600;
   font-size: 14px;
   padding: 6px 0;
   border-bottom: 2px solid transparent;
-  transition: .2s ease;
+  transition: color .2s ease, border-color .2s ease;
 }
 .nav-links a:hover,
 .nav-links a.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
 }
+.nav-links a.active { font-weight: 700; }
+.nav-links a:active { color: var(--accent-darker); }
 
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto; /* pushes actions to the far right */
+  flex-shrink: 0;
+}
+.logout-form { display: contents; margin: 0; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.btn-outline {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.6);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--surface); }
+.btn-primary { color: #fff; background: var(--accent-dark); border: 1px solid var(--accent-dark); }
+.btn-primary:hover { background: var(--accent-darker); border-color: var(--accent-darker); }
+
+.notification-btn,
+.cart-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.notification-btn:hover,
+.cart-btn:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-tint); }
+
+/* ===== ACTIVE (selected) STATES for every small unit ===== */
+.btn-outline.active,
+.notification-btn.active,
+.cart-btn.active {
+  color: var(--accent-dark);
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  box-shadow: 0 0 0 2px rgba(249,115,22,.18);
+}
+.btn-primary.active {
+  background: var(--accent-darker);
+  border-color: var(--accent-darker);
+  box-shadow: 0 0 0 3px rgba(249,115,22,.35);
 }
 
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 15px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; white-space: nowrap; transition: .2s ease; }
-.btn-outline { color: #334155; border: 1px solid #e2e8f0; }
-.btn-outline:hover { border-color: #2563eb; color: #2563eb; }
-.btn-primary { background: #2563eb; color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
+/* Pressed feedback */
+.btn:active, .notification-btn:active, .cart-btn:active { transform: translateY(1px); }
 
-.notification-btn, .cart-btn { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; color: #334155; background: #f8fafc; border: 1px solid #e2e8f0; }
-.notification-btn:hover, .cart-btn:hover { border-color: #2563eb; color: #2563eb; }
+/* ===== BADGES ===== */
+.notification-badge,
+.cart-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 999px;
+  border: 2px solid #fff;               /* white ring separates the number from the button */
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 18px;                     /* 22px - 2×2px border: keeps the number centered */
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.notification-badge { background: #dc2626; }
+.cart-badge { background: var(--accent-dark); }
 
-.notification-badge, .cart-badge { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; }
-.notification-badge { background: #ef4444; }
-.cart-badge { background: #2563eb; }
+/* ===== KEYBOARD FOCUS ===== */
+.site-nav .nav-brand:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.nav-links a:focus-visible,
+.btn:focus-visible,
+.notification-btn:focus-visible,
+.cart-btn:focus-visible,
+.nav-toggle:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
 
-/* HAMBURGER (hidden on desktop) */
-.nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; width: 34px; height: 34px; border: none; background: transparent; cursor: pointer; padding: 0; }
-.nav-toggle span { display: block; height: 2px; width: 100%; background: #0f172a; border-radius: 2px; transition: .25s ease; }
+/* ===== HAMBURGER (hidden on desktop) ===== */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--text-strong);
+  border-radius: 2px;
+  transition: transform .25s ease, opacity .25s ease;
+}
 .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* MOBILE — single consolidated breakpoint (previously duplicated
-   in two separate @media blocks with conflicting rules) */
-@media (max-width: 900px) {
+/* ===== MOBILE / TABLET ===== */
+@media (max-width: 1020px) {
 
-  .site-nav {
-    justify-content: space-between;
-  }
-
-  .nav-toggle {
-    display: flex;
-  }
+  .site-nav { justify-content: space-between; }
+  .nav-toggle { display: flex; }
 
   .nav-menu {
-    display: flex;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-
-    flex-direction: column;
-    align-items: stretch;
-
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 12px 24px rgba(15,23,42,.08);
-
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height .3s ease;
-  }
-
-  .nav-menu.open {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  .nav-links {
-    /* undo the desktop absolute-centering trick for the stacked mobile menu */
-    position: static;
-    transform: none;
+    z-index: 50;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 10px 6%;
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 12px 24px rgba(194,65,12,.10);
+
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;                 /* closed links can't be tabbed to */
+    transition: max-height .3s ease, visibility 0s linear .3s;
+  }
+  .nav-menu.open {
+    max-height: 80vh;
+    overflow-y: auto;
+    visibility: visible;
+    transition: max-height .3s ease, visibility 0s;
   }
 
-  .nav-links li {
-    border-bottom: 1px solid #f1f5f9;
+  .nav-links {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 8px 6%;
   }
+  .nav-links li { border-bottom: 1px solid var(--border-soft); }
+  .nav-links li:last-child { border-bottom: none; }
 
+  /* Selected item = tinted row with an orange bar on the left */
   .nav-links a {
     display: block;
-    padding: 13px 0;
+    padding: 14px 12px;
+    min-height: 44px;
     border-bottom: none;
+    border-left: 3px solid transparent;
+    border-radius: 6px;
+  }
+  .nav-links a:hover,
+  .nav-links a.active {
+    background: var(--accent-tint);
+    border-left-color: var(--accent);
+    border-bottom-color: transparent;
   }
 
   .nav-actions {
@@ -201,41 +382,120 @@
     align-items: stretch;
     gap: 8px;
     padding: 14px 6% 20px;
-    margin-left: 0;
+    border-top: 1px solid var(--border-soft);
   }
-
   .btn,
   .notification-btn,
   .cart-btn {
     justify-content: center;
     width: 100%;
+    min-height: 44px;
   }
+
+  /* Badges were clipped by overflow:hidden; show them inline instead */
+  .notification-badge,
+  .cart-badge { position: static; margin-left: 6px; box-shadow: none; }
 }
 
 @media (max-width: 480px) {
-  .site-nav { padding: 12px 5%; }
-  .nav-brand { font-size: 21px; }
+  .site-nav { padding: 10px 5%; }
+  .nav-brand { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav *, .nav-menu { transition: none !important; }
 }
 </style>
 
 <script>
 (function () {
+  var nav    = document.querySelector('.site-nav');
   var toggle = document.getElementById('navToggle');
-  var menu = document.getElementById('navMenu');
-  if (!toggle || !menu) return;
+  var menu   = document.getElementById('navMenu');
+  if (!nav || !toggle || !menu) return;
+
+  var desktop = window.matchMedia('(min-width: 1021px)');
+
+  /* ---------- Menu open / close ---------- */
+  function setMenu(open) {
+    menu.classList.toggle('open', open);
+    toggle.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
 
   toggle.addEventListener('click', function () {
-    var isOpen = menu.classList.toggle('open');
-    toggle.classList.toggle('open', isOpen);
-    toggle.setAttribute('aria-expanded', isOpen);
+    setMenu(!menu.classList.contains('open'));
   });
 
-  menu.querySelectorAll('a').forEach(function (link) {
-    link.addEventListener('click', function () {
-      menu.classList.remove('open');
-      toggle.classList.remove('open');
-      toggle.setAttribute('aria-expanded', 'false');
-    });
+  // Click outside closes the menu
+  document.addEventListener('click', function (e) {
+    if (!nav.contains(e.target)) setMenu(false);
   });
+
+  // Escape closes the menu and returns focus to the button
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('open')) {
+      setMenu(false);
+      toggle.focus();
+    }
+  });
+
+  // Reset when the screen grows to desktop
+  function onResize(e) { if (e.matches) setMenu(false); }
+  if (desktop.addEventListener) desktop.addEventListener('change', onResize);
+  else desktop.addListener(onResize);
+
+  /* ---------- Highlight selected option ---------- */
+  var items = Array.prototype.slice.call(
+    nav.querySelectorAll('.nav-links a, .nav-actions a')
+  );
+  var brand = nav.querySelector('.nav-brand');
+
+  function clean(path) {
+    return (path.replace(/\/+$/, '') || '/');
+  }
+
+  function setActive(target) {
+    items.forEach(function (a) {
+      a.classList.remove('active');
+      a.removeAttribute('aria-current');
+    });
+    if (target) {
+      target.classList.add('active');
+      target.setAttribute('aria-current', 'page');
+    }
+  }
+
+  // Find the link that best matches the current URL (longest prefix wins)
+  function matchCurrent() {
+    var here = clean(location.pathname), best = null, bestLen = -1;
+    items.forEach(function (a) {
+      var p = clean(a.pathname);
+      var hit = (p === '/') ? here === '/' : (here === p || here.indexOf(p + '/') === 0);
+      if (hit && p.length > bestLen) { best = a; bestLen = p.length; }
+    });
+    return best;
+  }
+
+  var current = matchCurrent();
+  if (current) setActive(current);        // otherwise keep the server-side result
+
+  // Instant highlight on click (before the next page loads)
+  function onItemClick(e) {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (this.target === '_blank') return;
+    setActive(this);
+    setMenu(false);
+  }
+  items.forEach(function (a) { a.addEventListener('click', onItemClick); });
+
+  // Clicking the logo selects Home
+  if (brand) {
+    brand.addEventListener('click', function () {
+      var home = items.filter(function (a) { return clean(a.pathname) === '/'; })[0];
+      if (home) setActive(home);
+      setMenu(false);
+    });
+  }
 })();
 </script>

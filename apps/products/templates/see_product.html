@@ -322,8 +322,8 @@
         </td>
 
         <td class="action-cell" data-label="Action">
-            <a href="{% url 'edit_product' product.id %}" class="edit-btn">Edit</a>
-            <a href="{% url 'delete_product' product.id %}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
+            <a href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}" class="edit-btn">Edit</a>
+            <a href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
         </td>
 
     </tr>

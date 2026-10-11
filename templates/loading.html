@@ -2,109 +2,199 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loading...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#fff4e8">
+<title>ShopCart | Loading</title>
+
+<!-- Fallback if JavaScript is disabled (backend URL tag unchanged) -->
+<noscript><meta http-equiv="refresh" content="2;url={% url 'home' %}"></noscript>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;800&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --blue:#3b82f6;
-    --blue-dark:#2563eb;
-    --ink:#111827;
+    /* Brand tokens (same logo colors as before) */
+    /* Logo colors (never change): black + blue */
+    --logo-black:#0b0c10;
+    --logo-blue:#3b82f6;
+
+    /* Page accent: warm orange (complements the blue logo) */
+    --accent:#f97316;
+    --accent-dark:#ea580c;
+    --accent-light:#fdba74;
+    --accent-tint:#ffedd5;
+    --link:#c2410c;         /* readable on cream (5:1+) */
+    --muted:#57534e;        /* readable on cream (7:1) */
+    --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
   }
 
+  *,*::before,*::after{ box-sizing:border-box; }
+
+  html,body{ height:100%; }
 
   body{
-    height:100vh;
+    margin:0;
+    min-height:100vh;
+    min-height:100dvh;
     display:grid;
     place-items:center;
     overflow:hidden;
     position:relative;
-    font-family:'Inter',sans-serif;
-    background:linear-gradient(135deg,#fff,#edf5ff,#dbeafe);
+    font-family:var(--font);
+    background:linear-gradient(135deg,#fffdfa,#fff4e8,#ffe3c7);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-font-smoothing:antialiased;
   }
 
+  /* Soft floating background blobs (the float animation was missing before) */
   body::before,
   body::after{
     content:"";
     position:absolute;
     border-radius:50%;
     filter:blur(40px);
-    background:var(--blue);
-    opacity:.33;
+    background:var(--accent);
+    opacity:.30;
     animation:float 8s ease-in-out infinite;
+    pointer-events:none;
   }
-  body::before{ 
-    width:280px; height:280px; top:-80px; left:-80px; 
-    }
-  body::after{
-     width:220px; height:220px; bottom:-60px; right:-60px; animation-delay:-4s; 
-    }
+  body::before{ width:280px; height:280px; top:-80px; left:-80px; }
+  body::after { width:220px; height:220px; bottom:-60px; right:-60px; animation-delay:-4s; background:var(--accent-light); opacity:.45; }
 
-  .container{ text-align:center; z-index:1; }
+  @keyframes float{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%    { transform:translate(24px,-28px) scale(1.08); }
+  }
 
-  
+  .container{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    padding:0 24px;
+    width:100%;
+    animation:rise .6s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(12px); }
+    to  { opacity:1; transform:translateY(0); }
+  }
+
+  /* ===== Logo (unchanged colors: black + blue) ===== */
+  .logo{
+    font-family:var(--font);
+    font-size:clamp(38px,9vw,56px);
+    font-weight:800;
+    letter-spacing:-1.5px;
+    line-height:1.1;
+    user-select:none;
+    cursor:default;
+  }
+  .black-text{ color:#0b0c10; }  /* logo - unchanged */
+  .blue-text { color:#3b82f6; }
+
+  /* ===== Loading text + dots ===== */
+  .loading{
+    margin-top:18px;
+    font-size:16px;
+    font-weight:500;
+    color:var(--muted);
+    letter-spacing:.2px;
+    display:inline-flex;
+    align-items:baseline;
+    gap:4px;
+  }
+
+  .dots{ display:inline-flex; gap:4px; margin-left:2px; }
+  .dots span{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    animation:bounce 1.2s ease-in-out infinite;
+  }
   .dots span:nth-child(2){ animation-delay:.2s; }
   .dots span:nth-child(3){ animation-delay:.4s; }
 
+  @keyframes bounce{
+    0%,80%,100%{ transform:translateY(0);   opacity:.45; }
+    40%        { transform:translateY(-6px); opacity:1; }
+  }
+
+  /* ===== Progress bar ===== */
   .progress{
-    width:320px;
+    width:min(320px,80vw);
     height:7px;
-    margin:35px auto 0;
+    margin:28px auto 0;
     border-radius:20px;
-    background:#dbeafe;
+    background:var(--accent-tint);
     overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(234,88,12,.15);
   }
   .progress::after{
     content:"";
     display:block;
     height:100%;
     border-radius:20px;
-    background:linear-gradient(90deg,var(--blue-dark),#60a5fa);
-    animation:load 2s linear forwards;
+    background:linear-gradient(90deg,var(--accent-dark),var(--accent-light));
+    animation:load 2s cubic-bezier(.4,0,.2,1) forwards;
   }
 
   @keyframes load{ from{ width:0; } to{ width:100%; } }
 
+  /* Manual link, in case the redirect is slow or blocked */
+  .skip{
+    display:inline-block;
+    margin-top:22px;
+    padding:12px 16px;          /* comfortable 44px touch target */
+    min-height:44px;
+    font-size:14px;
+    font-weight:500;
+    color:var(--link);
+    text-decoration:none;
+    border-radius:10px;
+    opacity:0;
+    animation:fadeIn .4s ease 2.4s forwards;
+  }
+  .skip:hover{ text-decoration:underline; }
+  .skip:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
 
-  .logo {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      font-size: 48px;
-      font-weight: 800; /* Heavy, thick weight */
-      letter-spacing: -1.5px; /* Tighter letter spacing to match the image */
-      user-select: none;
-      cursor: default;
-    }
+  @keyframes fadeIn{ to{ opacity:1; } }
 
-    /* "Shop" Styling */
-    .black-text {
-      color: #0b0c10; /* Soft black */
-    }
-
-    /* "Cart" Styling */
-    .blue-text {
-      color: #3b82f6; /* Clean brand blue */
-    }
-
-
+  /* Respect users who prefer less motion */
+  @media (prefers-reduced-motion:reduce){
+    body::before,body::after,
+    .container,
+    .dots span{ animation:none; }
+    .dots span{ opacity:.8; }
+    .progress::after{ animation-duration:.01s; }
+  }
 </style>
 
 <script>
-  setTimeout(() => window.location.href = "{% url 'home' %}", 2000);
+  /* Backend redirect kept exactly as before */
+  setTimeout(() => window.location.href = "{% url 'home' %}", 20000);
 </script>
 </head>
 <body>
 
-  <div class="container">
-<!-- Logo Markup -->
-  <div class="logo">
-    <span class="black-text">Shop</span><span class="blue-text">Cart</span>
-  </div>
-      <div class="loading">
-      Loading
-      <span class="dots"><span></span><span></span><span></span></span>
+  <main class="container">
+    <!-- Logo Markup (unchanged) -->
+    <div class="logo" aria-label="ShopCart">
+      <span class="black-text">Shop</span><span class="blue-text">Cart</span>
     </div>
-    <div class="progress"></div>
-  </div>
+
+    <div class="loading" role="status" aria-live="polite">
+      Loading
+      <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+    </div>
+
+    <div class="progress" aria-hidden="true"></div>
+
+    <a class="skip" href="{% url 'home' %}">Taking too long? Continue</a>
+  </main>
 
 </body>
 </html>

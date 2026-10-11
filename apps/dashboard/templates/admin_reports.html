@@ -1,0 +1,511 @@
+
+{% extends 'admin_base.html' %}
+
+{% block title %}Reports & Analytics | ShopCart{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-heading {
+    margin-bottom: 24px;
+}
+.report-heading h1 {
+    font-size: 27px;
+    margin-bottom: 7px;
+}
+.report-heading p {
+    color: #64748B;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.date-filter {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 18px;
+    margin-bottom: 22px;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+}
+.date-filter label {
+    display: block;
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+.date-filter input {
+    padding: 10px;
+    border: 1px solid #CBD5E1;
+    border-radius: 7px;
+    font: inherit;
+}
+.date-filter button,
+.reset-link {
+    padding: 11px 15px;
+    border-radius: 7px;
+    border: 0;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+.date-filter button {
+    color: white;
+    background: #2563EB;
+}
+.reset-link {
+    color: #334155;
+    background: #F1F5F9;
+}
+.report-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.report-stat {
+    background: white;
+    padding: 20px;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    min-width: 0;
+}
+.report-stat .label {
+    color: #64748B;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+.report-stat h2 {
+    font-size: 25px;
+    overflow-wrap: anywhere;
+}
+.report-stat .note {
+    margin-top: 10px;
+    color: #64748B;
+    font-size: 12px;
+}
+.growth {
+    font-weight: 700;
+}
+.growth.up { color: #059669; }
+.growth.down { color: #DC2626; }
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+.report-panel {
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 22px;
+    min-width: 0;
+    margin-bottom: 22px;
+}
+.chart-title {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+.chart-subtitle {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 20px;
+}
+.chart-wrap {
+    height: 280px;
+    position: relative;
+}
+.report-panel .table-scroll {
+    box-shadow: none;
+}
+.report-panel h2 {
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+.report-panel .panel-description {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 18px;
+}
+.report-bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+.stock-tag {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 5px 8px;
+    background: #FEF3C7;
+    color: #92400E;
+    font-size: 11px;
+    font-weight: 700;
+}
+.stock-tag.empty {
+    background: #FEE2E2;
+    color: #B91C1C;
+}
+@media(max-width:1100px) {
+    .report-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chart-grid, .report-bottom-grid { grid-template-columns: 1fr; }
+}
+@media(max-width:520px) {
+    .report-stats { gap: 10px; }
+    .report-stat { padding: 14px; }
+    .report-stat h2 { font-size: 20px; }
+    .report-panel { padding: 15px; }
+    .chart-wrap { height: 240px; }
+    .report-heading h1 { font-size: 23px; }
+    .date-filter input { width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="report-heading">
+    <h1>📊 Reports & Analytics</h1>
+    <p>Understand your sales, customers, orders and inventory performance.</p>
+</div>
+
+<form method="get" class="date-filter">
+    <div>
+        <label for="start">From date</label>
+        <input type="date" id="start" name="start"
+               value="{{ start_date }}" required>
+    </div>
+    <div>
+        <label for="end">To date</label>
+        <input type="date" id="end" name="end"
+               value="{{ end_date }}" required>
+    </div>
+    <button type="submit">Apply Filters</button>
+    <a class="reset-link" href="{% url 'reports_analytics' %}">Last 30 Days</a>
+</form>
+
+<div class="report-stats">
+    <div class="report-stat">
+        <div class="label">PAID REVENUE</div>
+        <h2>Rs. {{ revenue|floatformat:2 }}</h2>
+        <div class="note">
+            {% if revenue_growth is not None %}
+                <span class="growth {% if revenue_growth > 0 %}up{% elif revenue_growth < 0 %}down{% endif %}">
+                    {% if revenue_growth > 0 %}+{% endif %}{{ revenue_growth }}%
+                </span>
+                vs previous period
+            {% else %}
+                No previous-period baseline
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="report-stat">
+        <div class="label">NON-CANCELLED ORDERS</div>
+        <h2>{{ orders_count }}</h2>
+        <div class="note">
+            {% if orders_growth is not None %}
+                <span class="growth {% if orders_growth > 0 %}up{% elif orders_growth < 0 %}down{% endif %}">
+                    {% if orders_growth > 0 %}+{% endif %}{{ orders_growth }}%
+                </span>
+                vs previous period
+            {% else %}
+                No previous-period baseline
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="report-stat">
+        <div class="label">AVERAGE ORDER VALUE</div>
+        <h2>Rs. {{ average_order_value|floatformat:2 }}</h2>
+        <div class="note">Based on non-cancelled orders</div>
+    </div>
+
+    <div class="report-stat">
+        <div class="label">ORDER VALUE</div>
+        <h2>Rs. {{ sales_value|floatformat:2 }}</h2>
+        <div class="note">Non-cancelled orders, paid or unpaid</div>
+    </div>
+</div>
+
+<div class="chart-grid">
+    <section class="report-panel">
+        <h2 class="chart-title">Revenue Trend</h2>
+        <p class="chart-subtitle">Daily revenue from paid orders only</p>
+        <div class="chart-wrap">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </section>
+
+    <section class="report-panel">
+        <h2 class="chart-title">Order Trend</h2>
+        <p class="chart-subtitle">Daily non-cancelled orders</p>
+        <div class="chart-wrap">
+            <canvas id="ordersChart"></canvas>
+        </div>
+    </section>
+
+    <section class="report-panel">
+        <h2 class="chart-title">Customer Growth</h2>
+        <p class="chart-subtitle">New customer registrations per day</p>
+        <div class="chart-wrap">
+            <canvas id="customersChart"></canvas>
+        </div>
+    </section>
+
+    <section class="report-panel">
+        <h2 class="chart-title">Order Status</h2>
+        <p class="chart-subtitle">All order statuses during the selected period</p>
+        <div class="chart-wrap">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </section>
+</div>
+
+<div class="report-bottom-grid">
+    <section class="report-panel">
+        <h2>🏆 Best-Selling Products</h2>
+        <p class="panel-description">
+            Ranked by units sold during the selected period.
+        </p>
+        <div class="table-scroll">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Units</th>
+                        <th>Sales Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in top_products %}
+                    <tr>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.units_sold }}</td>
+                        <td>Rs. {{ product.sales_value|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No sales data for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="report-panel">
+        <h2>⚠️ Inventory Alerts</h2>
+        <p class="panel-description">
+            {{ out_of_stock_count }} product(s) are out of stock.
+            Low stock means {{ LOW_STOCK_LIMIT|default:"5" }} units or fewer.
+        </p>
+        <div class="table-scroll">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Available</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in low_stock_products %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.stock }}</td>
+                        <td>
+                            {% if product.stock == 0 %}
+                                <span class="stock-tag empty">Out of stock</span>
+                            {% else %}
+                                <span class="stock-tag">Low stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">All products have sufficient stock.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="report-panel">
+    <h2>Business Summary</h2>
+    <p class="panel-description">Current store totals and payment overview.</p>
+    <div class="report-stats" style="margin-bottom:0;">
+        <div class="report-stat">
+            <div class="label">ALL CUSTOMERS</div>
+            <h2>{{ customers_count }}</h2>
+        </div>
+        <div class="report-stat">
+            <div class="label">ALL PRODUCTS</div>
+            <h2>{{ products_count }}</h2>
+        </div>
+        <div class="report-stat">
+            <div class="label">CATEGORIES</div>
+            <h2>{{ categories_count }}</h2>
+        </div>
+        <div class="report-stat">
+            <div class="label">UNPAID ACTIVE ORDERS</div>
+            <h2>{{ unpaid_orders_count }}</h2>
+        </div>
+    </div>
+</section>
+
+{{ revenue_chart|json_script:"revenue-data" }}
+{{ orders_chart|json_script:"orders-data" }}
+{{ customers_chart|json_script:"customers-data" }}
+{{ order_statuses|json_script:"status-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const revenue = JSON.parse(
+        document.getElementById("revenue-data").textContent
+    );
+    const orders = JSON.parse(
+        document.getElementById("orders-data").textContent
+    );
+    const customers = JSON.parse(
+        document.getElementById("customers-data").textContent
+    );
+    const statuses = JSON.parse(
+        document.getElementById("status-data").textContent
+    );
+
+    if (typeof Chart === "undefined") {
+        return;
+    }
+
+    Chart.defaults.font.family = "Arial, sans-serif";
+    Chart.defaults.color = "#64748B";
+
+    function makeLineChart(id, data, label, color, money = false) {
+        const canvas = document.getElementById(id);
+
+        new Chart(canvas, {
+            type: "line",
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: label,
+                    data: data.values,
+                    borderColor: color,
+                    backgroundColor: color + "20",
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: data.values.length > 45 ? 0 : 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: "index"
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.parsed.y;
+                                return money
+                                    ? " Rs. " + value.toLocaleString(
+                                        "en-IN",
+                                        {minimumFractionDigits: 2,
+                                         maximumFractionDigits: 2}
+                                      )
+                                    : " " + value;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            callback: function (value) {
+                                return money
+                                    ? "Rs. " + Number(value).toLocaleString("en-IN")
+                                    : value;
+                            }
+                        },
+                        grid: { color: "#F1F5F9" }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 8 }
+                    }
+                }
+            }
+        });
+    }
+
+    makeLineChart(
+        "revenueChart", revenue, "Paid revenue", "#2563EB", true
+    );
+    makeLineChart(
+        "ordersChart", orders, "Orders", "#10B981"
+    );
+    makeLineChart(
+        "customersChart", customers, "New customers", "#8B5CF6"
+    );
+
+    new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+            labels: statuses.map(item => item.status),
+            datasets: [{
+                data: statuses.map(item => item.total),
+                backgroundColor: [
+                    "#2563EB", "#10B981", "#F59E0B",
+                    "#8B5CF6", "#06B6D4", "#EF4444"
+                ],
+                borderWidth: 2,
+                borderColor: "#FFFFFF"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+
+    // Prevent choosing an end date earlier than the start date.
+    const startInput = document.getElementById("start");
+    const endInput = document.getElementById("end");
+
+    startInput.addEventListener("change", function () {
+        endInput.min = startInput.value;
+        if (endInput.value && endInput.value < startInput.value) {
+            endInput.value = startInput.value;
+        }
+    });
+
+    endInput.addEventListener("change", function () {
+        startInput.max = endInput.value;
+        if (startInput.value && startInput.value > endInput.value) {
+            startInput.value = endInput.value;
+        }
+    });
+});
+</script>
+{% endblock %}

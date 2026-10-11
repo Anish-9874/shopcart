@@ -1,0 +1,397 @@
+
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    .reviews-page {
+        color: #0f172a;
+        padding: 10px 0 35px;
+    }
+
+    .reviews-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .reviews-heading h1 {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 6px;
+    }
+
+    .reviews-heading p {
+        color: #64748b;
+        margin: 0;
+    }
+
+    .review-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 25px;
+    }
+
+    .review-stat {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, .04);
+    }
+
+    .review-stat span {
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .review-stat h2 {
+        font-size: 28px;
+        margin: 8px 0 0;
+        font-weight: 800;
+    }
+
+    .stat-star {
+        color: #f59e0b;
+    }
+
+    .review-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        background: #fff;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        margin-bottom: 20px;
+    }
+
+    .review-toolbar input,
+    .review-toolbar select {
+        min-width: 150px;
+        flex: 1;
+        padding: 11px 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 9px;
+        background: #fff;
+        color: #0f172a;
+        outline: none;
+    }
+
+    .review-toolbar input:focus,
+    .review-toolbar select:focus {
+        border-color: #147073;
+        box-shadow: 0 0 0 3px rgba(20, 112, 115, .1);
+    }
+
+    .review-btn {
+        border: 0;
+        border-radius: 9px;
+        padding: 11px 17px;
+        background: #147073;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .review-btn:hover {
+        background: #105b5e;
+        color: white;
+    }
+
+    .review-btn-reset {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .review-btn-reset:hover {
+        background: #cbd5e1;
+        color: #0f172a;
+    }
+
+    .reviews-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .review-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, .035);
+    }
+
+    .review-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .reviewer {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .review-avatar {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: #dff4f1;
+        color: #147073;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .reviewer h3 {
+        font-size: 15px;
+        margin: 0 0 4px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .review-date {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .review-rating {
+        color: #f59e0b;
+        letter-spacing: 2px;
+        white-space: nowrap;
+        font-size: 17px;
+    }
+
+    .review-product {
+        display: inline-block;
+        margin: 17px 0 10px;
+        padding: 6px 10px;
+        background: #ecfdf5;
+        color: #11645f;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .review-message {
+        color: #475569;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        margin: 0 0 18px;
+    }
+
+    .review-card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 14px;
+    }
+
+    .published-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #147073;
+        background: #e6f6f3;
+        padding: 7px 10px;
+        border-radius: 20px;
+    }
+
+    .delete-review {
+        background: #fff1f2;
+        color: #be123c;
+        border: 1px solid #fecdd3;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .delete-review:hover {
+        background: #ffe4e6;
+    }
+
+    .empty-reviews {
+        text-align: center;
+        padding: 50px 20px;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        color: #64748b;
+        background: #fff;
+    }
+
+    .empty-reviews h3 {
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .review-alert {
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        background: #e6f6f3;
+        color: #11645f;
+    }
+
+    @media (max-width: 700px) {
+        .review-stats {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .review-stat {
+            padding: 15px;
+        }
+
+        .review-stat h2 {
+            font-size: 24px;
+        }
+
+        .reviews-heading h1 {
+            font-size: 24px;
+        }
+
+        .review-card {
+            padding: 15px;
+        }
+
+        .review-card-top {
+            flex-direction: column;
+        }
+
+        .review-toolbar input,
+        .review-toolbar select,
+        .review-toolbar button,
+        .review-toolbar a {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="reviews-page">
+    <div class="reviews-heading">
+        <div>
+            <h1>Customer Reviews</h1>
+            <p>Manage and monitor customer feedback on ShopCart.</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="review-alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="review-stats">
+        <div class="review-stat">
+            <span>Total Reviews</span>
+            <h2>{{ total_reviews }}</h2>
+        </div>
+
+        <div class="review-stat">
+            <span>Average Rating</span>
+            <h2>
+                <span class="stat-star">★</span>
+                {{ average_rating|floatformat:1 }}<small>/5</small>
+            </h2>
+        </div>
+
+        <div class="review-stat">
+            <span>Five-Star Reviews</span>
+            <h2>{{ five_star_reviews }}</h2>
+        </div>
+    </div>
+
+    <form method="get" class="review-toolbar">
+        <input
+            type="search"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search reviewer, product, or review..."
+        >
+
+        <select name="rating">
+            <option value="">All ratings</option>
+            <option value="5" {% if selected_rating == "5" %}selected{% endif %}>★★★★★ — 5 stars</option>
+            <option value="4" {% if selected_rating == "4" %}selected{% endif %}>★★★★☆ — 4 stars</option>
+            <option value="3" {% if selected_rating == "3" %}selected{% endif %}>★★★☆☆ — 3 stars</option>
+            <option value="2" {% if selected_rating == "2" %}selected{% endif %}>★★☆☆☆ — 2 stars</option>
+            <option value="1" {% if selected_rating == "1" %}selected{% endif %}>★☆☆☆☆ — 1 star</option>
+        </select>
+
+        <button type="submit" class="review-btn">Search</button>
+        <a href="{% url 'admin_reviews' %}" class="review-btn review-btn-reset">Reset</a>
+    </form>
+
+    <div class="reviews-list">
+        {% for review in reviews %}
+            <article class="review-card">
+                <div class="review-card-top">
+                    <div class="reviewer">
+                        <div class="review-avatar">
+                            {{ review.user.username|first|upper }}
+                        </div>
+
+                        <div>
+                            <h3>{{ review.user.username }}</h3>
+                            <div class="review-date">
+                                {{ review.created_at|date:"M d, Y · h:i A" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-rating" aria-label="{{ review.rating }} out of 5 stars">
+                        {% for star in "12345" %}
+                            {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="review-product">
+                    Product: {{ review.product.name }}
+                </div>
+
+                <p class="review-message">{{ review.message }}</p>
+
+                <div class="review-card-bottom">
+                    <span class="published-label">✓ Published</span>
+
+                    <form method="post"
+                          action="{% url 'admin_reviews' %}"
+                          onsubmit="return confirm('Are you sure you want to delete this review?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="review_id" value="{{ review.pk }}">
+                        <button type="submit" class="delete-review">
+                            Delete Review
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <div class="empty-reviews">
+                <h3>No reviews found</h3>
+                <p>There are no reviews matching your search or rating filter.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

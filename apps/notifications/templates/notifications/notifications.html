@@ -183,20 +183,43 @@
 <script>
 const list = document.getElementById("notificationList");
 
+
 function bindNotification(row) {
-    row.onclick = async () => {
+    row.onclick = async function () {
         if (!row.classList.contains("unread")) return;
 
-        const data = await window.Notifications.markAsRead(
-            row.dataset.id,
-            row.dataset.readUrl
-        );
+        row.style.pointerEvents = "none";
 
-        if (data.success) {
-            row.classList.remove("unread");
+        try {
+            const data = await window.Notifications.markAsRead(
+                row.dataset.id,
+                row.dataset.readUrl
+            );
+
+            if (data.success) {
+                row.classList.remove("unread");
+
+                const headerText = document.querySelector(".header p");
+
+                if (headerText) {
+                    const unreadRows = document.querySelectorAll(
+                        "#notificationList .notification.unread"
+                    ).length;
+
+                    headerText.textContent = unreadRows
+                        ? unreadRows + " unread"
+                        : "You're all caught up";
+                }
+            }
+        } catch (error) {
+            console.error("Could not mark notification as read:", error);
+            alert("Could not mark this notification as read. Please try again.");
+        } finally {
+            row.style.pointerEvents = "";
         }
     };
 }
+
 
 document.querySelectorAll(".notification").forEach(bindNotification);
 

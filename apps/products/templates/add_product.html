@@ -1,6 +1,6 @@
 {% extends 'admin_base.html' %}
 
-{% block title %}Add Product{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}{% endblock %}
 
 {% block extra_css %}
 
@@ -155,25 +155,53 @@ form p:has(.errorlist) select {
 {% block content %}
 
 <div class="page-header">
-    <h1>📦 Add Product</h1>
+    <h1>
+        {% if form.instance.pk %}
+            ✏️ Edit Product
+        {% else %}
+            📦 Add Product
+        {% endif %}
+    </h1>
 </div>
 
 <div class="form-container">
 
     <div class="form-header">
-        <span>Inventory</span>
-        <h2>Add New Product</h2>
-    </div>
+    <span>Inventory</span>
+    <h2>
+        {% if form.instance.pk %}
+            Edit Product Details
+        {% else %}
+            Add New Product
+        {% endif %}
+    </h2>
+</div>
 
     <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
 
-        {% csrf_token %}
+    {% if next_url %}
+        <input type="hidden" name="next" value="{{ next_url }}">
+    {% endif %}
 
-        {{ form.as_p }}
+    {% if selected_category %}
+        <input
+            type="hidden"
+            name="category_id"
+            value="{{ selected_category.id }}"
+        >
+    {% endif %}
 
-        <button type="submit" class="submit-btn">Add Product</button>
+    {{ form.as_p }}
 
-    </form>
+    <button type="submit" class="submit-btn">
+        {% if form.instance.pk %}
+            Save Changes
+        {% else %}
+            Add Product
+        {% endif %}
+    </button>
+</form>
 
 </div>
 

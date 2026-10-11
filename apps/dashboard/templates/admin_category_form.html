@@ -1,0 +1,224 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    .category-form-page {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        color: #e5e7eb;
+    }
+
+    .form-heading {
+        margin-bottom: 25px;
+    }
+
+    .form-heading h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .form-heading p {
+        color: #9ca3af;
+    }
+
+    .category-form-card {
+        background: #171b24;
+        border: 1px solid #303746;
+        border-radius: 14px;
+        padding: 28px;
+    }
+
+    .form-field {
+        margin-bottom: 22px;
+    }
+
+    .form-field label {
+        display: block;
+        margin-bottom: 9px;
+        font-weight: 600;
+        color: #f3f4f6;
+    }
+
+    .form-field input:not([type="checkbox"]),
+    .form-field textarea,
+    .form-field select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #3b4352;
+        border-radius: 8px;
+        background: #202633;
+        color: #f9fafb;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    .form-field input:focus,
+    .form-field textarea:focus {
+        border-color: #14b8a6;
+    }
+
+    .form-field input[type="file"] {
+        padding: 10px;
+    }
+
+    .field-help {
+        display: block;
+        margin-top: 7px;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    .field-error,
+    .form-errors {
+        color: #fca5a5;
+        font-size: 13px;
+        margin-top: 7px;
+    }
+
+    .current-image {
+        margin-top: 15px;
+    }
+
+    .current-image img {
+        width: 150px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #3b4352;
+        display: block;
+        margin-top: 8px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 28px;
+    }
+
+    .form-btn {
+        display: inline-block;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .save-btn {
+        background: #147d78;
+        color: white;
+    }
+
+    .save-btn:hover {
+        background: #106660;
+    }
+
+    .cancel-btn {
+        background: #303746;
+        color: #e5e7eb;
+    }
+
+    @media (max-width: 600px) {
+        .category-form-card {
+            padding: 18px;
+        }
+
+        .form-heading h2 {
+            font-size: 23px;
+        }
+    }
+</style>
+
+<div class="category-form-page">
+
+    <div class="form-heading">
+        <h2>{{ page_title }}</h2>
+        <p>
+            Enter the category details below.
+            You can optionally upload a category image.
+        </p>
+    </div>
+
+    <div class="category-form-card">
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-field">
+                <label for="{{ form.name.id_for_label }}">
+                    Category Name
+                </label>
+
+                {{ form.name }}
+
+                {% for error in form.name.errors %}
+                    <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.description.id_for_label }}">
+                    Description
+                </label>
+
+                {{ form.description }}
+
+                {% for error in form.description.errors %}
+                    <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.image.id_for_label }}">
+                    Category Image
+                </label>
+
+                {{ form.image }}
+
+                <small class="field-help">
+                    Choose an image file for this category.
+                </small>
+
+                {% for error in form.image.errors %}
+                    <div class="field-error">{{ error }}</div>
+                {% endfor %}
+
+                {% if category and category.image %}
+                    <div class="current-image">
+                        <strong>Current image</strong>
+                        <img
+                            src="{{ category.image.url }}"
+                            alt="{{ category.name }}"
+                        >
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="form-btn save-btn">
+                    Save Category
+                </button>
+
+                <a
+                    href="{% url 'admin_categories' %}"
+                    class="form-btn cancel-btn">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endblock %}

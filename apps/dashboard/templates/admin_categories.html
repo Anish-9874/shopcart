@@ -1,0 +1,268 @@
+
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    .category-page {
+        padding: 25px;
+        color: #e5e7eb;
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .category-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .category-header p {
+        color: #9ca3af;
+        margin-top: 8px;
+    }
+
+    .add-category-btn {
+        background: #147d78;
+        color: white;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .add-category-btn:hover {
+        background: #106660;
+        color: white;
+    }
+
+    .category-table-wrapper {
+        overflow-x: auto;
+        background: #171b24;
+        border: 1px solid #303746;
+        border-radius: 12px;
+    }
+
+    .category-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+    }
+
+    .category-table th,
+    .category-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #303746;
+        vertical-align: middle;
+    }
+
+    .category-table th {
+        color: #9ca3af;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .category-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .category-image {
+        width: 65px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #252b38;
+    }
+
+    .no-image {
+        width: 65px;
+        height: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #252b38;
+        border-radius: 8px;
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .category-name {
+        font-weight: 600;
+        color: #f9fafb;
+    }
+
+    .category-description {
+        color: #9ca3af;
+        max-width: 300px;
+    }
+
+    .product-count {
+        display: inline-block;
+        background: #243b53;
+        color: #93c5fd;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    .action-btn {
+        display: inline-block;
+        padding: 7px 11px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        margin: 3px;
+    }
+
+    .edit-btn {
+        background: #263c59;
+        color: #93c5fd;
+    }
+
+    .delete-btn {
+        background: #49272d;
+        color: #fca5a5;
+    }
+
+    .edit-btn:hover,
+    .delete-btn:hover {
+        filter: brightness(1.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 20px;
+        color: #9ca3af;
+    }
+
+    .message {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        background: #203b32;
+        color: #a7f3d0;
+    }
+
+    @media (max-width: 600px) {
+        .category-page {
+            padding: 15px;
+        }
+
+        .category-header h2 {
+            font-size: 23px;
+        }
+    }
+</style>
+
+<div class="category-page">
+
+    <div class="category-header">
+        <div>
+            <h2>Category Management</h2>
+            <p>Create, update, and organize your product categories.</p>
+        </div>
+
+        <a href="{% url 'admin_category_create' %}"
+           class="add-category-btn">
+            + Add Category
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="category-table-wrapper">
+        <table class="category-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Products</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>
+                            {% if category.image %}
+                                <img
+                                    src="{{ category.image.url }}"
+                                    alt="{{ category.name }}"
+                                    class="category-image"
+                                >
+                            {% else %}
+                                <div class="no-image">No image</div>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="category-name">
+                                {{ category.name }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="category-description">
+                                {% if category.description %}
+                                    {{ category.description|truncatechars:80 }}
+                                {% else %}
+                                    <span> No description </span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                       
+<td>
+    <a
+        href="{% url 'admin_category_products' category.id %}"
+        class="action-btn edit-btn">
+        See Products ({{ category.products.count }})
+    </a>
+</td>
+
+                        <td>
+                            <a
+                                href="{% url 'admin_category_edit' category.id %}"
+                                class="action-btn edit-btn">
+                                Edit
+                            </a>
+
+                            <a
+                                href="{% url 'admin_category_delete' category.id %}"
+                                class="action-btn delete-btn">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <h3>No categories yet</h3>
+                                <p>Create your first category to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

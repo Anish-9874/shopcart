@@ -1,0 +1,412 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}{{ category.name }} Products{% endblock %}
+
+{% block content %}
+<style>
+    .products-page {
+    padding: 25px;
+    padding-bottom: 130px;
+    color: #e5e7eb;
+}
+
+    .products-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .products-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .products-header p {
+        color: #9ca3af;
+        margin-top: 8px;
+    }
+
+    .back-btn {
+        display: inline-block;
+        background: #303746;
+        color: #e5e7eb;
+        padding: 10px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background: #414b5e;
+    }
+
+    .products-table-wrapper {
+        overflow-x: auto;
+        background: #171b24;
+        border: 1px solid #303746;
+        border-radius: 12px;
+    }
+
+    .products-table {
+        width: 100%;
+        min-width: 850px;
+        border-collapse: collapse;
+    }
+
+    .products-table th,
+    .products-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #303746;
+        vertical-align: middle;
+    }
+
+    .products-table th {
+        color: #9ca3af;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .products-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-image,
+    .no-image {
+        width: 65px;
+        height: 60px;
+        border-radius: 8px;
+        background: #252b38;
+    }
+
+    .product-image {
+        object-fit: cover;
+    }
+
+    .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #f9fafb;
+    }
+
+    .product-price {
+        color: #5eead4;
+        font-weight: 600;
+    }
+
+    .stock-badge,
+    .featured-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    .stock-badge {
+        background: #243b53;
+        color: #93c5fd;
+    }
+
+    .featured-yes {
+        background: #203b32;
+        color: #a7f3d0;
+    }
+
+    .featured-no {
+        background: #303746;
+        color: #9ca3af;
+    }
+
+    .product-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-btn {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .edit-btn {
+        background: #263c59;
+        color: #93c5fd;
+    }
+
+    .edit-btn:hover {
+        background: #345273;
+        color: #fff;
+    }
+
+    .delete-btn {
+        background: #49272d;
+        color: #fca5a5;
+    }
+
+    .delete-btn:hover {
+        background: #7f1d1d;
+        color: #fff;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 20px;
+        color: #9ca3af;
+    }
+
+    /* Add product section */
+    .add-product-section {
+    position: fixed;
+
+    /* Keep the bar inside the main content area */
+    left: var(--sidebar-width, 260px);
+    right: 0;
+    bottom: 0;
+
+    z-index: 100;
+    padding: 16px 25px;
+    background: #171b24;
+    border-top: 1px solid #303746;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.25);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+    .add-product-section h3 {
+        margin: 0 0 8px;
+        color: #f9fafb;
+        font-size: 20px;
+    }
+
+    .add-product-section p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    .add-product-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: #2563eb;
+        color: #fff;
+        padding: 13px 20px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: background .2s, transform .2s;
+    }
+
+    .add-product-btn:hover {
+        background: #1d4ed8;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 600px) {
+        .products-page {
+            padding: 15px;
+        }
+
+        .products-header h2 {
+            font-size: 23px;
+        }
+
+        .add-product-section {
+            padding: 18px;
+        }
+
+        .add-product-btn {
+            width: 100%;
+        }
+        .add-product-section {
+    padding: 12px 15px;
+    gap: 10px;
+}
+
+.add-product-section h3 {
+    font-size: 15px;
+}
+
+.add-product-section p {
+    font-size: 12px;
+}
+
+.add-product-btn {
+    width: 100%;
+    padding: 10px;
+}
+
+.products-page {
+    padding-bottom: 170px;
+}
+@media (max-width: 600px) {
+    .add-product-section {
+        left: 0;
+        padding: 12px 15px;
+        gap: 10px;
+    }
+
+    .add-product-btn {
+        width: 100%;
+    }
+
+    .products-page {
+        padding-bottom: 170px;
+    }
+}
+    }
+</style>
+
+<div class="products-page">
+
+    <!-- PAGE HEADER -->
+    <div class="products-header">
+        <div>
+            <h2>{{ category.name }} Products</h2>
+            <p>
+                Products belonging to this category:
+                {{ products|length }}
+            </p>
+        </div>
+
+        <a href="{% url 'admin_categories' %}" class="back-btn">
+            &larr; Back to Categories
+        </a>
+    </div>
+
+    <!-- PRODUCTS TABLE -->
+    <div class="products-table-wrapper">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Featured</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        {% if product.image %}
+                            <img
+                                src="{{ product.image.url }}"
+                                alt="{{ product.name }}"
+                                class="product-image"
+                            >
+                        {% else %}
+                            <div class="no-image">No image</div>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="product-name">
+                            {{ product.name }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="product-price">
+                            Rs. {{ product.price }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="stock-badge">
+                            {{ product.stock }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {% if product.is_featured %}
+                            <span class="featured-badge featured-yes">
+                                Yes
+                            </span>
+                        {% else %}
+                            <span class="featured-badge featured-no">
+                                No
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="product-actions">
+                            <a
+                                href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}"
+                                class="action-btn edit-btn">
+                                Edit
+                            </a>
+
+                            <a
+                                href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}"
+                                class="action-btn delete-btn">
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <h3>No products in this category</h3>
+                            <p>
+                                Add your first product using the button below.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ADD PRODUCT SECTION AT THE BOTTOM -->
+    <div class="add-product-section">
+        <div>
+            <h3>Want to add another product?</h3>
+            <p>
+                The new product will have
+                <strong>{{ category.name }}</strong>
+                selected as its default category.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'add_product' %}?category={{ category.id }}&next={{ request.get_full_path|urlencode }}"
+            class="add-product-btn">
+            <span>+</span> Add Product to {{ category.name }}
+        </a>
+    </div>
+
+</div>
+{% endblock %}

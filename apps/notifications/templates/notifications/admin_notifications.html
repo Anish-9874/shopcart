@@ -1,0 +1,288 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Notifications | ShopCart Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notification-page {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .notification-summary {
+        color: #64748b;
+        margin-top: 8px;
+        font-size: 14px;
+    }
+
+    .notification-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .notification-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .notification-card.unread {
+        border-left: 4px solid #2563eb;
+        background: #eff6ff;
+    }
+
+    .notification-icon {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        background: #dbeafe;
+        border-radius: 12px;
+        font-size: 21px;
+    }
+
+    .notification-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-message {
+        color: #0f172a;
+        font-weight: 600;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .notification-time {
+        margin-top: 7px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .notification-status {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 4px 8px;
+        border-radius: 20px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .notification-card:not(.unread) .notification-status {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .notification-action {
+        flex-shrink: 0;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 7px;
+        background: #2563eb;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .notification-action:hover {
+        background: #1d4ed8;
+    }
+
+    .notification-action:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .empty-notifications {
+        padding: 60px 20px;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-notifications .empty-icon {
+        font-size: 42px;
+        margin-bottom: 12px;
+    }
+
+    .day-heading {
+        margin: 24px 0 12px;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+    }
+
+    @media (max-width: 600px) {
+        .notification-card {
+            padding: 14px;
+            gap: 10px;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+        }
+
+        .notification-action {
+            padding: 7px 9px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notification-page">
+
+    <div class="page-header">
+        <div>
+            <h1>🔔 Notifications</h1>
+            <p class="notification-summary">
+                Stay updated about customer messages and new orders.
+            </p>
+        </div>
+    </div>
+
+    <div id="admin-notification-list">
+
+        {% if notifications %}
+            {% regroup notifications by day_bucket as notification_groups %}
+
+            {% for group in notification_groups %}
+                <h2 class="day-heading">{{ group.grouper }}</h2>
+
+                <div class="notification-list">
+                    {% for notification in group.list %}
+                        <article
+                            class="notification-card {% if not notification.is_read %}unread{% endif %}"
+                            data-id="{{ notification.id }}"
+                            data-read-url="{% url 'notifications:mark_as_read' notification.id %}"
+                        >
+                            <div class="notification-icon">
+                                {% if notification.order %}
+                                    📦
+                                {% elif notification.chat_message %}
+                                    💬
+                                {% else %}
+                                    🔔
+                                {% endif %}
+                            </div>
+
+                            <div class="notification-body">
+                                <div class="notification-message">
+                                    {{ notification.text }}
+                                </div>
+
+                                <div class="notification-time">
+                                    {{ notification.created_at|date:"M d, Y · g:i A" }}
+                                </div>
+
+                                <span class="notification-status">
+                                    {% if notification.is_read %}
+                                        Read
+                                    {% else %}
+                                        Unread
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            {% if not notification.is_read %}
+                                <button
+                                    type="button"
+                                    class="notification-action"
+                                    data-mark-read
+                                >
+                                    Mark read
+                                </button>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+        {% else %}
+            <div class="empty-notifications" id="admin-notification-empty">
+                <div class="empty-icon">🔔</div>
+                <h2>No notifications yet</h2>
+                <p>New orders and customer messages will appear here.</p>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+(function () {
+    const list = document.getElementById("admin-notification-list");
+
+    if (!list) return;
+
+    list.addEventListener("click", async function (event) {
+        const button = event.target.closest("[data-mark-read]");
+
+        if (!button) return;
+
+        const card = button.closest(".notification-card");
+
+        if (!card || !card.dataset.readUrl) return;
+
+        button.disabled = true;
+
+        try {
+            const response = await fetch(card.dataset.readUrl, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken(),
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error("Could not mark notification as read.");
+            }
+
+            if (data.was_unread) {
+                card.classList.remove("unread");
+
+                const status = card.querySelector(".notification-status");
+                if (status) status.textContent = "Read";
+
+                button.remove();
+
+                if (window.Notifications) {
+                    window.Notifications.fetchUnreadCount();
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            button.disabled = false;
+            button.textContent = "Try again";
+        }
+    });
+
+    function getCsrfToken() {
+        const cookie = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("csrftoken="));
+
+        return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
+    }
+})();
+</script>
+{% endblock %}

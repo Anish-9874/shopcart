@@ -278,6 +278,20 @@ body {
     .btn-primary, .btn-success, .btn-danger { padding: 9px 14px; font-size: 13px; }
 }
 
+
+.notification-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+
 </style>
 
 {% block extra_css %}
@@ -290,7 +304,7 @@ body {
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
     <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">☰</button>
-    <span class="mobile-topbar-brand">🛍️ ShopCart Admin</span>
+    <span class="mobile-topbar-brand">🛍️ ShopCart</span>
 </div>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -302,7 +316,7 @@ body {
     <div class="sidebar" id="sidebar">
 
         <div class="sidebar-brand">
-            <span>🛍️</span> ShopCart<span class="dot">.</span>Admin
+            <span>🛍️</span> ShopCart<span class="dot">.</span>
         </div>
         
 
@@ -314,13 +328,26 @@ body {
 
             <a href="{% url 'see_product' %}" class="{% if request.resolver_match.url_name == 'see_product' %}active{% endif %}">🛒 Products</a>
 
+            <a href="{% url 'admin_categories' %}" class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">🏷️ Categories</a>
+            
+            <a href="{% url 'admin_orders' %}" class="{% if request.resolver_match.url_name == 'admin_orders' %}active{% endif %}">📝 Orders</a>
+
             <a href="{% url 'customer_list' %}" class="{% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">👥 Customers</a>
 
             <a href="{% url 'inbox' %}" class="{% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">💬 Chats</a>
 
-            <a href="#">⭐ Reviews</a>
 
-            <a href="#">📈 Reports</a>
+<a href="{% url 'notifications:admin_notifications' %}"
+   class="{% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
+    🔔 Notifications
+    <span id="admin-notification-badge"
+          class="notification-badge"
+          style="display: none;">0</span>
+</a>
+
+            <a href="{% url 'admin_reviews' %}">⭐ Reviews</a>
+
+            <a href="{% url 'reports_analytics' %}"class="{% if request.resolver_match.url_name == 'reports_analytics' %}active{% endif %}">📈 Reports & Analytics</a>
 
         </nav>
 
@@ -368,6 +395,10 @@ body {
     });
 })();
 </script>
+
+
+
+<script src="{% static 'js/base.js' %}"></script>
 
 {% block extra_js %}
 {% endblock %}

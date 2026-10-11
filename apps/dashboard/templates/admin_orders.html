@@ -1,0 +1,669 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    .orders-page {
+        --orders-primary: #5367e8;
+        --orders-text: #202943;
+        --orders-muted: #8490a5;
+        --orders-border: #e9edf5;
+        color: var(--orders-text);
+        padding: 28px;
+        background: #f6f8fc;
+        min-height: 100vh;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .orders-page * { box-sizing: border-box; }
+
+    /* ---------- Heading ---------- */
+    .orders-heading {
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 20px; margin-bottom: 22px; flex-wrap: wrap;
+    }
+    .orders-heading h1 { font-size: 27px; font-weight: 750; letter-spacing: -0.8px; margin: 0 0 7px; }
+    .orders-heading p { margin: 0; color: var(--orders-muted); font-size: 14px; }
+
+    /* ---------- Flash messages ---------- */
+    .orders-alert {
+        display: flex; align-items: center; gap: 10px;
+        border-radius: 11px; padding: 12px 15px; margin-bottom: 16px;
+        font-size: 13px; font-weight: 600;
+        background: #ddf8e9; color: #198453; border: 1px solid #c3efd9;
+    }
+    .orders-alert.error { background: #ffe6e6; color: #c34444; border-color: #f7cccc; }
+
+    /* ---------- Stat cards (click to filter) ---------- */
+    .orders-stats {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px; margin-bottom: 22px;
+    }
+    .orders-stat {
+        display: flex; align-items: center; gap: 14px; text-align: left;
+        background: white; padding: 18px; font: inherit; color: inherit;
+        border: 1px solid var(--orders-border); border-radius: 16px; cursor: pointer;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .orders-stat:hover { border-color: #cfd6f5; }
+    .orders-stat.is-active { border-color: var(--orders-primary); box-shadow: 0 0 0 3px rgba(83,103,232,.12); }
+    .orders-stat:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
+    .orders-stat-icon {
+        width: 44px; height: 44px; border-radius: 13px; display: grid;
+        place-items: center; font-size: 20px; flex-shrink: 0;
+    }
+    .stat-purple { background: #eeedff; }
+    .stat-orange { background: #fff2df; }
+    .stat-blue   { background: #e2f4ff; }
+    .stat-green  { background: #e2f8ef; }
+    .stat-red    { background: #ffe9e9; }
+    .orders-stat-label { font-size: 12px; color: var(--orders-muted); margin-bottom: 6px; }
+    .orders-stat-value { font-size: 24px; line-height: 1; font-weight: 750; letter-spacing: -.5px; }
+
+    /* ---------- Panel ---------- */
+    .orders-panel {
+        background: white; border: 1px solid var(--orders-border);
+        border-radius: 18px; overflow: hidden;
+        box-shadow: 0 5px 22px rgba(31, 45, 85, .035);
+    }
+    .orders-panel-top {
+        padding: 20px 24px; display: flex; justify-content: space-between;
+        align-items: center; gap: 15px; flex-wrap: wrap;
+        border-bottom: 1px solid var(--orders-border);
+    }
+    .orders-panel-top h2 { font-size: 17px; font-weight: 750; margin: 0 0 5px; }
+    .orders-panel-top p { font-size: 12px; color: var(--orders-muted); margin: 0; }
+
+    /* ---------- Status tabs ---------- */
+    .status-tabs {
+        display: flex; gap: 6px; padding: 12px 24px; overflow-x: auto;
+        border-bottom: 1px solid var(--orders-border); background: #fafbfe;
+    }
+    .status-tab {
+        display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
+        padding: 8px 13px; border: 1px solid transparent; border-radius: 999px;
+        background: transparent; color: #64718a; font: inherit;
+        font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .status-tab:hover { background: #eef1f9; }
+    .status-tab:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 1px; }
+    .status-tab.is-active { background: white; color: var(--orders-primary); border-color: #d5dcf8; }
+    .status-tab .count {
+        min-width: 20px; padding: 1px 6px; border-radius: 999px; text-align: center;
+        background: #e8ecf5; color: #526078; font-size: 11px;
+    }
+    .status-tab.is-active .count { background: var(--orders-primary); color: white; }
+
+    /* ---------- Filters ---------- */
+    .orders-filter {
+        padding: 16px 24px; display: grid; gap: 11px;
+        grid-template-columns: minmax(180px, 1.6fr) minmax(150px, 1fr) minmax(130px, .8fr) auto;
+        border-bottom: 1px solid var(--orders-border);
+    }
+    .orders-input {
+        width: 100%; min-width: 0; min-height: 42px; padding: 10px 12px;
+        border: 1px solid #e3e8f1; border-radius: 10px; outline: none;
+        color: #35415c; background: #fff; font-size: 12px; font-family: inherit;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .orders-input:focus {
+        border-color: var(--orders-primary);
+        box-shadow: 0 0 0 3px rgba(83, 103, 232, .10);
+    }
+    .orders-btn {
+        min-height: 42px; border: 0; border-radius: 10px; padding: 10px 17px;
+        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+        font-size: 12px; font-weight: 700; font-family: inherit;
+        text-decoration: none; cursor: pointer; transition: background .2s, opacity .2s;
+    }
+    .orders-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
+    .orders-btn-primary { background: var(--orders-primary); color: white; }
+    .orders-btn-primary:hover { background: #4254d0; color: white; }
+    .orders-btn-light { background: #f0f2f8; color: #526078; }
+    .orders-btn-light:hover { background: #e6e9f3; color: #526078; }
+
+    /* ---------- Table ---------- */
+    .orders-table-wrap { overflow-x: auto; }
+    .orders-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
+    .orders-table thead { background: #fafbfe; }
+    .orders-table th {
+        padding: 13px 17px; text-align: left; font-size: 12px; font-weight: 700;
+        color: #8a94a8; border-bottom: 1px solid var(--orders-border); white-space: nowrap;
+    }
+    .orders-table td {
+        padding: 18px 17px; border-bottom: 1px solid #eff2f7;
+        vertical-align: top; font-size: 12px;
+    }
+    .orders-table tbody tr:last-child td { border-bottom: 0; }
+    .orders-table tbody tr:hover { background: #fcfcff; }
+    .order-row { transition: background .2s; }
+    .order-row.is-dirty { background: #fffbf0 !important; box-shadow: inset 3px 0 0 #f0a728; }
+    .order-row.is-cancelled .order-product,
+    .order-row.is-cancelled .order-total { opacity: .55; text-decoration: line-through; }
+
+    .order-number { font-size: 13px; font-weight: 750; color: #3949ab; margin-bottom: 6px; }
+    .order-date { color: var(--orders-muted); font-size: 11px; white-space: nowrap; }
+    .customer-name { font-size: 12px; font-weight: 750; margin-bottom: 5px; }
+    .customer-detail {
+        color: var(--orders-muted); font-size: 11px; line-height: 1.6;
+        max-width: 190px; overflow-wrap: anywhere;
+    }
+    .order-product { margin-bottom: 7px; color: #48546d; line-height: 1.5; }
+    .order-product:last-child { margin-bottom: 0; }
+    .order-total { font-size: 13px; font-weight: 750; white-space: nowrap; }
+    .order-method {
+        display: inline-block; margin-top: 7px; padding: 4px 7px; border-radius: 6px;
+        background: #f0f3fa; color: #6b7890; font-size: 10px; font-weight: 700;
+    }
+
+    /* ---------- Badges ---------- */
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px;
+        border-radius: 7px; font-size: 11px; font-weight: 750; white-space: nowrap;
+    }
+    .status-pending   { background: #fff2d9; color: #a66b08; }
+    .status-confirmed { background: #e9efff; color: #4259bd; }
+    .status-packed    { background: #f0e9ff; color: #7950bd; }
+    .status-shipped   { background: #e2f4ff; color: #1977ad; }
+    .status-delivered { background: #ddf8e9; color: #198453; }
+    .status-cancelled { background: #ffe6e6; color: #c34444; }
+    .payment-paid   { background: #ddf8e9; color: #198453; }
+    .payment-unpaid { background: #fff0df; color: #a66b08; }
+
+    /* ---------- Progress tracker ---------- */
+    .tracker { display: flex; align-items: flex-start; margin: 12px 0 10px; width: 210px; }
+    .tracker-step {
+        position: relative; flex: 1; display: flex; flex-direction: column;
+        align-items: center; gap: 5px; min-width: 0;
+    }
+    .tracker-step::before {
+        content: ""; position: absolute; top: 6px; right: 50%; width: 100%;
+        height: 2px; background: #e3e8f1;
+    }
+    .tracker-step:first-child::before { display: none; }
+    .tracker-dot {
+        position: relative; z-index: 1; width: 14px; height: 14px; border-radius: 50%;
+        background: white; border: 2px solid #d5dbe8;
+    }
+    .tracker-label { font-size: 9.5px; color: #a0a9bb; font-weight: 600; }
+    .tracker-step.done::before,
+    .tracker-step.current::before { background: #22b983; }
+    .tracker-step.done .tracker-dot { background: #22b983; border-color: #22b983; }
+    .tracker-step.current .tracker-dot {
+        background: white; border-color: #22b983; box-shadow: 0 0 0 3px rgba(34,185,131,.2);
+    }
+    .tracker-step.done .tracker-label { color: #6b7890; }
+    .tracker-step.current .tracker-label { color: #198453; font-weight: 750; }
+    .tracker.is-cancelled .tracker-step::before,
+    .tracker.is-cancelled .tracker-dot { background: #f1f3f8; border-color: #e3e8f1; box-shadow: none; }
+    .tracker.is-cancelled .tracker-label { color: #c0c6d3; }
+
+    /* ---------- Update form ---------- */
+    .order-update { min-width: 190px; max-width: 220px; }
+    .order-update label {
+        display: block; margin: 0 0 5px; font-size: 11px; font-weight: 700; color: #77839a;
+    }
+    .order-update .orders-input { min-height: 36px; padding: 7px 9px; margin-bottom: 11px; font-size: 12px; }
+    .order-update .orders-input.changed { border-color: #f0a728; background: #fffbf0; }
+
+    .quick-btn {
+        width: 100%; margin-bottom: 8px; min-height: 38px; border-radius: 10px;
+        border: 1px solid #cfd6f5; background: #eef0ff; color: #3d4fc9;
+        font: inherit; font-size: 12px; font-weight: 750; cursor: pointer;
+        transition: background .15s;
+    }
+    .quick-btn:hover { background: #e2e6ff; }
+    .quick-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
+    .quick-btn[hidden] { display: none; }
+
+    .update-actions { display: flex; gap: 8px; }
+    .save-btn {
+        flex: 1; min-height: 38px; border: 0; border-radius: 10px;
+        background: #202943; color: white; font: inherit; font-size: 12px;
+        font-weight: 700; cursor: pointer; transition: background .2s, opacity .2s;
+    }
+    .save-btn:hover:not(:disabled) { background: #354361; }
+    .save-btn:disabled { background: #e3e7f0; color: #9aa4b8; cursor: not-allowed; }
+    .save-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
+    .undo-btn {
+        min-height: 38px; padding: 0 12px; border: 1px solid #e3e8f1; border-radius: 10px;
+        background: white; color: #64718a; font: inherit; font-size: 12px;
+        font-weight: 700; cursor: pointer;
+    }
+    .undo-btn[hidden] { display: none; }
+    .unsaved-note { margin: 8px 0 0; font-size: 11px; color: #a66b08; font-weight: 600; }
+    .unsaved-note[hidden] { display: none; }
+
+    /* ---------- Empty state ---------- */
+    .orders-empty { padding: 60px 20px !important; text-align: center; color: var(--orders-muted); }
+    .orders-empty-icon { font-size: 32px; margin-bottom: 12px; }
+    .orders-empty h3 { color: var(--orders-text); font-size: 16px; font-weight: 750; margin: 0 0 6px; }
+    .orders-empty p { font-size: 12px; margin: 0; }
+    #tab-empty { display: none; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1000px) {
+        .orders-page { padding: 20px; }
+        .orders-filter { grid-template-columns: 1fr 1fr; }
+        .orders-filter .orders-search { grid-column: 1 / -1; }
+        .orders-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+        .orders-page { padding: 14px; }
+        .orders-heading h1 { font-size: 23px; }
+        .orders-stats { gap: 10px; }
+        .orders-stat { padding: 14px; gap: 10px; }
+        .orders-stat-icon { width: 38px; height: 38px; font-size: 17px; }
+        .orders-panel-top { padding: 18px; }
+        .status-tabs { padding: 10px 14px; }
+        .orders-filter { padding: 15px; gap: 9px; }
+        .orders-filter > * { grid-column: 1 / -1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .orders-page * { transition: none !important; }
+    }
+</style>
+
+<div class="orders-page">
+
+    <div class="orders-heading">
+        <div>
+            <h1>Order Management</h1>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="orders-alert {% if message.tags == 'error' %}error{% endif %}" role="status">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Stat cards: click one to filter the list -->
+    <div class="orders-stats">
+        <button type="button" class="orders-stat is-active" data-filter="all">
+            <div class="orders-stat-icon stat-purple">📦</div>
+            <div>
+                <div class="orders-stat-label">Orders found</div>
+                <div class="orders-stat-value">{{ orders|length }}</div>
+            </div>
+        </button>
+
+        <button type="button" class="orders-stat" data-filter="needs-action">
+            <div class="orders-stat-icon stat-orange">⏳</div>
+            <div>
+                <div class="orders-stat-label">Needs action</div>
+                <div class="orders-stat-value" id="stat-pending">—</div>
+            </div>
+        </button>
+
+        <button type="button" class="orders-stat" data-filter="unpaid">
+            <div class="orders-stat-icon stat-red">💳</div>
+            <div>
+                <div class="orders-stat-label">Unpaid</div>
+                <div class="orders-stat-value" id="stat-unpaid">—</div>
+            </div>
+        </button>
+
+        <button type="button" class="orders-stat" data-filter="Delivered">
+            <div class="orders-stat-icon stat-green">✓</div>
+            <div>
+                <div class="orders-stat-label">Delivered</div>
+                <div class="orders-stat-value" id="stat-delivered">—</div>
+            </div>
+        </button>
+    </div>
+
+    <div class="orders-panel">
+        <div class="orders-panel-top">
+            <div>
+                <h2>All orders</h2>
+                <p>Change a status, then press Save. Use the blue button to move an order to its next step.</p>
+            </div>
+            <a href="{% url 'admin_orders' %}" class="orders-btn orders-btn-light">↻ Reset filters</a>
+        </div>
+
+        <!-- Quick status tabs (filter the rows already loaded) -->
+        <div class="status-tabs" role="tablist" aria-label="Filter by delivery status">
+            <button type="button" class="status-tab is-active" data-filter="all" role="tab">
+                All <span class="count" data-count="all">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Pending" role="tab">
+                Pending <span class="count" data-count="Pending">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Confirmed" role="tab">
+                Confirmed <span class="count" data-count="Confirmed">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Packed" role="tab">
+                Packed <span class="count" data-count="Packed">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Shipped" role="tab">
+                Shipped <span class="count" data-count="Shipped">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Delivered" role="tab">
+                Delivered <span class="count" data-count="Delivered">0</span>
+            </button>
+            <button type="button" class="status-tab" data-filter="Cancelled" role="tab">
+                Cancelled <span class="count" data-count="Cancelled">0</span>
+            </button>
+        </div>
+
+        <form method="get" class="orders-filter">
+            <input
+                class="orders-input orders-search"
+                type="text"
+                name="q"
+                value="{{ search_query }}"
+                placeholder="Search order, customer or phone"
+                aria-label="Search orders"
+            >
+
+            <select name="status" class="orders-input" aria-label="Delivery status">
+                <option value="">All delivery statuses</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="payment" class="orders-input" aria-label="Payment status">
+                <option value="">All payments</option>
+                <option value="paid" {% if payment_filter == "paid" %}selected{% endif %}>Paid</option>
+                <option value="unpaid" {% if payment_filter == "unpaid" %}selected{% endif %}>Unpaid</option>
+            </select>
+
+            <button type="submit" class="orders-btn orders-btn-primary">Apply filters</button>
+        </form>
+
+        <div class="orders-table-wrap">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Progress</th>
+                        <th>Update order</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="order-row"
+                        data-status="{{ order.status }}"
+                        data-paid="{% if order.payment_status %}1{% else %}0{% endif %}">
+                        <td>
+                            <div class="order-number">#{{ order.id }}</div>
+                            <div class="order-date">{{ order.created_at|date:"d M Y" }}</div>
+                            <div class="order-date">{{ order.created_at|date:"h:i A" }}</div>
+                        </td>
+
+                        <td>
+                            <div class="customer-name">{{ order.full_name }}</div>
+                            <div class="customer-detail">{{ order.user.username }}</div>
+                            <div class="customer-detail">{{ order.phone }}</div>
+                            <div class="customer-detail">{{ order.address }}</div>
+                        </td>
+
+                        <td>
+                            {% for item in order.items.all %}
+                                <div class="order-product">
+                                    {{ item.product_name }} <strong>× {{ item.quantity }}</strong>
+                                </div>
+                            {% empty %}
+                                <span class="customer-detail">No items</span>
+                            {% endfor %}
+                        </td>
+
+                        <td>
+                            <div class="order-total">Rs. {{ order.total }}</div>
+                            <span class="order-method">{{ order.get_payment_method_display }}</span>
+                        </td>
+
+                        <!-- Progress: badges + step tracker (tracker is filled in by JS) -->
+                        <td>
+                            <span class="status-badge js-status-badge
+                                {% if order.status == 'Pending' %}status-pending
+                                {% elif order.status == 'Confirmed' %}status-confirmed
+                                {% elif order.status == 'Packed' %}status-packed
+                                {% elif order.status == 'Shipped' %}status-shipped
+                                {% elif order.status == 'Delivered' %}status-delivered
+                                {% else %}status-cancelled{% endif %}">
+                                {{ order.status }}
+                            </span>
+                            <span class="status-badge js-pay-badge
+                                {% if order.payment_status %}payment-paid{% else %}payment-unpaid{% endif %}">
+                                {% if order.payment_status %}✓ Paid{% else %}◷ Unpaid{% endif %}
+                            </span>
+                            <div class="tracker js-tracker" aria-hidden="true"></div>
+                        </td>
+
+                        <td>
+                            <form method="post" class="order-update">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_id" value="{{ order.id }}">
+
+                                <button type="button" class="quick-btn js-next" hidden></button>
+
+                                <label for="status-{{ order.id }}">Delivery status</label>
+                                <select id="status-{{ order.id }}" name="status" class="orders-input js-status">
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+
+                                <label for="pay-{{ order.id }}">Payment status</label>
+                                <select id="pay-{{ order.id }}" name="payment_status" class="orders-input js-pay">
+                                    <option value="unpaid" {% if not order.payment_status %}selected{% endif %}>Unpaid</option>
+                                    <option value="paid" {% if order.payment_status %}selected{% endif %}>Paid</option>
+                                </select>
+
+                                <div class="update-actions">
+                                    <button type="submit" class="save-btn js-save" disabled>Save changes</button>
+                                    <button type="button" class="undo-btn js-undo" hidden>Undo</button>
+                                </div>
+                                <p class="unsaved-note js-note" hidden>Unsaved changes</p>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="orders-empty">
+                            <div class="orders-empty-icon">📦</div>
+                            <h3>No orders found</h3>
+                            <p>Try changing your filters or search for another order.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr id="tab-empty">
+                        <td colspan="6" class="orders-empty">
+                            <div class="orders-empty-icon">🔎</div>
+                            <h3>No orders in this view</h3>
+                            <p>Pick another status tab to see more orders.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var FLOW = ["Pending", "Confirmed", "Packed", "Shipped", "Delivered"];
+    var BADGE_CLASS = {
+        Pending: "status-pending", Confirmed: "status-confirmed", Packed: "status-packed",
+        Shipped: "status-shipped", Delivered: "status-delivered", Cancelled: "status-cancelled"
+    };
+
+    var rows = Array.prototype.slice.call(document.querySelectorAll(".order-row"));
+    var tabs = document.querySelectorAll(".status-tab");
+    var statCards = document.querySelectorAll(".orders-stat");
+    var emptyRow = document.getElementById("tab-empty");
+    var activeFilter = "all";
+
+    /* ---------- Tracker ---------- */
+    function renderTracker(row, status) {
+        var el = row.querySelector(".js-tracker");
+        var cancelled = status === "Cancelled";
+        var idx = FLOW.indexOf(status);
+        el.classList.toggle("is-cancelled", cancelled);
+        el.innerHTML = FLOW.map(function (step, i) {
+            var cls = "";
+            if (!cancelled) {
+                if (i < idx) cls = "done";
+                else if (i === idx) cls = "current";
+            }
+            return '<div class="tracker-step ' + cls + '">' +
+                   '<span class="tracker-dot"></span>' +
+                   '<span class="tracker-label">' + step + '</span></div>';
+        }).join("");
+    }
+
+    /* ---------- Row state ---------- */
+    function refreshRow(row) {
+        var form = row.querySelector(".order-update");
+        var statusSel = form.querySelector(".js-status");
+        var paySel = form.querySelector(".js-pay");
+        var saveBtn = form.querySelector(".js-save");
+        var undoBtn = form.querySelector(".js-undo");
+        var note = form.querySelector(".js-note");
+        var nextBtn = form.querySelector(".js-next");
+
+        var origStatus = row.dataset.status;
+        var origPaid = row.dataset.paid === "1" ? "paid" : "unpaid";
+
+        var statusChanged = statusSel.value !== origStatus;
+        var payChanged = paySel.value !== origPaid;
+        var dirty = statusChanged || payChanged;
+
+        statusSel.classList.toggle("changed", statusChanged);
+        paySel.classList.toggle("changed", payChanged);
+        row.classList.toggle("is-dirty", dirty);
+        row.classList.toggle("is-cancelled", origStatus === "Cancelled");
+        saveBtn.disabled = !dirty;
+        undoBtn.hidden = !dirty;
+        note.hidden = !dirty;
+
+        /* Preview the tracker for the selected (not yet saved) status */
+        renderTracker(row, statusSel.value);
+
+        /* Quick "next step" button follows the selected status */
+        var i = FLOW.indexOf(statusSel.value);
+        if (i > -1 && i < FLOW.length - 1) {
+            nextBtn.textContent = "Move to " + FLOW[i + 1];
+            nextBtn.dataset.next = FLOW[i + 1];
+            nextBtn.hidden = false;
+        } else {
+            nextBtn.hidden = true;
+        }
+    }
+
+    rows.forEach(function (row) {
+        var form = row.querySelector(".order-update");
+        var statusSel = form.querySelector(".js-status");
+        var paySel = form.querySelector(".js-pay");
+
+        statusSel.addEventListener("change", function () { refreshRow(row); });
+        paySel.addEventListener("change", function () { refreshRow(row); });
+
+        form.querySelector(".js-next").addEventListener("click", function (e) {
+            statusSel.value = e.currentTarget.dataset.next;
+            /* Delivered cash-on-delivery orders are normally paid on arrival */
+            refreshRow(row);
+            form.querySelector(".js-save").focus();
+        });
+
+        form.querySelector(".js-undo").addEventListener("click", function () {
+            statusSel.value = row.dataset.status;
+            paySel.value = row.dataset.paid === "1" ? "paid" : "unpaid";
+            refreshRow(row);
+        });
+
+        form.addEventListener("submit", function (e) {
+            if (statusSel.value === "Cancelled" && row.dataset.status !== "Cancelled") {
+                var id = row.querySelector(".order-number").textContent.trim();
+                if (!confirm("Cancel order " + id + "? The customer will see it as cancelled.")) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        refreshRow(row);
+    });
+
+    /* ---------- Counts ---------- */
+    function updateCounts() {
+        var counts = { all: rows.length, Pending: 0, Confirmed: 0, Packed: 0,
+                       Shipped: 0, Delivered: 0, Cancelled: 0 };
+        var unpaid = 0;
+        rows.forEach(function (row) {
+            if (counts[row.dataset.status] !== undefined) counts[row.dataset.status]++;
+            if (row.dataset.paid === "0" && row.dataset.status !== "Cancelled") unpaid++;
+        });
+        document.querySelectorAll("[data-count]").forEach(function (el) {
+            el.textContent = counts[el.dataset.count] || 0;
+        });
+        document.getElementById("stat-pending").textContent = counts.Pending;
+        document.getElementById("stat-delivered").textContent = counts.Delivered;
+        document.getElementById("stat-unpaid").textContent = unpaid;
+    }
+
+    /* ---------- Filtering ---------- */
+    function matches(row, filter) {
+        if (filter === "all") return true;
+        if (filter === "needs-action") return row.dataset.status === "Pending";
+        if (filter === "unpaid") return row.dataset.paid === "0" && row.dataset.status !== "Cancelled";
+        return row.dataset.status === filter;
+    }
+
+    function applyFilter(filter) {
+        activeFilter = filter;
+        var visible = 0;
+        rows.forEach(function (row) {
+            var show = matches(row, filter);
+            row.style.display = show ? "" : "none";
+            if (show) visible++;
+        });
+        if (emptyRow) emptyRow.style.display = (rows.length && !visible) ? "table-row" : "none";
+
+        tabs.forEach(function (t) {
+            var on = t.dataset.filter === filter;
+            t.classList.toggle("is-active", on);
+            t.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        statCards.forEach(function (c) {
+            c.classList.toggle("is-active", c.dataset.filter === filter);
+        });
+    }
+
+    tabs.forEach(function (t) {
+        t.addEventListener("click", function () { applyFilter(t.dataset.filter); });
+    });
+    statCards.forEach(function (c) {
+        c.addEventListener("click", function () { applyFilter(c.dataset.filter); });
+    });
+
+    /* Warn before leaving with unsaved edits */
+    window.addEventListener("beforeunload", function (e) {
+        if (document.querySelector(".order-row.is-dirty")) {
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    });
+    document.querySelectorAll(".order-update").forEach(function (f) {
+        f.addEventListener("submit", function () {
+            /* Clear dirty flag so the leave-warning doesn't fire on a real save */
+            f.closest(".order-row").classList.remove("is-dirty");
+        });
+    });
+
+    updateCounts();
+    applyFilter("all");
+});
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    .delete-page {
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 20px;
+        color: #e5e7eb;
+    }
+
+    .delete-card {
+        background: #171b24;
+        border: 1px solid #303746;
+        border-radius: 14px;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .delete-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: #49272d;
+        color: #fca5a5;
+        font-size: 32px;
+    }
+
+    .delete-card h2 {
+        font-size: 26px;
+        margin-bottom: 12px;
+    }
+
+    .delete-card p {
+        color: #9ca3af;
+        line-height: 1.7;
+    }
+
+    .category-name {
+        color: #f9fafb;
+        font-weight: 700;
+    }
+
+    .warning {
+        margin: 20px 0;
+        padding: 14px;
+        border-radius: 8px;
+        background: #422f1c;
+        color: #fcd34d;
+        text-align: left;
+    }
+
+    .delete-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 25px;
+    }
+
+    .delete-btn,
+    .cancel-btn {
+        display: inline-block;
+        padding: 11px 20px;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .delete-btn {
+        background: #dc2626;
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background: #b91c1c;
+    }
+
+    .cancel-btn {
+        background: #303746;
+        color: #e5e7eb;
+    }
+</style>
+
+<div class="delete-page">
+    <div class="delete-card">
+
+        <div class="delete-icon">!</div>
+
+        <h2>Delete Category</h2>
+
+        <p>
+            Are you sure you want to delete the category
+            <span class="category-name">{{ category.name }}</span>?
+        </p>
+
+        {% if category.products.exists %}
+            <div class="warning">
+                <strong>Warning:</strong>
+                This category contains {{ category.products.count }}
+                product(s). You must move those products to another
+                category before deleting this category.
+            </div>
+        {% else %}
+            <p>
+                This action cannot be undone.
+            </p>
+        {% endif %}
+
+        <div class="delete-actions">
+            <a href="{% url 'admin_categories' %}" class="cancel-btn">
+                Cancel
+            </a>
+
+            {% if not category.products.exists %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn">
+                        Yes, Delete Category
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

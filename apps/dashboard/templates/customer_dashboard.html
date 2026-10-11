@@ -1,50 +1,83 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/customer.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/index.css' %}">{% endblock %}
 
 {% block content %}
 <div class="home-page">
+  <script>document.currentScript.parentElement.classList.add('has-js');</script>
 
-  <section class="hero">
-    <div class="hero-content">
-      <span class="hero-tag">🛍️ Welcome to ShopCart</span>
-      <h1>Everything you need, <span>all in one place.</span></h1>
-      <p>Discover quality products at fair prices. Shop easily, securely, and have your orders delivered right to your doorstep.</p>
-      <div class="hero-buttons">
-        <a href="{% url 'product_list' %}" class="btn-primary">Browse Products →</a>
-        <a href="{% url 'category_list' %}" class="btn-secondary">Explore Categories</a>
+  <!-- SVG icon sprite (decorative icons, referenced with <use>) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+      <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-return" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+      <symbol id="i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    </defs>
+  </svg>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+
+      <div class="hero-content">
+        <span class="hero-tag"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>Welcome to ShopCart</span>
+        <h1 id="hero-title">Everything you need, <span>all in one place.</span></h1>
+        <p class="hero-lead">Discover quality products at fair prices. Shop easily, securely, and have your orders delivered right to your doorstep.</p>
+        <div class="hero-buttons">
+          <a href="{% url 'product_list' %}" class="hero-btn hero-btn--primary">Browse Products <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          <a href="{% url 'category_list' %}" class="hero-btn hero-btn--ghost">Explore Categories</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>1000+</strong><span>Products</span></div>
+          <div><strong>Fast</strong><span>Delivery</span></div>
+          <div><strong>Secure</strong><span>Shopping</span></div>
+        </div>
       </div>
-      <div class="hero-stats">
-        <div><strong>1000+</strong><span>Products</span></div>
-        <div><strong>Fast</strong><span>Delivery</span></div>
-        <div><strong>Secure</strong><span>Shopping</span></div>
+
+      <!-- ============================================================
+           HERO ANIMATION SLOT (right side)
+           Drop your animation inside this div: Lottie, <canvas>, <video>,
+           SVG, <img>/GIF, or JS that mounts into #hero-animation.
+           Anything inside is auto-fitted to the slot (square on desktop,
+           4:3 on tablet/mobile). Resize it in index.css (.hero-visual).
+           ============================================================ -->
+      <div class="hero-visual" id="hero-animation" aria-hidden="true">
+        <video autoplay muted loop playsinline>
+          <source src="{% static 'media/video10.mp4' %}" type="video/mp4">
+        </video>
       </div>
+
     </div>
-    
   </section>
 
-  <section class="features">
-    <div class="feature"><div class="feature-icon">🚚</div><div><h3>Fast Delivery</h3><p>Reliable doorstep delivery.</p></div></div>
-    <div class="feature"><div class="feature-icon">🔒</div><div><h3>Secure Payment</h3><p>Safe and protected checkout.</p></div></div>
-    <div class="feature"><div class="feature-icon">↩️</div><div><h3>Easy Returns</h3><p>Simple and hassle-free returns.</p></div></div>
-    <div class="feature"><div class="feature-icon">💬</div><div><h3>Customer Support</h3><p>We're here to help.</p></div></div>
+  <!-- ===== FEATURES ===== -->
+  <section class="features reveal" aria-label="Why shop with us">
+    <div class="feature"><div class="feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-truck"/></svg></div><div><h3>Fast Delivery</h3><p>Reliable doorstep delivery.</p></div></div>
+    <div class="feature"><div class="feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg></div><div><h3>Secure Payment</h3><p>Safe and protected checkout.</p></div></div>
+    <div class="feature"><div class="feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-return"/></svg></div><div><h3>Easy Returns</h3><p>Simple and hassle-free returns.</p></div></div>
+    <div class="feature"><div class="feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg></div><div><h3>Customer Support</h3><p>We're here to help.</p></div></div>
   </section>
 
-  <section class="home-section">
-    <div class="section-heading">
-      <div><span>SHOP OUR PICKS</span><h2>Featured Products</h2><p>Handpicked products you might love.</p></div>
-      <a href="{% url 'product_list' %}">View All →</a>
+  <!-- ===== FEATURED PRODUCTS ===== -->
+  <section class="home-section" aria-labelledby="featured-title">
+    <div class="section-heading reveal">
+      <div><span class="eyebrow">SHOP OUR PICKS</span><h2 id="featured-title">Featured Products</h2><p>Handpicked products you might love.</p></div>
+      <a class="link-pill" href="{% url 'product_list' %}">View All <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
 
     {% if featured_products %}
     <div class="product-grid">
       {% for product in featured_products %}
-      <div class="product-card">
-        <a href="{% url 'product_list' %}" class="product-image">
+      <article class="product-card reveal" style="--i: {{ forloop.counter0 }}">
+        <a href="{% url 'product_list' %}" class="product-image" tabindex="-1" aria-hidden="true">
           {% if product.image %}
-          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
           {% else %}
-          <div class="image-placeholder">📦</div>
+          <div class="image-placeholder"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></div>
           {% endif %}
           <span class="featured-label">Featured</span>
         </a>
@@ -52,15 +85,15 @@
           <h3 title="{{ product.name }}">{{ product.name }}</h3>
           <div class="product-footer">
             <strong>${{ product.price }}</strong>
-            <a href="{% url 'product_list' %}">View</a>
+            <a href="{% url 'product_list' %}" class="product-view" aria-label="View {{ product.name }}">View <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </div>
         </div>
-      </div>
+      </article>
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty-state">
-      <div>📦</div>
+    <div class="empty-state reveal">
+      <div class="empty-icon"><svg class="ico" aria-hidden="true"><use href="#i-box"/></svg></div>
       <h3>No featured products yet</h3>
       <p>Featured products will appear here soon.</p>
       <a href="{% url 'product_list' %}">Browse Products</a>
@@ -68,44 +101,63 @@
     {% endif %}
   </section>
 
-  <section class="home-section">
-    <div class="section-heading">
-      <div><span>EXPLORE</span><h2>Shop by Category</h2><p>Find products faster.</p></div>
-      <a href="{% url 'category_list' %}">All Categories →</a>
+  <!-- ===== CATEGORIES ===== -->
+  <section class="home-section" aria-labelledby="categories-title">
+    <div class="section-heading reveal">
+      <div><span class="eyebrow">EXPLORE</span><h2 id="categories-title">Shop by Category</h2><p>Find products faster.</p></div>
+      <a class="link-pill" href="{% url 'category_list' %}">All Categories <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
 
     {% if categories %}
     <div class="category-grid">
       {% for category in categories %}
-      <a href="{% url 'category_list' %}" class="category-card">
+      <a href="{% url 'category_list' %}" class="category-card reveal" style="--i: {{ forloop.counter0 }}">
         <div class="category-image">
           {% if category.image %}
-          <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+          <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy" decoding="async">
           {% else %}
-          <div>🛍️</div>
+          <div><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
           {% endif %}
         </div>
-        <div class="category-info"><h3>{{ category.name }}</h3><span>Shop now →</span></div>
+        <div class="category-info"><h3>{{ category.name }}</h3><span>Shop now <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></span></div>
       </a>
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty-state">
-      <div>🛍️</div>
+    <div class="empty-state reveal">
+      <div class="empty-icon"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
       <h3>No categories available</h3>
       <p>Categories will appear here once added.</p>
     </div>
     {% endif %}
   </section>
 
-  <section class="signup-cta">
+  <!-- ===== SIGN UP CTA ===== -->
+  <section class="signup-cta reveal" aria-labelledby="cta-title">
     <div>
-        <span>SHOPCART</span>
-        <h2>Find something you'll love.</h2>
-        <p>Explore our latest products and discover something new today.</p>
-      </div>
-      <a href="{% url 'product_list' %}">Browse Products →</a>
-    </section>
+      <span class="eyebrow">SHOPCART</span>
+      <h2 id="cta-title">Find something you'll love.</h2>
+      <p>Explore our latest products and discover something new today</p>
+      <a href="{% url 'product_list' %}">Browse Products →<svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </section>
+
+
+  <script>
+  (function () {
+    var els = document.querySelectorAll('.home-page .reveal');
+    if (!('IntersectionObserver' in window)) {
+      for (var i = 0; i < els.length; i++) els[i].classList.add('in');
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    for (var j = 0; j < els.length; j++) io.observe(els[j]);
+  })();
+  </script>
 
 </div>
 {% endblock %}

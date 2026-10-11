@@ -3,6 +3,9 @@
 <p>Are you sure you want to delete "{{ product.name }}"?</p>
 
 <form method="POST">
+    {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+{% endif %}
     {% csrf_token %}
     <button type="submit">Delete</button>
 </form>

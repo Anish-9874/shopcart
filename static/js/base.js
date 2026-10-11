@@ -1,156 +1,159 @@
-/**
- * Global notification handling: one websocket connection for the whole
- * site, and a navbar badge that stays in sync with it.
- *
- * Include this on every page (e.g. from base.html), and put a badge
- * element with id="notification-badge" in the navbar wherever the bell
- * icon lives. Example markup:
- *
- *   <a href="{% url 'notifications:list' %}" class="notif-bell">
- *     🔔
- *     <span id="notification-badge" class="notif-badge" style="display:none;"></span>
- *   </a>
- */
+
 (function () {
+    "use strict";
+
     let socket = null;
+    let reconnectTimer = null;
     let reconnectDelay = 1000;
-
-    function getCookie(name) {
-        let cookieValue = null;
-
-        if (document.cookie && document.cookie !== "") {
-            const cookies = document.cookie.split(";");
-
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-
-                if (cookie.substring(0, name.length + 1) === name + "=") {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-
-        return cookieValue;
-    }
-
-    function getCsrfToken() {
-        const cookieToken = getCookie("csrftoken");
-        const formToken = document.querySelector("[name=csrfmiddlewaretoken]");
-        return cookieToken || (formToken && formToken.value);
-    }
+    let countRequestInProgress = false;
 
     function setBadgeCount(count) {
-        const badge = document.getElementById("notification-badge");
-        if (!badge) return;
+        const safeCount = Math.max(0, Number(count) || 0);
 
-        const safeCount = Math.max(0, count);
-
-        if (safeCount > 0) {
+        [
+            document.getElementById("notification-badge"),
+            document.getElementById("admin-notification-badge")
+        ].filter(Boolean).forEach(function (badge) {
             badge.textContent = safeCount > 99 ? "99+" : String(safeCount);
-            badge.style.display = "inline-block";
-        } else {
-            badge.textContent = "0";
-            badge.style.display = "none";
-        }
+            badge.style.display = safeCount > 0 ? "inline-block" : "none";
+        });
     }
 
     function getBadgeCount() {
-        const badge = document.getElementById("notification-badge");
-        if (!badge) return 0;
-        return parseInt(badge.textContent, 10) || 0;
+        const badge =
+            document.getElementById("admin-notification-badge") ||
+            document.getElementById("notification-badge");
+
+        return badge ? parseInt(badge.textContent, 10) || 0 : 0;
     }
 
-    function bumpBadge(delta) {
-        setBadgeCount(getBadgeCount() + delta);
-    }
-
-    function fetchUnreadCount() {
-        const url = (window.NOTIFICATIONS_CONFIG && window.NOTIFICATIONS_CONFIG.unreadCountUrl)
-            || "/notifications/unread-count/";
-
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`unread-count request failed: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => setBadgeCount(data.count))
-            .catch((error) => console.error("Unable to fetch unread count.", error));
-    }
-
-    function markAsRead(notificationId, readUrl) {
-        return fetch(readUrl, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": getCsrfToken(),
-                "Content-Type": "application/json",
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Request failed with status ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                // Only decrement if this notification actually flipped from
-                // unread to read -- clicking an already-read item is a no-op.
-                if (data.success && data.was_unread) {
-                    bumpBadge(-1);
-                }
-                return data;
-            })
-            .catch((error) => {
-                console.error("Unable to mark notification as read.", error);
-                return { success: false };
+    
+    async function fetchUnreadCount() {
+        try {
+            const response = await fetch("/notifications/unread-count/", {
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                cache: "no-store"
             });
+
+            if (!response.ok) {
+                throw new Error("Unread count request failed: " + response.status);
+            }
+
+            const data = await response.json();
+            setBadgeCount(data.count);
+        } catch (error) {
+            console.error("Could not fetch unread notifications:", error);
+        }
     }
 
-    function connectSocket() {
-        const protocol = location.protocol === "https:" ? "wss" : "ws";
-        socket = new WebSocket(`${protocol}://${location.host}/ws/notifications/`);
 
-        socket.onopen = () => {
-            reconnectDelay = 1000; // reset backoff after a clean connect
+    async function markAsRead(id, url) {
+        const csrfToken = getCookie("csrftoken");
+
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Mark-as-read request failed: " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.was_unread) {
+            // The database has confirmed this notification was unread.
+            setBadgeCount(Math.max(0, getBadgeCount() - 1));
+        }
+
+        return data;
+    }
+
+    function getCookie(name) {
+        const prefix = name + "=";
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(prefix)) {
+                return decodeURIComponent(cookie.substring(prefix.length));
+            }
+        }
+
+        return "";
+    }
+
+    function connectWebSocket() {
+        if (socket && (
+            socket.readyState === WebSocket.OPEN ||
+            socket.readyState === WebSocket.CONNECTING
+        )) {
+            return;
+        }
+
+        const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+        socket = new WebSocket(
+            scheme + "//" + window.location.host + "/ws/notifications/"
+        );
+
+        socket.onopen = function () {
+            console.log("Notification WebSocket connected.");
+            reconnectDelay = 1000;
+            fetchUnreadCount();
         };
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+        socket.onmessage = function (event) {
+            let data;
+
+            try {
+                data = JSON.parse(event.data);
+            } catch (error) {
+                console.error("Invalid notification WebSocket data:", error);
+                return;
+            }
 
             if (data.type === "notification") {
-                bumpBadge(1);
+                // Refresh from the database to avoid duplicate increments.
+                fetchUnreadCount();
 
-                // Let any page-specific script (e.g. the notifications list
-                // page) react to a new notification without owning the socket.
-                document.dispatchEvent(
-                    new CustomEvent("notification:new", { detail: data })
-                );
+                document.dispatchEvent(new CustomEvent("notification:new", {
+                    detail: data
+                }));
             }
         };
 
-        socket.onclose = () => {
-            // Reconnect with simple backoff, e.g. after a server restart
-            // or the user's laptop waking from sleep.
-            setTimeout(connectSocket, reconnectDelay);
-            reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+        socket.onclose = function () {
+            clearTimeout(reconnectTimer);
+
+            reconnectTimer = setTimeout(function () {
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+                connectWebSocket();
+            }, reconnectDelay);
         };
 
-        socket.onerror = () => {
-            console.error("Notification socket error.");
+        socket.onerror = function (error) {
+            console.error("Notification WebSocket error:", error);
+            socket.close();
         };
     }
 
     window.Notifications = {
-        fetchUnreadCount,
-        setBadgeCount,
-        bumpBadge,
-        markAsRead,
+        fetchUnreadCount: fetchUnreadCount,
+        setBadgeCount: setBadgeCount,
+        getBadgeCount: getBadgeCount,
+        markAsRead: markAsRead
     };
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", function () {
         fetchUnreadCount();
-        connectSocket();
+        connectWebSocket();
     });
 })();

@@ -1,7 +1,7 @@
 <footer class="site-footer">
   <div class="footer-grid">
 
-    <div>
+    <div class="footer-about">
       <div class="footer-brand"><span class="brand-black">Shop</span><span class="brand-blue">Cart</span></div>
       <p class="footer-tagline">
         Your one-stop shop for quality products. Fast delivery,
@@ -9,7 +9,7 @@
       </p>
     </div>
 
-    <div class="footer-col">
+    <nav class="footer-col" aria-label="Shop">
       <h4>Shop</h4>
       <ul>
         <li><a href="{% url 'product_list' %}">All Products</a></li>
@@ -17,9 +17,9 @@
         <li><a href="{% url 'home' %}">New Arrivals</a></li>
         <li><a href="{% url 'home' %}">Sale</a></li>
       </ul>
-    </div>
+    </nav>
 
-    <div class="footer-col">
+    <nav class="footer-col" aria-label="Account">
       <h4>Account</h4>
       <ul>
         <li><a href="{% url 'customer_dashboard' %}">My Dashboard</a></li>
@@ -27,9 +27,9 @@
         <li><a href="{% url 'home' %}">Wishlist</a></li>
         <li><a href="{% url 'home' %}">Settings</a></li>
       </ul>
-    </div>
+    </nav>
 
-    <div class="footer-col">
+    <nav class="footer-col" aria-label="Support">
       <h4>Support</h4>
       <ul>
         <li><a href="{% url 'contact' %}">Contact Us</a></li>
@@ -37,44 +37,93 @@
         <li><a href="#">Shipping Policy</a></li>
         <li><a href="#">Returns</a></li>
       </ul>
-    </div>
+    </nav>
 
   </div>
 
   <div class="footer-bottom">
     <span>© {% now "Y" %} ShopCart. All rights reserved.</span>
-    <span>Built with Django 🐍</span>
+    <span>Built with Django</span>
   </div>
 </footer>
 
 <style>
-.site-footer { background: #0f172a; padding: 55px 6% 25px; }
+/* ===== FOOTER – same warm palette as header / home page ===== */
+.site-footer {
+  --f-bg: #1c1917;
+  --f-text: #a8a29e;          /* 7:1 on --f-bg */
+  --f-line: rgba(255,255,255,.09);
+  --f-orange: #f97316;
+  --f-orange-l: #fdba74;
+  --f-blue: #3b82f6;
+  --f-gutter: clamp(20px, 5vw, 40px);
 
-.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 30px; padding-bottom: 35px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  position: relative; isolation: isolate; overflow: hidden;
+  margin-top: auto;
+  padding: clamp(48px, 6vw, 72px) var(--f-gutter) 28px;
+  border-radius: 32px 32px 0 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background:
+    linear-gradient(90deg, #ea580c, var(--f-orange), var(--f-orange-l)) top / 100% 3px no-repeat,
+    var(--f-bg);
+}
+.site-footer::before {          /* soft orange glow, mirrors the hero blobs */
+  content: ""; position: absolute; z-index: -1; top: -140px; left: -100px;
+  width: 340px; height: 340px; border-radius: 50%;
+  background: var(--f-orange); opacity: .14; filter: blur(70px); pointer-events: none;
+}
+.site-footer *, .site-footer *::before, .site-footer *::after { box-sizing: border-box; }
 
-.footer-brand { font-size: 22px; font-weight: 800; letter-spacing: -1px; }
-.footer-brand .brand-black { color: #f1f5f9; }
-.footer-brand .brand-blue { color: #60a5fa; }
+.footer-grid,
+.footer-bottom { max-width: 1280px; margin-left: auto; margin-right: auto; }
 
-.footer-tagline { margin-top: 12px; max-width: 280px; color: #94a3b8; font-size: 13px; line-height: 1.7; }
+.footer-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px;
+  padding-bottom: 40px; border-bottom: 1px solid var(--f-line);
+}
 
-.footer-col h4 { color: #fff; font-size: 13px; margin-bottom: 16px; }
-.footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
-.footer-col a { color: #94a3b8; text-decoration: none; font-size: 13px; transition: .2s ease; }
-.footer-col a:hover { color: #60a5fa; }
+/* Logo: "Shop" light (black would vanish on dark), "Cart" stays logo blue */
+.footer-brand { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.027em; line-height: 1.1; user-select: none; }
+.footer-brand .brand-black { color: #fafaf9; }
+.footer-brand .brand-blue  { color: var(--f-blue); }
 
-.footer-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 20px; color: #64748b; font-size: 12px; }
+.footer-tagline { margin: 14px 0 0; max-width: 320px; color: var(--f-text); font-size: 14px; line-height: 1.75; }
+
+.footer-col h4 {
+  margin: 0 0 18px; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.footer-col h4::after { content: ""; display: block; width: 22px; height: 2px; margin-top: 10px; border-radius: 2px; background: var(--f-orange); }
+.footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.footer-col a {
+  display: inline-flex; align-items: center; min-height: 34px;
+  color: var(--f-text); font-size: 14px; text-decoration: none;
+  transition: color .2s ease, transform .25s cubic-bezier(.22,1,.36,1);
+}
+.footer-col a:hover { color: var(--f-orange-l); transform: translateX(4px); }
+.site-footer a:focus-visible { outline: 3px solid var(--f-blue); outline-offset: 3px; border-radius: 6px; }
+
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 16px;
+  padding-top: 22px; color: var(--f-text); font-size: 13px;
+}
 
 /* TABLET */
 @media (max-width: 900px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; row-gap: 30px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
+  .footer-about { grid-column: 1 / -1; }
+  .footer-tagline { max-width: 460px; }
 }
 
 /* MOBILE */
 @media (max-width: 600px) {
-  .site-footer { padding: 40px 6% 20px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 28px; text-align: left; }
-  .footer-tagline { max-width: 100%; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .site-footer { border-radius: 24px 24px 0 0; padding-bottom: 22px; }
+  .footer-col a { min-height: 44px; }          /* comfortable touch target */
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-col a { transition: color .2s ease; }
+  .footer-col a:hover { transform: none; }
 }
 </style>

@@ -108,12 +108,41 @@ def customer_profile(request, id):
 
 
 def customer_list(request):
-    search = request.GET.get("search", "")
+    from datetime import timedelta
 
-    customers = User.objects.filter(is_staff=False)
+    from django.db.models import Q
+    from django.utils import timezone
 
+    search = request.GET.get("search", "").strip()
+    sort = request.GET.get("sort", "newest")
+    customer_filter = request.GET.get("filter", "all")
+
+    # Get customers, excluding staff and superusers
+    customers = User.objects.filter(
+        is_staff=False,
+        is_superuser=False,
+    )
+
+    # Search by username or email
     if search:
-        customers = customers.filter(username__icontains=search)
+        customers = customers.filter(
+            Q(username__icontains=search) | Q(email__icontains=search)
+        )
+
+    # Show users registered within the last 7 days
+    if customer_filter == "new":
+        recent_date = timezone.now() - timedelta(days=7)
+        customers = customers.filter(date_joined__gte=recent_date)
+
+    # Sorting options
+    sort_options = {
+        "az": "username",
+        "za": "-username",
+        "newest": "-date_joined",
+        "oldest": "date_joined",
+    }
+
+    customers = customers.order_by(sort_options.get(sort, "-date_joined"))
 
     return render(
         request,
@@ -121,5 +150,7 @@ def customer_list(request):
         {
             "customers": customers,
             "search": search,
+            "sort": sort,
+            "customer_filter": customer_filter,
         },
     )

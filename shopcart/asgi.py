@@ -2,7 +2,7 @@ import os
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
-    "shopcart.settings.prod",
+    "shopcart.settings.dev",
 )
 
 from channels.auth import AuthMiddlewareStack

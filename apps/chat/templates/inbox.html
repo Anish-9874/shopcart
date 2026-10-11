@@ -4,117 +4,105 @@
 {% block title %}Customer Chats{% endblock %}
 
 {% block extra_css %}
-
 <style>
-
-/* Palette */
 .chat-list {
     --accent: #1D4ED8;
     --accent-dark: #0B0C10;
     --accent-soft: #EFF4FF;
     --accent-ring: rgba(29, 78, 216, .18);
-    --highlight: #3B82F6;
     --ink: #0B0C10;
     --muted: #64748B;
     --border: #E2E8F0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.search-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 26px;
-}
+.search-box { margin-bottom: 10px; }
 
 .search-form {
     display: flex;
     gap: 10px;
     width: 100%;
-    max-width: 500px;
+    max-width: 550px;
 }
 
 .search-form input {
     flex: 1;
+    min-width: 0;
     padding: 12px 15px;
     border: 1.5px solid var(--border);
     border-radius: 8px;
     font-size: 15px;
     outline: none;
     background: var(--accent-soft);
-    transition: .2s ease;
 }
 
 .search-form input:focus {
     border-color: var(--accent);
-    background: #fff;
     box-shadow: 0 0 0 4px var(--accent-ring);
 }
 
-.search-form button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+.search-form button,
+.open-btn {
     background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    color: #fff;
+    color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 12px 18px;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: 700;
-    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
     white-space: nowrap;
-    transition: .2s ease;
 }
 
-.search-form button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px var(--accent-ring);
+.search-form button:hover,
+.open-btn:hover { opacity: .88; }
+
+.clear-search {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
 }
 
-/* Chat List */
-
-.chat-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.results-count {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 8px;
 }
-
-/* Chat Card */
 
 .chat-card {
-    background: #fff;
+    background: white;
     border: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 20px 25px;
-    margin-bottom: 16px;
+    gap: 18px;
+    padding: 18px 22px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
-    transition: .2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+    transition: border-color .2s ease, box-shadow .2s ease;
 }
 
 .chat-card:hover {
-    transform: translateY(-3px);
     border-color: #BFDBFE;
     box-shadow: 0 8px 20px var(--accent-ring);
 }
 
-/* Avatar (image or letter placeholder share the same base styling) */
-
 .customer-avatar {
-    width: 66px;
-    height: 66px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--accent);
-    box-shadow: 0 3px 8px var(--accent-ring);
+    border: 2px solid var(--accent);
     flex-shrink: 0;
 }
 
 .avatar-placeholder {
     background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    color: #fff;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -122,145 +110,336 @@
     font-weight: bold;
 }
 
-/* Customer Info */
-
 .customer-info {
     flex: 1;
     min-width: 0;
-    margin-left: 20px;
 }
 
 .customer-info h3 {
     color: var(--ink);
-    margin-bottom: 4px;
-    font-size: 18px;
-    font-weight: 800;
-    word-break: break-word;
+    margin: 0 0 5px;
+    font-size: 17px;
+    overflow-wrap: anywhere;
 }
 
 .customer-info p {
     color: var(--muted);
-    font-size: 13.5px;
+    font-size: 13px;
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
-/* Button */
-
-.open-btn {
+.activity-label {
     display: inline-block;
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    color: #fff;
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-decoration: none;
+    margin-top: 7px !important;
+    font-size: 12px !important;
     font-weight: 700;
-    font-size: 14px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: .2s ease;
+    color: var(--accent) !important;
 }
 
-.open-btn:hover {
-    background: var(--highlight);
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 7px;
 }
 
-/* Empty */
+.unread-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 23px;
+    height: 23px;
+    padding: 0 7px;
+    border-radius: 20px;
+    background: #DC2626;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.unread-label {
+    color: #DC2626;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.no-unread {
+    color: #64748B;
+    font-size: 12px;
+}
 
 .empty-chat {
     background: var(--accent-soft);
     border: 1px dashed #BFDBFE;
-    padding: 40px;
+    padding: 35px 20px;
     text-align: center;
     border-radius: 12px;
     color: var(--muted);
-    font-size: 14px;
 }
 
-/* Responsive */
-
-@media (max-width: 768px) {
-
+@media (max-width: 650px) {
     .chat-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 14px;
-        padding: 22px 20px;
+        flex-wrap: wrap;
+        padding: 16px;
+        gap: 12px;
     }
 
-    .customer-info { margin: 0; }
+    .customer-info {
+        flex-basis: calc(100% - 75px);
+    }
 
     .open-btn {
         width: 100%;
-        justify-content: center;
-        padding: 12px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .search-form { flex-wrap: wrap; }
+
+    .search-form input {
+        flex-basis: 100%;
+        box-sizing: border-box;
     }
 }
-
 </style>
-
 {% endblock %}
 
 {% block content %}
-
 <div class="page-header">
     <h1>💬 Customer Chats</h1>
+    <p>View customers and manage support conversations.</p>
 </div>
 
-<div class="chat-list">
+<div class="chat-list" id="chat-list">
 
     <div class="search-box">
-
-        <form method="GET" class="search-form">
-
+        <form method="GET" action="{% url 'inbox' %}" class="search-form">
             <input
-                type="text"
+                type="search"
                 name="search"
-                placeholder="Search customer..."
-                value="{{ search }}">
+                placeholder="Search by username or email..."
+                value="{{ search }}"
+                aria-label="Search customers">
 
-            <button type="submit">
-                🔍 Search
-            </button>
-
+            <button type="submit">🔍 Search</button>
         </form>
 
-    </div>
-
-
-<div class="chat-list">
-
-    {% for room in rooms %}
-
-    <div class="chat-card">
-
-        {% if room.customer.customerprofile.profile_image %}
-            <img src="{{ room.customer.customerprofile.profile_image.url }}"
-             class="customer-avatar"
-             alt="{{ room.customer.username }}">
-        {% else %}
-            <div class="customer-avatar avatar-placeholder">
-            {{ room.customer.username|first|upper }}
-            </div>
+        {% if search %}
+            <a href="{% url 'inbox' %}" class="clear-search">
+                ✕ Clear search
+            </a>
         {% endif %}
-
-        <div class="customer-info">
-            <h3>{{ room.customer.username }}</h3>
-            <p>Click below to continue the conversation.</p>
-        </div>
-
-        <a href="{% url 'admin_chat' room.id %}" class="open-btn">
-            Open Chat →
-        </a>
-
     </div>
 
-    {% empty %}
+    <p class="results-count">
+        {{ rooms|length }} customer{{ rooms|length|pluralize }} found
+    </p>
 
-    <div class="empty-chat">
-        No customer chats available.
+    <div id="customer-cards">
+        {% for room in rooms %}
+            <div class="chat-card" data-room-id="{{ room.id }}">
+
+                {% if room.customer.customerprofile.profile_image %}
+                    <img
+                        src="{{ room.customer.customerprofile.profile_image.url }}"
+                        class="customer-avatar"
+                        alt="{{ room.customer.username }}'s profile picture">
+                {% else %}
+                    <div class="customer-avatar avatar-placeholder">
+                        {{ room.customer.username|first|upper }}
+                    </div>
+                {% endif %}
+
+                <div class="customer-info">
+                    <h3>{{ room.customer.username }}</h3>
+                    <p>{{ room.customer.email|default:"No email address" }}</p>
+
+                    <p class="activity-label">
+                        {% if room.latest_message %}
+                            💬 Recent Conversation
+                        {% elif room.is_new_user %}
+                            🆕 New Signup
+                        {% else %}
+                            No Messages Yet
+                        {% endif %}
+                    </p>
+
+                    <div class="chat-status">
+                        {% if room.latest_message %}
+                            {% if room.unread_count %}
+                                <span class="unread-badge">
+                                    {{ room.unread_count }}
+                                </span>
+                                <span class="unread-label">
+                                    Unread message{{ room.unread_count|pluralize }}
+                                </span>
+                            {% else %}
+                                <span class="no-unread">
+                                    ✓ No unread messages
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a
+                    href="{% url 'admin_chat' room.id %}"
+                    class="open-btn"
+                    onclick="
+                        sessionStorage.setItem('openedChatRoom', '{{ room.id }}');
+                        sessionStorage.setItem('refreshInboxOnBack', '1');
+                ">
+                    Open Chat →
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty-chat">
+                {% if search %}
+                    <h3>No customers found</h3>
+                    <p>Try another username or email address.</p>
+                {% else %}
+                    <h3>No registered customers found</h3>
+                    <p>Active customer accounts will appear here.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
-
-    {% endfor %}
-
 </div>
 
+<script>
+(() => {
+    const cardsContainer = document.getElementById("customer-cards");
+    if (!cardsContainer) return;
+
+    // Avoid opening duplicate WebSocket connections.
+    if (cardsContainer.dataset.websocketConnected === "true") return;
+    cardsContainer.dataset.websocketConnected = "true";
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(
+        `${protocol}//${window.location.host}/ws/chat-inbox/`
+    );
+
+    socket.onmessage = function (event) {
+        let data;
+
+        try {
+            data = JSON.parse(event.data);
+        } catch (error) {
+            console.error("Invalid inbox WebSocket data:", error);
+            return;
+        }
+
+        if (data.type !== "inbox_activity") return;
+
+        const roomId = String(data.room_id);
+
+        let card = cardsContainer.querySelector(
+            `.chat-card[data-room-id="${roomId}"]`
+        );
+
+        // If the customer isn't in this search result, reload only
+        // when no search filter is active.
+        if (!card) {
+            const search = new URLSearchParams(
+                window.location.search
+            ).get("search");
+
+            if (!search) {
+                window.location.reload();
+            }
+            return;
+        }
+
+        // Update the unread count and status.
+        const status = card.querySelector(".chat-status");
+
+        if (status) {
+            status.replaceChildren();
+
+            const unreadCount = Number(data.unread_count || 0);
+
+            if (unreadCount > 0) {
+                const badge = document.createElement("span");
+                badge.className = "unread-badge";
+                badge.textContent = unreadCount;
+                status.appendChild(badge);
+
+                const label = document.createElement("span");
+                label.className = "unread-label";
+                label.textContent = unreadCount === 1
+                    ? "Unread message"
+                    : "Unread messages";
+                status.appendChild(label);
+            } else {
+                const noUnread = document.createElement("span");
+                noUnread.className = "no-unread";
+                noUnread.textContent = "✓ No unread messages";
+                status.appendChild(noUnread);
+            }
+        }
+
+        // Update the activity label.
+        const activity = card.querySelector(".activity-label");
+
+        if (activity) {
+            activity.textContent = "💬 Recent Conversation";
+        }
+
+        // Move the active customer to the top immediately.
+        // This order is visual; the database timestamp keeps it
+        // at the top after a page refresh.
+        const firstCard = cardsContainer.querySelector(".chat-card");
+
+        if (firstCard && firstCard !== card) {
+            cardsContainer.prepend(card);
+        }
+    };
+
+    socket.onclose = function () {
+        cardsContainer.dataset.websocketConnected = "false";
+    };
+
+    socket.onerror = function (error) {
+        console.error("Admin inbox WebSocket error:", error);
+    };
+})();
+
+// Browser Back / back-forward cache handling.
+window.addEventListener("pageshow", function () {
+    const shouldRefresh = sessionStorage.getItem("refreshInboxOnBack");
+
+    if (shouldRefresh === "1") {
+        sessionStorage.removeItem("refreshInboxOnBack");
+        window.location.reload();
+        return;
+    }
+
+    const openedRoomId = sessionStorage.getItem("openedChatRoom");
+
+    if (!openedRoomId) return;
+
+    const card = document.querySelector(
+        `.chat-card[data-room-id="${openedRoomId}"]`
+    );
+
+    if (card) {
+        const status = card.querySelector(".chat-status");
+
+        if (status) {
+            status.replaceChildren();
+
+            const noUnread = document.createElement("span");
+            noUnread.className = "no-unread";
+            noUnread.textContent = "✓ No unread messages";
+            status.appendChild(noUnread);
+        }
+    }
+
+    sessionStorage.removeItem("openedChatRoom");
+});
+
+</script>
 {% endblock %}

@@ -1,7 +1,9 @@
+from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import cache_page
 
 from apps.feedback.forms import FeedbackForm
@@ -15,50 +17,45 @@ from .models import Category, Product
 
 
 def add_product(request):
+    category_id = request.GET.get("category") or request.POST.get("category_id")
+    next_url = request.GET.get("next") or request.POST.get("next")
+
+    selected_category = None
+
+    if category_id:
+        selected_category = get_object_or_404(Category, pk=category_id)
+
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
 
         if form.is_valid():
             form.save()
-
-            # Clear cache because product data has changed
             cache.clear()
 
-            return redirect("add_product")
+            # Return to the page that opened the form, if safe
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+
+            return redirect("see_product")
 
     else:
-        form = ProductForm()
+        form = ProductForm(
+            initial={
+                "category": selected_category,
+            }
+        )
 
     return render(
         request,
         "add_product.html",
         {
             "form": form,
-        },
-    )
-
-
-# ============================================================
-# DELETE PRODUCT
-# ============================================================
-
-
-def delete_product(request, id):
-    product = get_object_or_404(Product, id=id)
-
-    if request.method == "POST":
-        product.delete()
-
-        # Clear cache because product data has changed
-        cache.clear()
-
-        return redirect("see_product")
-
-    return render(
-        request,
-        "delete_product.html",
-        {
-            "product": product,
+            "next_url": next_url,
+            "selected_category": selected_category,
         },
     )
 
@@ -140,36 +137,55 @@ def see_product(request):
 
 
 def edit_product(request, id):
-    product = get_object_or_404(
-        Product,
-        id=id,
-    )
+    product = get_object_or_404(Product, id=id)
+
+    # Remember the page that opened the edit form
+    next_url = request.GET.get("next") or request.POST.get("next")
 
     if request.method == "POST":
-        form = ProductForm(
-            request.POST,
-            request.FILES,
-            instance=product,
-        )
+        form = ProductForm(request.POST, request.FILES, instance=product)
 
         if form.is_valid():
-            form.save()
-
-            # Clear cache because product data has changed
+            updated_product = form.save()
             cache.clear()
 
-            return redirect("see_product")
+            if next_url:
+                return redirect(next_url)
 
+            return redirect("see_product")
     else:
-        form = ProductForm(
-            instance=product,
-        )
+        form = ProductForm(instance=product)
 
     return render(
         request,
         "add_product.html",
         {
             "form": form,
+            "next_url": next_url,
+        },
+    )
+
+
+def delete_product(request, id):
+    product = get_object_or_404(Product, id=id)
+
+    next_url = request.GET.get("next") or request.POST.get("next")
+
+    if request.method == "POST":
+        product.delete()
+        cache.clear()
+
+        if next_url:
+            return redirect(next_url)
+
+        return redirect("see_product")
+
+    return render(
+        request,
+        "delete_product.html",
+        {
+            "product": product,
+            "next_url": next_url,
         },
     )
 
@@ -221,43 +237,62 @@ def category(request, category_id):
 # ============================================================
 
 
-def product_review(request, id):
-    product = get_object_or_404(
-        Product,
-        id=id,
+def product_review(request, id=None, product_id=None):
+    product_id = product_id if product_id is not None else id
+
+    product = get_object_or_404(Product, pk=product_id)
+
+    # Display only approved reviews.
+    feedbacks = (
+        product.feedbacks.filter(is_approved=True)
+        .select_related("user")
+        .order_by("-created_at")
     )
 
     if request.method == "POST":
-        form = FeedbackForm(
-            request.POST,
-        )
+        if not request.user.is_authenticated:
+            return redirect("login")
+
+        form = FeedbackForm(request.POST)
 
         if form.is_valid():
-            feedback = form.save(
-                commit=False,
-            )
-
+            feedback = form.save(commit=False)
             feedback.product = product
             feedback.user = request.user
 
+            # Reviews must be approved before public display.
+            feedback.is_approved = True
             feedback.save()
 
-            return redirect(
-                "product_review",
-                id=product.id,
-            )
+            # messages.success(
+            #     request,
+            #     "Thank you! Your review has been submitted for approval.",
+            # )
+
+            return redirect(request.path)
 
     else:
         form = FeedbackForm()
 
-    feedbacks = product.feedbacks.all()
+    # Calculate the average using approved reviews only.
+    rating_summary = feedbacks.aggregate(
+        average_rating=Avg("rating"),
+        total_reviews=Count("id"),
+    )
+
+    average_rating = rating_summary["average_rating"] or 0
+    total_reviews = rating_summary["total_reviews"] or 0
+
+    context = {
+        "product": product,
+        "feedbacks": feedbacks,
+        "form": form,
+        "average_rating": average_rating,
+        "total_reviews": total_reviews,
+    }
 
     return render(
         request,
-        "feedback.html",
-        {
-            "product": product,
-            "feedbacks": feedbacks,
-            "form": form,
-        },
+        "feedback/product_feedback.html",
+        context,
     )

@@ -210,23 +210,63 @@
 
 <div class="customer-list-page">
 
-    <div class="search-box">
+    
+<div class="search-box">
+    <form method="GET" class="customer-toolbar-form">
 
-        <form method="GET" class="search-form">
-
+        <!-- Search on the left -->
+        <div class="search-field">
+            <span class="search-icon">⌕</span>
             <input
                 type="text"
                 name="search"
-                placeholder="Search customer..."
-                value="{{ search }}">
+                placeholder="Search by username or email..."
+                value="{{ search }}"
+                aria-label="Search customers">
+        </div>
 
-            <button type="submit">
-                🔍 Search
+        <!-- Filters on the right -->
+        <div class="filter-controls">
+
+            <select name="sort" class="filter-select"
+                    aria-label="Sort customers">
+                <option value="newest" {% if sort == "newest" %}selected{% endif %}>
+                    Newest first
+                </option>
+                <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>
+                    Oldest first
+                </option>
+                <option value="az" {% if sort == "az" %}selected{% endif %}>
+                    Username A–Z
+                </option>
+                <option value="za" {% if sort == "za" %}selected{% endif %}>
+                    Username Z–A
+                </option>
+            </select>
+
+            <select name="filter" class="filter-select"
+                    aria-label="Filter customer registration">
+                <option value="all" {% if customer_filter == "all" %}selected{% endif %}>
+                    All customers
+                </option>
+                <option value="new" {% if customer_filter == "new" %}selected{% endif %}>
+                    New users (7 days)
+                </option>
+            </select>
+
+            <button type="submit" class="apply-filters-btn">
+                <span>⚙</span> Apply
             </button>
 
-        </form>
+            <a href="{% url 'customer_list' %}"
+               class="reset-filters-btn">
+                Reset
+            </a>
 
-    </div>
+        </div>
+    </form>
+</div>
+
 
 
     {% for customer in customers %}

@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
@@ -14,17 +15,61 @@ from .forms import CheckoutForm
 from .models import Cart, CartItem, Order, OrderItem
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 def _parse_quantity(raw, stock, default=1):
-    """Safely parse a quantity from POST data and clamp it to [1, stock]."""
+    """Safely parse quantity and clamp it to available stock."""
     try:
         quantity = int(raw)
     except (TypeError, ValueError):
         quantity = default
+
     if stock is not None:
         return max(1, min(quantity, stock))
+
     return max(1, quantity)
+
+
+def _notify_order_placed(order, customer):
+    """Notify the customer and active staff after an order is created."""
+
+    # Notify the customer.
+    try:
+        send_notification(
+            user=customer,
+            title="Order Placed",
+            message=f"Your order #{order.id} has been placed successfully.",
+            sender=customer,
+            order=order,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to notify customer about order #%s",
+            order.id,
+        )
+
+    # Notify active staff.
+    staff_users = User.objects.filter(
+        is_staff=True,
+        is_active=True,
+    ).exclude(id=customer.id)
+
+    for staff_user in staff_users:
+        try:
+            send_notification(
+                user=staff_user,
+                title="New Order",
+                message=(f"{customer.username} placed order #{order.id}."),
+                sender=customer,
+                order=order,
+            )
+        except Exception:
+            logger.exception(
+                "Failed to notify staff user %s about order #%s",
+                staff_user.id,
+                order.id,
+            )
 
 
 @login_required
@@ -163,18 +208,7 @@ def checkout(request):
             # the order is already committed at this point, so a failure here
             # shouldn't turn into a 500 that strands the user before they
             # reach order_success.
-            try:
-                send_notification(
-                    user=request.user,
-                    title="Order Placed",
-                    message=f"Your order #{order.id} has been placed successfully.",
-                )
-            except Exception:
-                logger.exception(
-                    "send_notification failed for order #%s (user_id=%s)",
-                    order.id,
-                    request.user.id,
-                )
+            _notify_order_placed(order, request.user)
 
             return redirect("order_success")
 
@@ -267,18 +301,7 @@ def buy_now(request, product_id):
                     stock=F("stock") - quantity
                 )
 
-            try:
-                send_notification(
-                    user=request.user,
-                    title="Order Placed",
-                    message=f"Your order #{order.id} has been placed successfully.",
-                )
-            except Exception:
-                logger.exception(
-                    "send_notification failed for order #%s (user_id=%s)",
-                    order.id,
-                    request.user.id,
-                )
+            _notify_order_placed(order, request.user)
 
             return redirect("order_success")
 

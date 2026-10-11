@@ -1,0 +1,1030 @@
+{% extends "base.html" %}
+
+{% block title %}Product Reviews | ShopCart{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ==============================
+       PAGE
+    ============================== */
+
+    .review-page {
+        min-height: 100vh;
+        padding: 35px 18px 150px;
+        background: #f8fafc;
+        color: #1e293b;
+    }
+
+    .review-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .review-heading {
+        margin-bottom: 24px;
+    }
+
+    .review-heading h1 {
+        margin: 0 0 8px;
+        color: #172033;
+        font-size: clamp(1.6rem, 4vw, 2.1rem);
+        font-weight: 800;
+    }
+
+    .review-heading p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    /* ==============================
+       PRODUCT CARD
+    ============================== */
+
+    .product-card {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        padding: 22px;
+        margin-bottom: 25px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.05);
+    }
+
+    .product-image-wrap {
+        flex: 0 0 230px;
+        height: 230px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #f1f5f9;
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .product-image-wrap:hover .product-image {
+        transform: scale(1.04);
+    }
+
+    .product-placeholder {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .product-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .product-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #e8f4ff;
+        color: #1764a5;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+
+    .product-details h2 {
+        margin: 0 0 10px;
+        color: #172033;
+        font-size: 1.55rem;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .product-description {
+        margin: 0 0 14px;
+        color: #64748b;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+
+    .product-price {
+        margin-bottom: 15px;
+        color: #147073;
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+
+    .back-to-products {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #147073;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .back-to-products:hover {
+        color: #0f5558;
+        text-decoration: underline;
+    }
+
+    /* ==============================
+       RATING SUMMARY
+    ============================== */
+
+    .rating-summary {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 22px;
+        margin-bottom: 30px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+    }
+
+    .average-rating {
+        color: #172033;
+        font-size: 2.4rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .rating-summary-details {
+        min-width: 0;
+    }
+
+    .summary-stars,
+    .review-stars {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .summary-stars {
+        margin-bottom: 5px;
+        font-size: 1.35rem;
+    }
+
+    .filled-star {
+        color: #f5a623;
+    }
+
+    .empty-star {
+        color: #d5dce5;
+    }
+
+    .rating-count {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    /* ==============================
+       REVIEW LIST
+    ============================== */
+
+    .reviews-section {
+        margin-top: 30px;
+    }
+
+    .reviews-section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .reviews-section-heading h2 {
+        margin: 0;
+        color: #172033;
+        font-size: 1.35rem;
+        font-weight: 800;
+    }
+
+    .review-section-count {
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #e2f3f3;
+        color: #147073;
+        font-size: 0.8rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .review-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .review-item {
+        padding: 20px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .review-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 9px 25px rgba(15, 23, 42, 0.07);
+    }
+
+    .review-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        margin-bottom: 14px;
+    }
+
+    .review-avatar {
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #147073, #2f9fa2);
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .review-author-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .review-author {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 1rem;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .review-stars {
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+        font-size: 1rem;
+    }
+
+    .rating-number {
+        margin-left: 5px;
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .review-date {
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+
+    .review-message {
+        margin: 0;
+        color: #475569;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+        white-space: pre-line;
+    }
+
+    .empty-reviews {
+        padding: 35px 20px;
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        text-align: center;
+    }
+
+    .empty-reviews-icon {
+        margin-bottom: 10px;
+        font-size: 2.2rem;
+    }
+
+    .empty-reviews h3 {
+        margin: 0 0 8px;
+        color: #172033;
+        font-size: 1.15rem;
+    }
+
+    .empty-reviews p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    /* ==============================
+       DJANGO MESSAGES
+    ============================== */
+
+    .review-alert {
+        padding: 13px 16px;
+        margin-bottom: 20px;
+        border: 1px solid #a7e2c0;
+        border-radius: 12px;
+        background: #edfff4;
+        color: #166534;
+        line-height: 1.5;
+    }
+
+    /* ==============================
+       FIXED BOTTOM REVIEW DOCK
+    ============================== */
+
+    .review-dock {
+        position: fixed;
+        z-index: 1000;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid #dbe4ed;
+        box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(12px);
+    }
+
+    .review-dock-inner {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .review-dock-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 15px 19px;
+        border: none;
+        border-radius: 13px;
+        background: linear-gradient(110deg, #111827, #147073);
+        color: #ffffff;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: filter 0.2s ease;
+    }
+
+    .review-dock-toggle:hover {
+        filter: brightness(1.08);
+    }
+
+    .dock-title {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .dock-subtitle {
+        display: block;
+        color: #d6f2f1;
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    .dock-toggle-icon {
+        font-size: 1.3rem;
+        transition: transform 0.25s ease;
+    }
+
+    .review-dock.open .dock-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .review-panel {
+        display: none;
+        max-height: min(65vh, 560px);
+        overflow-y: auto;
+        margin-top: 12px;
+        padding: 22px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
+    }
+
+    .review-dock.open .review-panel {
+        display: block;
+        animation: reviewPanelIn 0.22s ease-out;
+    }
+
+    @keyframes reviewPanelIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .review-panel h3 {
+        margin: 0 0 7px;
+        color: #172033;
+        font-size: 1.25rem;
+        font-weight: 800;
+    }
+
+    .review-panel-description {
+        margin: 0 0 20px;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .review-form-group {
+        margin-bottom: 18px;
+    }
+
+    .review-form-label {
+        display: block;
+        margin-bottom: 9px;
+        color: #334155;
+        font-size: 0.9rem;
+        font-weight: 800;
+    }
+
+    .star-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .star-option {
+        position: relative;
+    }
+
+    .star-option input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .star-option label {
+        display: block;
+        padding: 9px 12px;
+        border: 1px solid #dbe4ed;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #64748b;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .star-option label:hover {
+        border-color: #f5a623;
+        background: #fffbeb;
+    }
+
+    .star-option input:checked + label {
+        border-color: #f5a623;
+        background: #fff7df;
+        color: #8a5a00;
+        box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.12);
+    }
+
+    .star-option input:focus-visible + label {
+        outline: 2px solid #147073;
+        outline-offset: 3px;
+    }
+
+    .review-textarea {
+        width: 100%;
+        min-height: 115px;
+        display: block;
+        padding: 13px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 11px;
+        background: #ffffff;
+        color: #1e293b;
+        font: inherit;
+        line-height: 1.6;
+        resize: vertical;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .review-textarea:focus {
+        outline: none;
+        border-color: #147073;
+        box-shadow: 0 0 0 3px rgba(20, 112, 115, 0.12);
+    }
+
+    .field-error {
+        margin-top: 7px;
+        color: #b91c1c;
+        font-size: 0.83rem;
+    }
+
+    .submit-review-button {
+        width: 100%;
+        padding: 13px 18px;
+        border: none;
+        border-radius: 11px;
+        background: #147073;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .submit-review-button:hover {
+        background: #0f5558;
+        transform: translateY(-1px);
+    }
+
+    .login-review-button {
+        display: block;
+        padding: 13px 18px;
+        border-radius: 11px;
+        background: #147073;
+        color: #ffffff;
+        font-weight: 800;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .login-review-button:hover {
+        background: #0f5558;
+        color: #ffffff;
+    }
+
+    .review-moderation-note {
+        margin: 12px 0 0;
+        color: #94a3b8;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        text-align: center;
+    }
+
+    /* ==============================
+       RESPONSIVE
+    ============================== */
+
+    @media (max-width: 650px) {
+        .review-page {
+            padding: 25px 13px 135px;
+        }
+
+        .product-card {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 18px;
+            padding: 15px;
+        }
+
+        .product-image-wrap {
+            flex-basis: auto;
+            width: 100%;
+            height: 230px;
+        }
+
+        .product-details h2 {
+            font-size: 1.35rem;
+        }
+
+        .rating-summary {
+            gap: 14px;
+            padding: 17px;
+        }
+
+        .average-rating {
+            font-size: 2rem;
+        }
+
+        .review-item {
+            padding: 16px;
+        }
+
+        .review-dock {
+            padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+        }
+
+        .review-dock-toggle {
+            padding: 13px 15px;
+        }
+
+        .review-panel {
+            padding: 17px;
+            max-height: 60vh;
+        }
+
+        .star-picker {
+            gap: 6px;
+        }
+
+        .star-option label {
+            padding: 8px 9px;
+            font-size: 0.78rem;
+        }
+    }
+</style>
+
+<div class="review-page">
+    <div class="review-container">
+
+        <!-- PAGE HEADING -->
+        <header class="review-heading">
+            <h1>Product Reviews</h1>
+            
+        </header>
+
+        <!-- DJANGO SUCCESS / ERROR MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="review-alert" role="status">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- PRODUCT CARD -->
+        <section class="product-card">
+
+            <div class="product-image-wrap">
+                {% if product.image %}
+                    <img
+                        src="{{ product.image.url }}"
+                        alt="{{ product.name }}"
+                        class="product-image"
+                    >
+                {% else %}
+                    <span class="product-placeholder">
+                        Product image unavailable
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="product-details">
+                <span class="product-label">ShopCart Product</span>
+
+                <h2>{{ product.name }}</h2>
+
+                {% if product.description %}
+                    <p class="product-description">
+                        {{ product.description }}
+                    </p>
+                {% endif %}
+
+                <div class="product-price">
+                    Rs. {{ product.price }}
+                </div>
+
+                <a href="{% url 'home' %}" class="back-to-products">
+                    <span aria-hidden="true">←</span>
+                    Continue shopping
+                </a>
+            </div>
+
+        </section>
+
+        <!-- AVERAGE RATING SUMMARY -->
+        <section class="rating-summary" aria-label="Product rating summary">
+
+            <div class="average-rating">
+                {{ average_rating|floatformat:1 }}
+            </div>
+
+            <div class="rating-summary-details">
+
+                <div
+                    class="summary-stars"
+                    aria-label="Average rating {{ average_rating|floatformat:1 }} out of 5"
+                >
+                    {% for star in "12345" %}
+                        {% if forloop.counter <= average_rating %}
+                            <span class="filled-star">★</span>
+                        {% else %}
+                            <span class="empty-star">★</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="rating-count">
+                    {{ total_reviews }}
+                    approved review{{ total_reviews|pluralize }}
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- CUSTOMER REVIEWS -->
+        <section class="reviews-section">
+
+            <div class="reviews-section-heading">
+                <h2>Customer Feedback</h2>
+
+                <span class="review-section-count">
+                    {{ total_reviews }}
+                    review{{ total_reviews|pluralize }}
+                </span>
+            </div>
+
+            {% if feedbacks %}
+
+                <div class="review-list">
+
+                    {% for feedback in feedbacks %}
+
+                        <article class="review-item">
+
+                            <div class="review-header">
+
+                                <div class="review-avatar">
+                                    {{ feedback.user.username|first|upper }}
+                                </div>
+
+                                <div class="review-author-details">
+
+                                    <h3 class="review-author">
+                                        {{ feedback.user.username }}
+                                    </h3>
+
+                                    <!-- INDIVIDUAL REVIEW STARS -->
+                                    <div
+                                        class="review-stars"
+                                        aria-label="{{ feedback.rating }} out of 5 stars"
+                                    >
+                                        {% for star in "12345" %}
+                                            {% if forloop.counter <= feedback.rating %}
+                                                <span class="filled-star">★</span>
+                                            {% else %}
+                                                <span class="empty-star">★</span>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <span class="rating-number">
+                                            {{ feedback.rating }}/5
+                                        </span>
+                                    </div>
+
+                                    <div class="review-date">
+                                        {{ feedback.created_at|date:"M d, Y" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <p class="review-message">
+                                {{ feedback.message }}
+                            </p>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-reviews">
+                    <div class="empty-reviews-icon">💬</div>
+
+                    <h3>No approved reviews yet</h3>
+
+                    <p>
+                        Be the first to share your experience with this
+                        product. Your review can help other customers.
+                    </p>
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+</div>
+
+<!-- FIXED BOTTOM REVIEW DOCK -->
+<div class="review-dock" id="reviewDock">
+
+    <div class="review-dock-inner">
+
+        <button
+            type="button"
+            class="review-dock-toggle"
+            id="reviewDockToggle"
+            aria-expanded="false"
+            aria-controls="reviewPanel"
+        >
+            <span>
+                <span class="dock-title">Write a Review</span>
+
+                <span class="dock-subtitle">
+                    Share your experience with this product
+                </span>
+            </span>
+
+            <span class="dock-toggle-icon" aria-hidden="true">⌃</span>
+        </button>
+
+        <div class="review-panel" id="reviewPanel">
+
+            {% if user.is_authenticated %}
+
+                <h3>Share Your Experience</h3>
+
+                <p class="review-panel-description">
+                    Select a star rating and tell other customers what
+                    you think about this product.
+                </p>
+
+                <form method="post" action="{{ request.path }}">
+                    {% csrf_token %}
+
+                    <!-- RATING FIELD -->
+                    <div class="review-form-group">
+
+                        <span class="review-form-label">
+                            Your Rating
+                        </span>
+
+                        <div class="star-picker">
+
+                            <div class="star-option">
+                                <input
+                                    type="radio"
+                                    id="rating5"
+                                    name="rating"
+                                    value="5"
+                                    {% if form.rating.value|stringformat:"s" == "5" %}checked{% endif %}
+                                    required
+                                >
+                                <label for="rating5">★★★★★</label>
+                            </div>
+
+                            <div class="star-option">
+                                <input
+                                    type="radio"
+                                    id="rating4"
+                                    name="rating"
+                                    value="4"
+                                    {% if form.rating.value|stringformat:"s" == "4" %}checked{% endif %}
+                                >
+                                <label for="rating4">★★★★☆</label>
+                            </div>
+
+                            <div class="star-option">
+                                <input
+                                    type="radio"
+                                    id="rating3"
+                                    name="rating"
+                                    value="3"
+                                    {% if form.rating.value|stringformat:"s" == "3" %}checked{% endif %}
+                                >
+                                <label for="rating3">★★★☆☆</label>
+                            </div>
+
+                            <div class="star-option">
+                                <input
+                                    type="radio"
+                                    id="rating2"
+                                    name="rating"
+                                    value="2"
+                                    {% if form.rating.value|stringformat:"s" == "2" %}checked{% endif %}
+                                >
+                                <label for="rating2">★★☆☆☆</label>
+                            </div>
+
+                            <div class="star-option">
+                                <input
+                                    type="radio"
+                                    id="rating1"
+                                    name="rating"
+                                    value="1"
+                                    {% if form.rating.value|stringformat:"s" == "1" %}checked{% endif %}
+                                >
+                                <label for="rating1">★☆☆☆☆</label>
+                            </div>
+
+                        </div>
+
+                        {% if form.rating.errors %}
+                            <div class="field-error">
+                                {{ form.rating.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- MESSAGE FIELD -->
+                    <div class="review-form-group">
+
+                        <label
+                            for="reviewMessage"
+                            class="review-form-label"
+                        >
+                            Your Review
+                        </label>
+
+                        <textarea
+                            id="reviewMessage"
+                            name="message"
+                            class="review-textarea"
+                            rows="4"
+                            placeholder="Share your experience with this product..."
+                            required
+                        >{{ form.message.value|default_if_none:"" }}</textarea>
+
+                        {% if form.message.errors %}
+                            <div class="field-error">
+                                {{ form.message.errors }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="field-error">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <button
+                        type="submit"
+                        class="submit-review-button"
+                    >
+                        Submit Review
+                    </button>
+
+                    <p class="review-moderation-note">
+                        Your review will appear publicly after approval.
+                    </p>
+
+                </form>
+
+            {% else %}
+
+                <h3>Log in to Write a Review</h3>
+
+                <p class="review-panel-description">
+                    Please log in to share your feedback about this product.
+                </p>
+
+                <a
+                    href="{% url 'login' %}?next={{ request.path|urlencode }}"
+                    class="login-review-button"
+                >
+                    Log In to Review
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dock = document.getElementById("reviewDock");
+        const toggle = document.getElementById("reviewDockToggle");
+        const panel = document.getElementById("reviewPanel");
+
+        if (!dock || !toggle || !panel) {
+            return;
+        }
+
+        toggle.addEventListener("click", function () {
+            const isOpen = dock.classList.toggle("open");
+
+            toggle.setAttribute(
+                "aria-expanded",
+                isOpen ? "true" : "false"
+            );
+        });
+
+        // Automatically open the panel when the form has validation errors.
+        const hasErrors = panel.querySelector(".field-error");
+
+        if (hasErrors) {
+            dock.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+        }
+    });
+</script>
+
+{% endblock %}
