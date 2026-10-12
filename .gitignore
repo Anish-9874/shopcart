@@ -1,44 +1,42 @@
-# Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Git
+# Do not ignore .gitignore itself
+
+# Python cache
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtual environments
-venv/
-env/
-.venv/
+# Django
+db.sqlite3
+staticfiles/
 
-# Environment variables and secrets
+# Environment variables / secrets
 .env
 .env.*
 !.env.example
 
-# Local databases
-db.sqlite3
-*.sqlite3
-
-# User-uploaded media (keep if you don't want uploads in Git)
-media/
-
-# Generated static files
-staticfiles/
-
 # Logs
+logs/
 *.log
 
-# Test and coverage files
+# IDE / editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing / coverage
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Type checking and lint caches
-.mypy_cache/
-.ruff_cache/
-
-# IDEs
-.vscode/
-.idea/
-
-# Operating system files
-.DS_Store
-Thumbs.db
+# Documentation build artifacts
+site/

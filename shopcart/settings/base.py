@@ -220,3 +220,10 @@ CACHES = {
         "LOCATION": "unique-cache",
     }
 }
+
+
+DOCKER_MEDIA_SERVE = config(
+    "DOCKER_MEDIA_SERVE",
+    default=False,
+    cast=bool,
+)
