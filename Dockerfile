@@ -1,3 +1,4 @@
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -10,6 +11,8 @@ COPY requirements/ ./requirements/
 RUN pip install --no-cache-dir -r requirements/prod.txt
 
 COPY . .
+
+RUN python manage.py collectstatic --noinput --settings=shopcart.settings.prod
 
 EXPOSE 8000
 
