@@ -1,0 +1,14 @@
+[flake8]
+max-line-length = 88
+exclude =
+    .git,
+    .venv,
+    venv,
+    __pycache__,
+    staticfiles,
+    migrations
+extend-ignore = E203, W503
+per-file-ignores =
+    shopcart/settings/base.py:E501,E265
+    shopcart/settings/dev.py:F403,F405
+    shopcart/settings/prod.py:F403,F405

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Q, Sum
@@ -48,7 +49,7 @@ def customer_dashboard(request):
     return render(request, "customer_dashboard.html", context)
 
 
-@login_required
+@staff_member_required
 def admin_dashboard(request):
     if not request.user.is_staff:
         return redirect("customer_dashboard")
@@ -77,7 +78,7 @@ def admin_dashboard(request):
     return render(request, "admin_dashboard.html", context)
 
 
-@login_required
+@staff_member_required
 def reports_analytics(request):
     if not request.user.is_staff:
         return redirect("customer_dashboard")
@@ -239,7 +240,7 @@ def reports_analytics(request):
     return render(request, "admin_reports.html", context)
 
 
-@login_required
+@staff_member_required
 def admin_reviews(request):
     # Only staff members can access this page.
     if not request.user.is_staff:
@@ -288,7 +289,7 @@ def admin_reviews(request):
     return render(request, "admin_reviews.html", context)
 
 
-@login_required
+@staff_member_required
 def admin_orders(request):
     # Only staff members can manage orders.
     if not request.user.is_staff:
@@ -447,7 +448,7 @@ def admin_orders(request):
     )
 
 
-@login_required
+@staff_member_required
 def admin_categories(request):
     if not request.user.is_staff:
         messages.error(request, "Permission denied.")
@@ -462,7 +463,7 @@ def admin_categories(request):
     )
 
 
-@login_required
+@staff_member_required
 def admin_category_create(request):
     if not request.user.is_staff:
         messages.error(request, "Permission denied.")
@@ -491,7 +492,7 @@ def admin_category_create(request):
     )
 
 
-@login_required
+@staff_member_required
 def admin_category_edit(request, category_id):
     if not request.user.is_staff:
         messages.error(request, "Permission denied.")
@@ -527,7 +528,7 @@ def admin_category_edit(request, category_id):
     )
 
 
-@login_required
+@staff_member_required
 def admin_category_delete(request, category_id):
     if not request.user.is_staff:
         messages.error(request, "Permission denied.")
@@ -562,7 +563,7 @@ def admin_category_delete(request, category_id):
     )
 
 
-@login_required
+@staff_member_required
 def admin_category_products(request, category_id):
     if not request.user.is_staff:
         messages.error(request, "Permission denied.")

@@ -1,7 +1,8 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -92,6 +93,7 @@ def edit_profile(request):
     return render(request, "edit_profile.html", {"profile": profile})
 
 
+@staff_member_required
 def customer_profile(request, id):
 
     customer = get_object_or_404(User, id=id)
@@ -107,6 +109,7 @@ def customer_profile(request, id):
     )
 
 
+@staff_member_required
 def customer_list(request):
     from datetime import timedelta
 

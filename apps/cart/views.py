@@ -171,7 +171,10 @@ def checkout(request):
 
                         messages.error(
                             request,
-                            f"{item.product.name} only has {item.product.stock} item(s) left.",
+                            (
+                                f"{item.product.name} only has "
+                                f"{item.product.stock} item(s) left."
+                            ),
                         )
 
                         return redirect("cart")

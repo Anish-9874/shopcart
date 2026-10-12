@@ -22,7 +22,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
 
 # Application definition
@@ -145,8 +145,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # "When I create a model a
 
 LOGIN_URL = "/login/"  # Redirect to login page if user is not authenticated usually work for @loginrequired decorator
 
-REDIS_HOST = config("REDIS_HOST", default="redis")
-REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+
+# -------------------------
+# Redis configuration
+# -------------------------
+
+REDIS_URL = config("REDIS_URL", default="")
+
+if REDIS_URL:
+    REDIS_CONNECTION = REDIS_URL
+else:
+    REDIS_HOST = config("REDIS_HOST", default="redis")
+    REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+    REDIS_CONNECTION = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 
 
 # -------------------------
@@ -157,7 +168,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "hosts": [REDIS_CONNECTION],
         },
     },
 }
@@ -167,9 +178,8 @@ CHANNEL_LAYERS = {
 # Celery
 # -------------------------
 
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
-
-CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_BROKER_URL = REDIS_CONNECTION
+CELERY_RESULT_BACKEND = REDIS_CONNECTION
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"

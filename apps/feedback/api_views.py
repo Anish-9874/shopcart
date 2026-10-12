@@ -10,7 +10,7 @@ class FeedbackViewSet(ModelViewSet):
     queryset = Feedback.objects.all()
 
 
-# @action is used to create custom endpoints that are not part of the standard CRUD operations
+# @action creates custom endpoints beyond standard CRUD operations.
 # @action(detail=True, methods=["post"])
 # def like(self, request, pk=None):
 #     feedback = self.get_object()

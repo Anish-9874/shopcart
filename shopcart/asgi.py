@@ -1,8 +1,10 @@
+# flake8: noqa: E402
+
 import os
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
-    "shopcart.settings.dev",
+    "shopcart.settings.prod",
 )
 
 from channels.auth import AuthMiddlewareStack
@@ -14,9 +16,8 @@ django_asgi_application = get_asgi_application()
 from apps.chat.routing import websocket_urlpatterns as chat_urlpatterns
 from apps.notifications.routing import websocket_urlpatterns as notification_urlpatterns
 
-# Combine websocket URL patterns from multiple apps
+# Combine websocket URL patterns from multiple apps.
 websocket_urlpatterns = chat_urlpatterns + notification_urlpatterns
-
 
 application = ProtocolTypeRouter(
     {

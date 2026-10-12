@@ -1,4 +1,5 @@
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
@@ -27,7 +28,7 @@ def notification_list(request):
 
 
 @login_required
-@user_passes_test(lambda user: user.is_staff)
+@staff_member_required
 def admin_notification_list(request):
     notifications = (
         Notification.objects.filter(recipient=request.user)

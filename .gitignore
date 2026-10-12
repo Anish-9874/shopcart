@@ -1,25 +1,44 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
 
 # Virtual environments
 venv/
 env/
 .venv/
 
-# Database
-db.sqlite3
-
-# Environment variables
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
 
-# Media uploads (optional)
+# Local databases
+db.sqlite3
+*.sqlite3
+
+# User-uploaded media (keep if you don't want uploads in Git)
 media/
+
+# Generated static files
+staticfiles/
+
+# Logs
+*.log
+
+# Test and coverage files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checking and lint caches
+.mypy_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
 .idea/
 
-# Logs
-*.log
-
+# Operating system files
+.DS_Store
+Thumbs.db

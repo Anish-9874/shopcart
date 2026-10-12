@@ -1,4 +1,4 @@
-from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
@@ -16,6 +16,7 @@ from .models import Category, Product
 # ============================================================
 
 
+@staff_member_required
 def add_product(request):
     category_id = request.GET.get("category") or request.POST.get("category_id")
     next_url = request.GET.get("next") or request.POST.get("next")
@@ -117,6 +118,7 @@ def product_list(request):
 # ============================================================
 
 
+@staff_member_required
 @cache_page(60 * 15)
 def see_product(request):
     # Read filter values from the query string.
@@ -211,6 +213,7 @@ def see_product(request):
 # ============================================================
 
 
+@staff_member_required
 def edit_product(request, id):
     product = get_object_or_404(Product, id=id)
 
@@ -221,7 +224,7 @@ def edit_product(request, id):
         form = ProductForm(request.POST, request.FILES, instance=product)
 
         if form.is_valid():
-            updated_product = form.save()
+            form.save()
             cache.clear()
 
             if next_url:
@@ -241,6 +244,7 @@ def edit_product(request, id):
     )
 
 
+@staff_member_required
 def delete_product(request, id):
     product = get_object_or_404(Product, id=id)
 

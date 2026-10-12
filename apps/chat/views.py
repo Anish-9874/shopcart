@@ -3,8 +3,9 @@ from datetime import timedelta
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -110,7 +111,8 @@ def customer_chat(request):
     )
 
 
-@user_passes_test(lambda user: user.is_staff)
+# @user_passes_test(lambda user: user.is_staff)
+@staff_member_required
 def inbox(request):
     search = request.GET.get("search", "").strip()
     now = timezone.now()
@@ -181,7 +183,8 @@ def inbox(request):
     )
 
 
-@user_passes_test(lambda user: user.is_staff)
+# @user_passes_test(lambda user: user.is_staff)
+@staff_member_required
 def admin_chat(request, room_id):
     room = get_object_or_404(
         ChatRoom.objects.select_related("customer"),
