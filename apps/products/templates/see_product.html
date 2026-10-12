@@ -3,381 +3,409 @@
 {% block title %}All Products{% endblock %}
 
 {% block extra_css %}
-
 <style>
-
-.table-scroll {
-    width: 100%;
-    overflow-x: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
-}
-
-.product-table {
-    width: 100%;
-    min-width: 720px;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.product-table th {
-    background: #F1F5F9;
-    color: #475569;
-    padding: 16px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    white-space: nowrap;
-}
-
-.product-table th:first-child { border-radius: 12px 0 0 0; }
-.product-table th:last-child { border-radius: 0 12px 0 0; text-align: right; }
-
-.product-table td {
-    padding: 14px 16px;
-    vertical-align: middle;
-    border-bottom: 1px solid #E2E8F0;
-    color: #0F172A;
-    font-size: 14px;
-}
-
-.product-table tr:last-child td { border-bottom: none; }
-.product-table tr:hover { background: #F8FAFC; }
-
-.product-image {
-    width: 56px;
-    height: 56px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #E2E8F0;
-    display: block;
-}
-
-.no-image-box {
-    width: 56px;
-    height: 56px;
-    border-radius: 8px;
-    background: #F1F5F9;
-    color: #94A3B8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    text-align: center;
-    line-height: 1.2;
-}
-
-.product-name-cell { font-weight: 700; }
-
-.category-pill {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: #EFF6FF;
-    color: #2563EB;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.price-cell { font-weight: 800; color: #0F172A; }
-
-.stock-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.stock-pill.in-stock { background: #DCFCE7; color: #15803D; }
-.stock-pill.low-stock { background: #FEF3C7; color: #92400E; }
-.stock-pill.out-stock { background: #FEE2E2; color: #B91C1C; }
-
-.action-cell {
-    text-align: right;
-    white-space: nowrap;
-}
-
-.edit-btn,
-.delete-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    color: white;
-    font-size: 13px;
-    font-weight: 700;
-    margin-left: 6px;
-    transition: .2s ease;
-}
-
-.edit-btn { background: #10B981; }
-.edit-btn:hover { background: #059669; }
-
-.delete-btn { background: #EF4444; }
-.delete-btn:hover { background: #DC2626; }
-
-.empty-row {
-    text-align: center;
-    padding: 40px;
-    color: #64748B;
-    font-size: 14px;
-}
-
-/* ========================= */
-/* PAGINATION */
-/* ========================= */
-
-.pagination {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 25px;
-    margin-bottom: 10px;
-}
-
-.pagination a,
-.pagination span {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 12px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 14px;
-    border: 1px solid #E2E8F0;
-}
-
-.pagination a {
-    background: #fff;
-    color: #334155;
-    transition: .2s ease;
-}
-
-.pagination a:hover { background: #F1F5F9; }
-
-.pagination .current-page {
-    background: #2563EB;
-    color: #fff;
-    border-color: #2563EB;
-    font-weight: 700;
-}
-
-.pagination .disabled {
-    color: #94A3B8;
-    background: #F8FAFC;
-    cursor: not-allowed;
-}
-
-.page-info {
-    text-align: center;
-    color: #64748B;
-    font-size: 13px;
-    margin-top: 10px;
-}
-
 /* =========================================================
-   MOBILE: collapse the table into stacked cards instead of
-   forcing a horizontal scroll of a 7-column table. Each <td>
-   uses its data-label attribute to print the column name.
+   Product list  (ui-ux-pro-max: data tables, search + filter)
+   - Admin tokens from admin_base.html (light + dark safe)
+   - 44px targets, visible focus, status = text + colour
+   - Mobile: table becomes cards, pagination collapses
    ========================================================= */
-@media (max-width: 700px) {
+.pl-page .ico { width: 18px; height: 18px; flex-shrink: 0; }
+.pl-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pl-page a:focus-visible, .pl-page button:focus-visible, .pl-page select:focus-visible, .pl-page input:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-    .table-scroll { overflow-x: visible; box-shadow: none; border-radius: 0; }
+/* ---------- Header ---------- */
+.pl-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 18px; }
+.pl-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.pl-head p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.pl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--btn); border-radius: 10px; background: var(--btn); color: #fff; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: filter .15s; }
+.pl-btn:hover { filter: brightness(1.1); }
 
-    .product-table { min-width: 0; }
+/* ---------- Toolbar: search + filters ---------- */
+.pl-toolbar { display: grid; grid-template-columns: minmax(240px, 1.6fr) repeat(3, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.pl-search { position: relative; }
+.pl-search > .ico { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; margin-top: -9px; color: var(--muted); pointer-events: none; }
+.pl-search input { width: 100%; min-height: 46px; padding: 0 84px 0 42px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.pl-search input::placeholder { color: var(--muted); opacity: .85; }
+.pl-search input::-webkit-search-cancel-button { display: none; }
+.pl-search input:hover, .pl-select:hover { border-color: var(--muted); }
+.pl-search input:focus-visible, .pl-select:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent); }
+.pl-kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); min-width: 24px; padding: 2px 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; text-align: center; pointer-events: none; }
+.pl-clear { position: absolute; right: 4px; top: 50%; display: none; place-items: center; width: 40px; height: 40px; margin-top: -20px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.pl-clear:hover { background: var(--surface-2); color: var(--text); }
+.pl-search.has-value .pl-clear { display: grid; }
+.pl-search.has-value .pl-kbd { display: none; }
 
-    .product-table thead { display: none; }
+.pl-select { width: 100%; min-height: 46px; padding: 0 36px 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; text-overflow: ellipsis; }
+.pl-select.is-active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.pl-submit { grid-column: 1 / -1; }  /* no-JS fallback; hidden once JS auto-applies filters */
+.js .pl-submit { display: none; }
 
-    .product-table, .product-table tbody, .product-table tr, .product-table td {
-        display: block;
-        width: 100%;
-    }
+/* ---------- Results bar + active filters ---------- */
+.pl-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; min-height: 36px; color: var(--muted); font-size: 14px; }
+.pl-meta strong { color: var(--text); font-weight: 700; }
+.pl-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pl-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 6px 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; }
+.pl-chip button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
+.pl-chip button:hover { background: var(--surface-2); color: var(--text); }
+.pl-chip .ico { width: 14px; height: 14px; }
+.pl-reset { display: inline-flex; align-items: center; min-height: 36px; padding: 0 6px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.pl-reset:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-    .product-table tr {
-        background: #fff;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
-        margin-bottom: 14px;
-        padding: 6px 16px;
-    }
+/* ---------- Table ---------- */
+.pl-card { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.pl-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.pl-table th { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 600; text-align: left; white-space: nowrap; }
+.pl-table th:last-child, .pl-table td.pl-actions { text-align: right; }
+.pl-table td { padding: 12px 18px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 14.5px; vertical-align: middle; }
+.pl-table tbody tr:last-child td { border-bottom: 0; }
+.pl-table tbody tr { transition: background-color .15s; }
+.pl-table tbody tr:hover { background: var(--surface-2); }
 
-    .product-table tr:hover { background: #fff; }
+.pl-product { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.pl-thumb { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); }
+.pl-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pl-thumb .ico { width: 22px; height: 22px; }
+.pl-name { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--text); font-weight: 600; line-height: 1.35; }
+.pl-id { margin-top: 2px; color: var(--muted); font-size: 12.5px; }
+.pl-cat { display: inline-block; max-width: 160px; overflow: hidden; padding: 3px 10px; border-radius: 8px; background: var(--surface-2); color: var(--text); font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.pl-price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-    .product-table td {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid #F1F5F9;
-        font-size: 13.5px;
-    }
+.pl-stock { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.pl-stock::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pl-stock b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pl-stock.ok  { background: var(--success-soft); color: var(--success); }
+.pl-stock.low { background: var(--warn-soft); color: var(--warn); }
+.pl-stock.out { background: var(--danger-soft); color: var(--danger); }
 
-    .product-table tr td:last-child { border-bottom: none; }
+.pl-actions { white-space: nowrap; }
+.pl-act { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.pl-act + .pl-act { margin-left: 8px; }
+.pl-act:hover { background: var(--surface-2); border-color: var(--muted); }
+.pl-act.danger { color: var(--danger); }
+.pl-act.danger:hover { background: var(--danger-soft); border-color: var(--danger-line); }
 
-    .product-table td::before {
-        content: attr(data-label);
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: .3px;
-        color: #94A3B8;
-        flex-shrink: 0;
-    }
+.pl-empty td { padding: 56px 20px !important; text-align: center; }
+.pl-empty-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.pl-empty-icon .ico { width: 26px; height: 26px; }
+.pl-empty strong { display: block; color: var(--text); font-size: 16px; }
+.pl-empty p { margin: 4px auto 18px; max-width: 360px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.pl-empty .pl-btn { display: inline-flex; }
 
-    .product-table td.id-cell::before,
-    .product-table td.image-cell::before,
-    .product-table td.action-cell::before {
-        content: none;
-    }
+/* ---------- Pagination ---------- */
+.pl-pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-top: 16px; }
+.pl-pager-info { color: var(--muted); font-size: 14px; }
+.pl-pages { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.pl-pg { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; text-decoration: none; font-variant-numeric: tabular-nums; transition: background-color .15s, border-color .15s; }
+a.pl-pg:hover { background: var(--surface-2); border-color: var(--muted); }
+.pl-pg.current { border-color: var(--btn); background: var(--btn); color: #fff; }
+.pl-pg.disabled { color: var(--muted); background: var(--surface-2); opacity: .6; }
+.pl-gap { min-width: 24px; color: var(--muted); text-align: center; }
 
-    .product-table td.image-cell { justify-content: center; padding-top: 16px; }
-    .product-table td.image-cell .product-image,
-    .product-table td.image-cell .no-image-box { width: 72px; height: 72px; }
+/* ---------- Delete dialog ---------- */
+.pl-dialog { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.pl-dialog::backdrop { background: rgba(15, 23, 42, .55); }
+.pl-dialog-body { padding: 24px 24px 8px; }
+.pl-dialog-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 14px; border-radius: 12px; background: var(--danger-soft); color: var(--danger); }
+.pl-dialog h2 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.pl-dialog p { margin-top: 8px; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+.pl-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 20px 24px 24px; }
+.pl-dialog-actions .pl-act { min-width: 120px; }
+.pl-confirm { background: #DC2626; border-color: #DC2626; color: #fff; }
+.pl-confirm:hover { background: #B91C1C; border-color: #B91C1C; color: #fff; }
 
-    .product-table td.id-cell { justify-content: center; color: #94A3B8; font-size: 12px; padding: 8px 0 0; }
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) { .pl-toolbar { grid-template-columns: 1fr 1fr 1fr; } .pl-search { grid-column: 1 / -1; } }
+@media (max-width: 760px) {
+    .pl-head .pl-btn { width: 100%; }
+    .pl-toolbar { grid-template-columns: 1fr 1fr; }
+    .pl-toolbar > div:nth-child(4) { grid-column: 1 / -1; }
+    .pl-kbd { display: none; }
 
-    .action-cell { justify-content: center; flex-wrap: wrap; padding-bottom: 16px !important; }
-    .edit-btn, .delete-btn { margin: 4px; flex: 1 1 auto; text-align: center; }
+    .pl-card { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+    .pl-table { min-width: 0; }
+    .pl-table thead { display: none; }
+    .pl-table, .pl-table tbody { display: block; }
+    .pl-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; align-items: center; margin-bottom: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+    .pl-table tbody tr:hover { background: var(--surface); }
+    .pl-table td { display: block; padding: 0; border: 0; }
+    .pl-table td:nth-child(1) { grid-column: 1 / -1; }
+    .pl-table td:nth-child(2) { grid-column: 1; }
+    .pl-table td:nth-child(3) { grid-column: 2; text-align: right; font-size: 16px; }
+    .pl-table td:nth-child(4) { grid-column: 1 / -1; }
+    .pl-table td.pl-actions { grid-column: 1 / -1; display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .pl-act { flex: 1 1 0; }
+    .pl-act + .pl-act { margin-left: 0; }
+    .pl-table tr.pl-empty { display: block; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
 
-    .empty-row { border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; box-shadow: none; }
-
-    .pagination a, .pagination span { min-width: 36px; height: 36px; padding: 0 8px; font-size: 13px; }
+    .pl-pager { flex-direction: column; align-items: stretch; }
+    .pl-pager-info { text-align: center; }
+    .pl-pages { justify-content: space-between; }
+    .pl-pages .pl-num, .pl-pages .pl-gap { display: none; }
 }
-
+@media (max-width: 420px) { .pl-toolbar { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .pl-page * { transition: none !important; } }
 </style>
-
 {% endblock %}
 
 
 {% block content %}
 
-<div class="page-header">
-    <h1>📦 All Products</h1>
-</div>
+<div class="pl-page">
 
-<div class="table-scroll">
+<!-- icons used on this page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="pl-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="pl-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="pl-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="pl-i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+        <symbol id="pl-i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol>
+        <symbol id="pl-i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L6 21"/></symbol>
+        <symbol id="pl-i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+        <symbol id="pl-i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    </defs>
+</svg>
 
-<table class="product-table">
+<!-- ===== Header ===== -->
+<header class="pl-head">
+    <div>
+        <h1>Products</h1>
+        <p>Search, filter and manage everything in your catalogue.</p>
+    </div>
+    <a href="{% url 'add_product' %}" class="pl-btn"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#pl-i-plus"/></svg>Add product</a>
+</header>
 
-    <thead>
+<!-- ===== Search + filters ===== -->
+<form method="get" class="pl-toolbar" id="pl-filters" role="search" aria-label="Search and filter products">
 
-        <tr>
-            <th>ID</th>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Action</th>
-        </tr>
+    <div class="pl-search{% if q %} has-value{% endif %}" id="pl-search">
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#pl-i-search"/></svg>
+        <label class="sr-only" for="pl-q">Search products</label>
+        <input type="search" id="pl-q" name="q" value="{{ q|default:'' }}" placeholder="Search by name, category or ID" autocomplete="off" enterkeyhint="search">
+        <kbd class="pl-kbd" aria-hidden="true">/</kbd>
+        <button type="button" class="pl-clear" id="pl-clear" aria-label="Clear search"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#pl-i-x"/></svg></button>
+    </div>
 
-    </thead>
+    <div>
+        <label class="sr-only" for="pl-category">Category</label>
+        <select class="pl-select{% if category_id %} is-active{% endif %}" id="pl-category" name="category">
+            <option value="">All categories</option>
+            {% for c in categories %}
+                <option value="{{ c.id }}"{% if category_id == c.id|stringformat:"s" %} selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
+    <div>
+        <label class="sr-only" for="pl-stock">Stock status</label>
+        <select class="pl-select{% if stock %} is-active{% endif %}" id="pl-stock" name="stock">
+            <option value="">Any stock level</option>
+            <option value="in"{% if stock == "in" %} selected{% endif %}>In stock</option>
+            <option value="low"{% if stock == "low" %} selected{% endif %}>Low stock</option>
+            <option value="out"{% if stock == "out" %} selected{% endif %}>Out of stock</option>
+        </select>
+    </div>
 
-    <tbody>
+    <div>
+        <label class="sr-only" for="pl-sort">Sort by</label>
+        <select class="pl-select" id="pl-sort" name="sort">
+            <option value="newest"{% if sort == "newest" or not sort %} selected{% endif %}>Sort: Newest first</option>
+            <option value="name"{% if sort == "name" %} selected{% endif %}>Sort: Name A–Z</option>
+            <option value="price_asc"{% if sort == "price_asc" %} selected{% endif %}>Sort: Price, low to high</option>
+            <option value="price_desc"{% if sort == "price_desc" %} selected{% endif %}>Sort: Price, high to low</option>
+            <option value="stock_asc"{% if sort == "stock_asc" %} selected{% endif %}>Sort: Stock, low to high</option>
+        </select>
+    </div>
 
-    {% for product in products %}
+    <button type="submit" class="pl-btn pl-submit">Apply</button>
+</form>
 
-    <tr>
-
-        <td class="id-cell" data-label="ID">{{ product.id }}</td>
-
-        <td class="image-cell" data-label="Image">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" class="product-image" alt="{{ product.name }}">
-            {% else %}
-                <div class="no-image-box">No Image</div>
-            {% endif %}
-        </td>
-
-        <td class="product-name-cell" data-label="Name">{{ product.name }}</td>
-
-        <td data-label="Category">
-            <span class="category-pill">{{ product.category }}</span>
-        </td>
-
-        <td class="price-cell" data-label="Price">Rs. {{ product.price }}</td>
-
-        <td data-label="Stock">
-            {% if product.stock > 500 %}
-                <span class="stock-pill in-stock">{{ product.stock }}</span>
-            {% elif product.stock > 0 %}
-                <span class="stock-pill low-stock">{{ product.stock }}</span>
-            {% else %}
-                <span class="stock-pill out-stock">Out</span>
-            {% endif %}
-        </td>
-
-        <td class="action-cell" data-label="Action">
-            <a href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}" class="edit-btn">Edit</a>
-            <a href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
-        </td>
-
-    </tr>
-
-    {% empty %}
-
-    <tr>
-        <td colspan="7" class="empty-row">No products available.</td>
-    </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- PAGINATION -->
-<!-- ========================= -->
-
-{% if products.paginator.num_pages > 1 %}
-
-<div class="pagination">
-
-    {% if products.has_previous %}
-        <a href="?page={{ products.previous_page_number }}">&laquo; Previous</a>
-    {% else %}
-        <span class="disabled">&laquo; Previous</span>
-    {% endif %}
-
-    {% for num in products.paginator.page_range %}
-        {% if products.number == num %}
-            <span class="current-page">{{ num }}</span>
+<!-- ===== Results summary + active filters ===== -->
+<div class="pl-meta">
+    <span role="status" aria-live="polite">
+        {% if products.paginator.count %}
+            Showing <strong>{{ products.start_index }}–{{ products.end_index }}</strong> of <strong>{{ products.paginator.count }}</strong> product{{ products.paginator.count|pluralize }}{% if q %} for “{{ q }}”{% endif %}
         {% else %}
-            <a href="?page={{ num }}">{{ num }}</a>
+            0 products{% if q %} for “{{ q }}”{% endif %}
         {% endif %}
-    {% endfor %}
+    </span>
 
-    {% if products.has_next %}
-        <a href="?page={{ products.next_page_number }}">Next &raquo;</a>
-    {% else %}
-        <span class="disabled">Next &raquo;</span>
+    {% if q or category_id or stock %}
+    <div class="pl-chips">
+        {% if q %}<span class="pl-chip">Search: {{ q }}<button type="button" data-clear="q" aria-label="Remove search filter"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><use href="#pl-i-x"/></svg></button></span>{% endif %}
+        {% if category_id %}<span class="pl-chip">Category: {{ active_category|default:category_id }}<button type="button" data-clear="category" aria-label="Remove category filter"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><use href="#pl-i-x"/></svg></button></span>{% endif %}
+        {% if stock %}<span class="pl-chip">Stock: {% if stock == "in" %}In stock{% elif stock == "low" %}Low stock{% else %}Out of stock{% endif %}<button type="button" data-clear="stock" aria-label="Remove stock filter"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><use href="#pl-i-x"/></svg></button></span>{% endif %}
+        <a class="pl-reset" href="{% url 'see_product' %}">Clear all</a>
+    </div>
     {% endif %}
-
 </div>
 
-<div class="page-info">
-    Page {{ products.number }} of {{ products.paginator.num_pages }} | Total Products: {{ products.paginator.count }}
+<!-- ===== Table ===== -->
+<div class="pl-card">
+<table class="pl-table">
+    <caption class="sr-only">Products</caption>
+    <thead>
+        <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Category</th>
+            <th scope="col">Price</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for product in products %}
+        <tr>
+            <td>
+                <div class="pl-product">
+                    <span class="pl-thumb">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="" width="52" height="52" loading="lazy" decoding="async">
+                        {% else %}
+                            <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-image"/></svg>
+                        {% endif %}
+                    </span>
+                    <div style="min-width:0">
+                        <div class="pl-name">{{ product.name }}</div>
+                        <div class="pl-id">ID {{ product.id }}</div>
+                    </div>
+                </div>
+            </td>
+            <td><span class="pl-cat">{{ product.category }}</span></td>
+            <td class="pl-price">Rs. {{ product.price|floatformat:2 }}</td>
+            <td>
+                {% if product.stock > 500 %}
+                    <span class="pl-stock ok">In stock <b>{{ product.stock }}</b></span>
+                {% elif product.stock > 0 %}
+                    <span class="pl-stock low">Low stock <b>{{ product.stock }}</b></span>
+                {% else %}
+                    <span class="pl-stock out">Out of stock</span>
+                {% endif %}
+            </td>
+            <td class="pl-actions">
+                <a class="pl-act" href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}" aria-label="Edit {{ product.name }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-edit"/></svg>Edit</a>
+                <a class="pl-act danger" href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}" data-delete data-name="{{ product.name }}" aria-label="Delete {{ product.name }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-trash"/></svg>Delete</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr class="pl-empty">
+            <td colspan="5">
+                {% if q or category_id or stock %}
+                    <div class="pl-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#pl-i-search"/></svg></div>
+                    <strong>No products match your filters</strong>
+                    <p>Try a different search term, or remove a filter to see more products.</p>
+                    <a class="pl-btn" href="{% url 'see_product' %}">Clear all filters</a>
+                {% else %}
+                    <div class="pl-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-image"/></svg></div>
+                    <strong>No products yet</strong>
+                    <p>Add your first product and it will show up here and in your store.</p>
+                    <a class="pl-btn" href="{% url 'add_product' %}">Add product</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 </div>
 
+<!-- ===== Pagination (keeps search + filters via `querystring`) ===== -->
+{% if products.paginator.num_pages > 1 %}
+<nav class="pl-pager" aria-label="Pagination">
+    <div class="pl-pager-info">Page {{ products.number }} of {{ products.paginator.num_pages }}</div>
+    <div class="pl-pages">
+        {% if products.has_previous %}
+            <a class="pl-pg" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ products.previous_page_number }}" rel="prev"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-left"/></svg>Previous</a>
+        {% else %}
+            <span class="pl-pg disabled" aria-disabled="true"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-left"/></svg>Previous</span>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+                <span class="pl-pg pl-num current" aria-current="page"><span class="sr-only">Page </span>{{ num }}</span>
+            {% elif num == 1 or num == products.paginator.num_pages or num >= products.number|add:"-2" and num <= products.number|add:"2" %}
+                <a class="pl-pg pl-num" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ num }}" aria-label="Page {{ num }}">{{ num }}</a>
+            {% elif num == products.number|add:"-3" or num == products.number|add:"3" %}
+                <span class="pl-gap" aria-hidden="true">…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+            <a class="pl-pg" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ products.next_page_number }}" rel="next">Next<svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-right"/></svg></a>
+        {% else %}
+            <span class="pl-pg disabled" aria-disabled="true">Next<svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-right"/></svg></span>
+        {% endif %}
+    </div>
+</nav>
 {% endif %}
 
+<!-- ===== Delete confirmation ===== -->
+<dialog class="pl-dialog" id="pl-dialog" aria-labelledby="pl-dialog-title" aria-describedby="pl-dialog-text">
+    <div class="pl-dialog-body">
+        <div class="pl-dialog-icon" aria-hidden="true"><svg class="ico" style="width:22px;height:22px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#pl-i-trash"/></svg></div>
+        <h2 id="pl-dialog-title">Delete “<span id="pl-dialog-name"></span>”?</h2>
+        <p id="pl-dialog-text">This permanently removes the product from your store. This can’t be undone.</p>
+    </div>
+    <form method="dialog" class="pl-dialog-actions">
+        <button class="pl-act" value="cancel" autofocus>Keep product</button>
+        <a class="pl-act pl-confirm" id="pl-dialog-go" href="#">Delete product</a>
+    </form>
+</dialog>
+
+</div>
+
+<script>
+/* Auto-apply filters, clear controls, "/" to search, and a proper delete confirmation. */
+(function () {
+    document.documentElement.classList.add('js');
+    var form = document.getElementById('pl-filters');
+    if (!form) return;
+
+    function submit() { if (form.requestSubmit) form.requestSubmit(); else form.submit(); }
+
+    /* selects apply immediately; search applies on Enter */
+    form.querySelectorAll('select').forEach(function (s) { s.addEventListener('change', submit); });
+
+    /* search clear button + empty-value state */
+    var wrap = document.getElementById('pl-search'), q = document.getElementById('pl-q'), clear = document.getElementById('pl-clear');
+    q.addEventListener('input', function () { wrap.classList.toggle('has-value', q.value.length > 0); });
+    clear.addEventListener('click', function () { q.value = ''; submit(); });
+
+    /* removable filter chips */
+    document.querySelectorAll('[data-clear]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var el = form.elements[b.getAttribute('data-clear')];
+            if (el) { el.value = ''; submit(); }
+        });
+    });
+
+    /* "/" focuses search (unless already typing somewhere) */
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+        var t = e.target, tag = t && t.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+        e.preventDefault(); q.focus(); q.select();
+    });
+
+    /* delete confirmation dialog (falls back to confirm() on old browsers) */
+    var dlg = document.getElementById('pl-dialog');
+    var nameEl = document.getElementById('pl-dialog-name');
+    var go = document.getElementById('pl-dialog-go');
+    document.querySelectorAll('[data-delete]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            var name = a.getAttribute('data-name');
+            if (!dlg || typeof dlg.showModal !== 'function') {
+                if (!confirm('Delete "' + name + '"? This cannot be undone.')) e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+            nameEl.textContent = name;
+            go.setAttribute('href', a.getAttribute('href'));
+            dlg.showModal();
+        });
+    });
+    if (dlg) dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+})();
+</script>
 
 {% endblock %}

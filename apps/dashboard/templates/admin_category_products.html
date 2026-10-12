@@ -1,412 +1,311 @@
-
 {% extends "admin_base.html" %}
 
 {% block title %}{{ category.name }} Products{% endblock %}
 
-{% block content %}
+{% block extra_css %}
 <style>
-    .products-page {
-    padding: 25px;
-    padding-bottom: 130px;
-    color: #e5e7eb;
+/* Products in a category (ui-ux-pro-max: data tables)
+   The primary "Add product" action lives in the header (no fixed bottom bar
+   that has to guess the sidebar width). Instant search + featured filter,
+   delete dialog, mobile cards. Admin tokens, 44px targets. */
+.cp-page [hidden] { display: none !important; }
+.cp-page .ico { width: 18px; height: 18px; flex-shrink: 0; }
+.cp-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cp-page a:focus-visible, .cp-page button:focus-visible, .cp-page input:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+
+.cp-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--muted); font-size: 14px; }
+.cp-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.cp-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.cp-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 18px; }
+.cp-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; overflow-wrap: anywhere; }
+.cp-head p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.cp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--btn); border-radius: 10px; background: var(--btn); color: #fff; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: filter .15s; }
+.cp-btn:hover { filter: brightness(1.1); }
+
+.cp-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.cp-search { position: relative; flex: 1 1 260px; min-width: 0; }
+.cp-search .ico { position: absolute; left: 14px; top: 50%; margin-top: -9px; color: var(--muted); pointer-events: none; }
+.cp-search input { width: 100%; min-height: 46px; padding: 0 14px 0 42px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.cp-search input::placeholder { color: var(--muted); opacity: .85; }
+.cp-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.cp-search input:hover { border-color: var(--muted); }
+.cp-search input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent); }
+
+.cp-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.cp-chips::-webkit-scrollbar { display: none; }
+.cp-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color .15s, color .15s, border-color .15s; }
+.cp-chip b { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 700; text-align: center; }
+.cp-chip:hover { border-color: var(--muted); color: var(--text); }
+.cp-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.cp-chip[aria-pressed="true"] b { background: var(--accent); color: #fff; }
+
+.cp-summary { margin-bottom: 12px; color: var(--muted); font-size: 14px; min-height: 22px; }
+.cp-summary strong { color: var(--text); font-weight: 700; }
+
+.cp-card { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.cp-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+.cp-table th { padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 600; text-align: left; white-space: nowrap; }
+.cp-table th:last-child, .cp-table td.cp-actions { text-align: right; }
+.cp-table td { padding: 12px 18px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 14.5px; vertical-align: middle; }
+.cp-table tbody tr:last-child td { border-bottom: 0; }
+.cp-table tbody tr { transition: background-color .15s; }
+.cp-table tbody tr:hover { background: var(--surface-2); }
+
+.cp-product { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.cp-thumb { display: grid; place-items: center; width: 52px; height: 52px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); }
+.cp-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cp-thumb .ico { width: 22px; height: 22px; }
+.cp-name { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--text); font-weight: 600; line-height: 1.35; }
+.cp-id { margin-top: 2px; color: var(--muted); font-size: 12.5px; }
+.cp-price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.cp-stock, .cp-feat { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 0 10px; border-radius: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.cp-stock::before, .cp-feat::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.cp-stock b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cp-stock.ok { background: var(--success-soft); color: var(--success); }
+.cp-stock.low { background: var(--warn-soft); color: var(--warn); }
+.cp-stock.out { background: var(--danger-soft); color: var(--danger); }
+.cp-feat.yes { background: var(--accent-soft); color: var(--accent); }
+.cp-feat.no { background: var(--surface-2); color: var(--muted); }
+
+.cp-actions { white-space: nowrap; }
+.cp-act { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.cp-act + .cp-act { margin-left: 8px; }
+.cp-act:hover { background: var(--surface-2); border-color: var(--muted); }
+.cp-act.danger { color: var(--danger); }
+.cp-act.danger:hover { background: var(--danger-soft); border-color: var(--danger-line); }
+
+.cp-empty { padding: 56px 20px; border: 1px dashed var(--border); border-radius: 16px; text-align: center; }
+.cp-empty-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.cp-empty-icon .ico { width: 26px; height: 26px; }
+.cp-empty strong { display: block; color: var(--text); font-size: 16px; }
+.cp-empty p { margin: 4px auto 18px; max-width: 380px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.cp-noresults { display: none; }
+.cp-noresults.show { display: block; }
+
+/* delete dialog */
+.cp-dialog { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.cp-dialog::backdrop { background: rgba(15, 23, 42, .55); }
+.cp-dialog-body { padding: 24px 24px 8px; }
+.cp-dialog-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 14px; border-radius: 12px; background: var(--danger-soft); color: var(--danger); }
+.cp-dialog h2 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.cp-dialog p { margin-top: 8px; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+.cp-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 20px 24px 24px; }
+.cp-dialog-actions .cp-act { min-width: 120px; }
+.cp-confirm { background: #DC2626; border-color: #DC2626; color: #fff; }
+.cp-confirm:hover { background: #B91C1C; border-color: #B91C1C; color: #fff; }
+
+@media (max-width: 760px) {
+    .cp-head .cp-btn { width: 100%; }
+    .cp-card { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+    .cp-table { min-width: 0; }
+    .cp-table thead { display: none; }
+    .cp-table, .cp-table tbody { display: block; }
+    .cp-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; align-items: center; margin-bottom: 12px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+    .cp-table tbody tr:hover { background: var(--surface); }
+    .cp-table td { display: block; padding: 0; border: 0; }
+    .cp-table td:nth-child(1) { grid-column: 1 / -1; }
+    .cp-table td:nth-child(2) { grid-column: 1; font-size: 16px; }
+    .cp-table td:nth-child(3) { grid-column: 2; text-align: right; }
+    .cp-table td:nth-child(4) { grid-column: 1 / -1; }
+    .cp-table td.cp-actions { grid-column: 1 / -1; display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .cp-act { flex: 1 1 0; }
+    .cp-act + .cp-act { margin-left: 0; }
 }
-
-    .products-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin-bottom: 25px;
-    }
-
-    .products-header h2 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 700;
-    }
-
-    .products-header p {
-        color: #9ca3af;
-        margin-top: 8px;
-    }
-
-    .back-btn {
-        display: inline-block;
-        background: #303746;
-        color: #e5e7eb;
-        padding: 10px 15px;
-        border-radius: 8px;
-        text-decoration: none;
-    }
-
-    .back-btn:hover {
-        background: #414b5e;
-    }
-
-    .products-table-wrapper {
-        overflow-x: auto;
-        background: #171b24;
-        border: 1px solid #303746;
-        border-radius: 12px;
-    }
-
-    .products-table {
-        width: 100%;
-        min-width: 850px;
-        border-collapse: collapse;
-    }
-
-    .products-table th,
-    .products-table td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #303746;
-        vertical-align: middle;
-    }
-
-    .products-table th {
-        color: #9ca3af;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .products-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .product-image,
-    .no-image {
-        width: 65px;
-        height: 60px;
-        border-radius: 8px;
-        background: #252b38;
-    }
-
-    .product-image {
-        object-fit: cover;
-    }
-
-    .no-image {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #9ca3af;
-        font-size: 11px;
-    }
-
-    .product-name {
-        font-weight: 600;
-        color: #f9fafb;
-    }
-
-    .product-price {
-        color: #5eead4;
-        font-weight: 600;
-    }
-
-    .stock-badge,
-    .featured-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 13px;
-    }
-
-    .stock-badge {
-        background: #243b53;
-        color: #93c5fd;
-    }
-
-    .featured-yes {
-        background: #203b32;
-        color: #a7f3d0;
-    }
-
-    .featured-no {
-        background: #303746;
-        color: #9ca3af;
-    }
-
-    .product-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .action-btn {
-        display: inline-block;
-        padding: 8px 12px;
-        border-radius: 7px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .edit-btn {
-        background: #263c59;
-        color: #93c5fd;
-    }
-
-    .edit-btn:hover {
-        background: #345273;
-        color: #fff;
-    }
-
-    .delete-btn {
-        background: #49272d;
-        color: #fca5a5;
-    }
-
-    .delete-btn:hover {
-        background: #7f1d1d;
-        color: #fff;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 45px 20px;
-        color: #9ca3af;
-    }
-
-    /* Add product section */
-    .add-product-section {
-    position: fixed;
-
-    /* Keep the bar inside the main content area */
-    left: var(--sidebar-width, 260px);
-    right: 0;
-    bottom: 0;
-
-    z-index: 100;
-    padding: 16px 25px;
-    background: #171b24;
-    border-top: 1px solid #303746;
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.25);
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    box-sizing: border-box;
-}
-
-    .add-product-section h3 {
-        margin: 0 0 8px;
-        color: #f9fafb;
-        font-size: 20px;
-    }
-
-    .add-product-section p {
-        margin: 0;
-        color: #9ca3af;
-        font-size: 14px;
-    }
-
-    .add-product-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        background: #2563eb;
-        color: #fff;
-        padding: 13px 20px;
-        border-radius: 9px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: background .2s, transform .2s;
-    }
-
-    .add-product-btn:hover {
-        background: #1d4ed8;
-        color: #fff;
-        transform: translateY(-2px);
-    }
-
-    @media (max-width: 600px) {
-        .products-page {
-            padding: 15px;
-        }
-
-        .products-header h2 {
-            font-size: 23px;
-        }
-
-        .add-product-section {
-            padding: 18px;
-        }
-
-        .add-product-btn {
-            width: 100%;
-        }
-        .add-product-section {
-    padding: 12px 15px;
-    gap: 10px;
-}
-
-.add-product-section h3 {
-    font-size: 15px;
-}
-
-.add-product-section p {
-    font-size: 12px;
-}
-
-.add-product-btn {
-    width: 100%;
-    padding: 10px;
-}
-
-.products-page {
-    padding-bottom: 170px;
-}
-@media (max-width: 600px) {
-    .add-product-section {
-        left: 0;
-        padding: 12px 15px;
-        gap: 10px;
-    }
-
-    .add-product-btn {
-        width: 100%;
-    }
-
-    .products-page {
-        padding-bottom: 170px;
-    }
-}
-    }
+@media (max-width: 420px) { .cp-dialog-actions form { flex: 1 1 100%; } .cp-dialog-actions .cp-act { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .cp-page * { transition: none !important; } }
 </style>
+{% endblock %}
 
-<div class="products-page">
+{% block content %}
 
-    <!-- PAGE HEADER -->
-    <div class="products-header">
-        <div>
-            <h2>{{ category.name }} Products</h2>
-            <p>
-                Products belonging to this category:
-                {{ products|length }}
-            </p>
-        </div>
+<div class="cp-page">
 
-        <a href="{% url 'admin_categories' %}" class="back-btn">
-            &larr; Back to Categories
-        </a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="cp-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="cp-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="cp-i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+        <symbol id="cp-i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol>
+        <symbol id="cp-i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L6 21"/></symbol>
+    </defs>
+</svg>
+
+<nav class="cp-crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'admin_categories' %}">Categories</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{{ category.name }}</span>
+</nav>
+
+<header class="cp-head">
+    <div>
+        <h1>{{ category.name }}</h1>
+        <p>{{ products|length }} product{{ products|length|pluralize }} in this category.</p>
     </div>
+    <a class="cp-btn" href="{% url 'add_product' %}?category={{ category.id }}&amp;next={{ request.get_full_path|urlencode }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cp-i-plus"/></svg>Add product</a>
+</header>
 
-    <!-- PRODUCTS TABLE -->
-    <div class="products-table-wrapper">
-        <table class="products-table">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Product Name</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Featured</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+{% if products %}
 
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td>
-                        {% if product.image %}
-                            <img
-                                src="{{ product.image.url }}"
-                                alt="{{ product.name }}"
-                                class="product-image"
-                            >
-                        {% else %}
-                            <div class="no-image">No image</div>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <span class="product-name">
-                            {{ product.name }}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="product-price">
-                            Rs. {{ product.price }}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="stock-badge">
-                            {{ product.stock }}
-                        </span>
-                    </td>
-
-                    <td>
-                        {% if product.is_featured %}
-                            <span class="featured-badge featured-yes">
-                                Yes
-                            </span>
-                        {% else %}
-                            <span class="featured-badge featured-no">
-                                No
-                            </span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <div class="product-actions">
-                            <a
-                                href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}"
-                                class="action-btn edit-btn">
-                                Edit
-                            </a>
-
-                            <a
-                                href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}"
-                                class="action-btn delete-btn">
-                                Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-
-                {% empty %}
-                <tr>
-                    <td colspan="6">
-                        <div class="empty-state">
-                            <h3>No products in this category</h3>
-                            <p>
-                                Add your first product using the button below.
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="cp-toolbar" role="search">
+    <div class="cp-search">
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#cp-i-search"/></svg>
+        <label class="sr-only" for="cp-q">Search products in {{ category.name }}</label>
+        <input type="search" id="cp-q" placeholder="Search products in this category" autocomplete="off">
     </div>
-
-    <!-- ADD PRODUCT SECTION AT THE BOTTOM -->
-    <div class="add-product-section">
-        <div>
-            <h3>Want to add another product?</h3>
-            <p>
-                The new product will have
-                <strong>{{ category.name }}</strong>
-                selected as its default category.
-            </p>
-        </div>
-
-        <a
-            href="{% url 'add_product' %}?category={{ category.id }}&next={{ request.get_full_path|urlencode }}"
-            class="add-product-btn">
-            <span>+</span> Add Product to {{ category.name }}
-        </a>
+    <div class="cp-chips" role="group" aria-label="Filter by featured status">
+        <button type="button" class="cp-chip" data-filter="all" aria-pressed="true">All <b>0</b></button>
+        <button type="button" class="cp-chip" data-filter="yes" aria-pressed="false">Featured <b>0</b></button>
+        <button type="button" class="cp-chip" data-filter="no" aria-pressed="false">Not featured <b>0</b></button>
     </div>
+</div>
+
+<p class="cp-summary" id="cp-summary" role="status" aria-live="polite"></p>
+
+<div class="cp-card">
+<table class="cp-table" id="cp-table">
+    <caption class="sr-only">Products in {{ category.name }}</caption>
+    <thead>
+        <tr>
+            <th scope="col">Product</th>
+            <th scope="col">Price</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Featured</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for product in products %}
+        <tr data-row data-name="{{ product.name|lower }}" data-id="{{ product.id }}" data-featured="{% if product.is_featured %}yes{% else %}no{% endif %}">
+            <td>
+                <div class="cp-product">
+                    <span class="cp-thumb">
+                        {% if product.image %}<img src="{{ product.image.url }}" alt="" width="52" height="52" loading="lazy" decoding="async">{% else %}<svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#cp-i-image"/></svg>{% endif %}
+                    </span>
+                    <div style="min-width:0">
+                        <div class="cp-name">{{ product.name }}</div>
+                        <div class="cp-id">ID {{ product.id }}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="cp-price">Rs. {{ product.price|floatformat:2 }}</td>
+            <td>
+                {% if product.stock > 500 %}<span class="cp-stock ok">In stock <b>{{ product.stock }}</b></span>
+                {% elif product.stock > 0 %}<span class="cp-stock low">Low stock <b>{{ product.stock }}</b></span>
+                {% else %}<span class="cp-stock out">Out of stock</span>{% endif %}
+            </td>
+            <td>{% if product.is_featured %}<span class="cp-feat yes">Featured</span>{% else %}<span class="cp-feat no">Not featured</span>{% endif %}</td>
+            <td class="cp-actions">
+                <a class="cp-act" href="{% url 'edit_product' product.id %}?next={{ request.get_full_path|urlencode }}" aria-label="Edit {{ product.name }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cp-i-edit"/></svg>Edit</a>
+                <a class="cp-act danger" href="{% url 'delete_product' product.id %}?next={{ request.get_full_path|urlencode }}" data-delete data-name="{{ product.name }}" aria-label="Delete {{ product.name }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cp-i-trash"/></svg>Delete</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="cp-empty cp-noresults" id="cp-noresults">
+    <div class="cp-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#cp-i-search"/></svg></div>
+    <strong>No products match</strong>
+    <p>Try a different name or ID, or switch the featured filter.</p>
+    <button type="button" class="cp-btn" id="cp-reset">Clear filters</button>
+</div>
+
+{% else %}
+
+<div class="cp-empty">
+    <div class="cp-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#cp-i-image"/></svg></div>
+    <strong>No products in this category</strong>
+    <p>Add the first product and <b>{{ category.name }}</b> will be selected as its category.</p>
+    <a class="cp-btn" href="{% url 'add_product' %}?category={{ category.id }}&amp;next={{ request.get_full_path|urlencode }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cp-i-plus"/></svg>Add product</a>
+</div>
+
+{% endif %}
+
+<!-- delete confirmation: posts straight to the delete view and returns here -->
+<dialog class="cp-dialog" id="cp-dialog" aria-labelledby="cp-dialog-title" aria-describedby="cp-dialog-text">
+    <div class="cp-dialog-body">
+        <div class="cp-dialog-icon" aria-hidden="true"><svg class="ico" style="width:22px;height:22px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cp-i-trash"/></svg></div>
+        <h2 id="cp-dialog-title">Delete “<span id="cp-dialog-name"></span>”?</h2>
+        <p id="cp-dialog-text">This permanently removes the product from your store. This can’t be undone.</p>
+    </div>
+    <div class="cp-dialog-actions">
+        <form method="dialog"><button class="cp-act" autofocus>Keep product</button></form>
+        <form method="post" id="cp-delete-form" action="#">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="cp-act cp-confirm" id="cp-delete-btn">Delete product</button>
+        </form>
+    </div>
+</dialog>
 
 </div>
+
+<script>
+/* Instant search + featured filter, summary line and delete dialog. */
+(function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#cp-table tr[data-row]'));
+
+    if (rows.length) {
+        var q = document.getElementById('cp-q'), summary = document.getElementById('cp-summary');
+        var none = document.getElementById('cp-noresults'), card = document.querySelector('.cp-card');
+        var chips = Array.prototype.slice.call(document.querySelectorAll('.cp-chip'));
+        var filter = 'all';
+        var counts = { all: rows.length, yes: 0, no: 0 };
+        rows.forEach(function (r) { counts[r.getAttribute('data-featured')]++; });
+        chips.forEach(function (c) { c.querySelector('b').textContent = counts[c.getAttribute('data-filter')]; });
+
+        function render() {
+            var term = q.value.trim().toLowerCase(), shown = 0;
+            rows.forEach(function (r) {
+                var hit = (filter === 'all' || r.getAttribute('data-featured') === filter) &&
+                          (!term || r.getAttribute('data-name').indexOf(term) > -1 || r.getAttribute('data-id') === term);
+                r.hidden = !hit;
+                if (hit) shown++;
+            });
+            card.hidden = shown === 0;
+            none.classList.toggle('show', shown === 0);
+            summary.innerHTML = (term || filter !== 'all')
+                ? 'Showing <strong>' + shown + '</strong> of ' + rows.length + ' products'
+                : '<strong>' + rows.length + '</strong> product' + (rows.length === 1 ? '' : 's');
+        }
+        q.addEventListener('input', render);
+        q.addEventListener('keydown', function (e) { if (e.key === 'Escape' && q.value) { q.value = ''; render(); } });
+        chips.forEach(function (c) {
+            c.addEventListener('click', function () {
+                filter = c.getAttribute('data-filter');
+                chips.forEach(function (x) { x.setAttribute('aria-pressed', x === c ? 'true' : 'false'); });
+                render();
+            });
+        });
+        document.getElementById('cp-reset').addEventListener('click', function () {
+            q.value = ''; filter = 'all';
+            chips.forEach(function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-filter') === 'all' ? 'true' : 'false'); });
+            render(); q.focus();
+        });
+        render();
+    }
+
+    /* delete dialog (without <dialog> support the link opens the full confirmation page) */
+    var dlg = document.getElementById('cp-dialog'), nameEl = document.getElementById('cp-dialog-name');
+    var form = document.getElementById('cp-delete-form'), btn = document.getElementById('cp-delete-btn');
+    document.querySelectorAll('[data-delete]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            if (!dlg || typeof dlg.showModal !== 'function') return;
+            e.preventDefault();
+            nameEl.textContent = a.getAttribute('data-name');
+            form.setAttribute('action', a.getAttribute('href'));
+            btn.disabled = false; btn.textContent = 'Delete product';
+            dlg.showModal();
+        });
+    });
+    if (form) form.addEventListener('submit', function () {
+        setTimeout(function () { btn.disabled = true; btn.textContent = 'Deleting…'; }, 0);
+    });
+    if (dlg) dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+})();
+</script>
+
 {% endblock %}

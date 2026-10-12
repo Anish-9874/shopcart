@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.notifications.services import send_notification
 from apps.products.models import Product
@@ -325,3 +326,30 @@ def buy_now(request, product_id):
 @login_required
 def order_success(request):
     return render(request, "order_success.html")
+
+
+@login_required
+@require_POST
+def cancel_order(request, order_id):
+    with transaction.atomic():
+        order = get_object_or_404(
+            Order.objects.select_for_update(),
+            id=order_id,
+            user=request.user,
+        )
+
+        if order.status.lower() != "pending":
+            messages.error(
+                request,
+                "This order can no longer be cancelled.",
+            )
+            return redirect("my_orders")
+
+        order.status = "Cancelled"
+        order.save(update_fields=["status"])
+
+    messages.success(
+        request,
+        f"Order #{order.id} has been cancelled successfully.",
+    )
+    return redirect("my_orders")

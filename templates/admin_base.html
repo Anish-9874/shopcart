@@ -4,294 +4,267 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 
 <title>{% block title %}ShopCart Admin{% endblock %}</title>
 
-<style>
+<!-- Apply saved theme / sidebar state before first paint (no flash) -->
+<script>
+(function () {
+    try {
+        if (localStorage.getItem('admin-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if (localStorage.getItem('admin-sidebar') === '1') document.documentElement.classList.add('sb-collapsed');
+    } catch (e) {}
+})();
+</script>
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   ShopCart Admin – "Midnight" design system
+   Cool palette (midnight navy + indigo + cyan), the opposite of the
+   warm orange / cream storefront. Tokens below are available to every
+   admin page; dark mode swaps them via [data-theme="dark"].
+   ========================================================= */
+:root {
+    /* surfaces + text (light) */
+    --bg: #F3F5FB;
+    --surface: #FFFFFF;
+    --surface-2: #F8FAFF;
+    --border: #E3E8F4;
+    --text: #0F172A;
+    --muted: #5B6478;                 /* 5.4:1 on --bg */
+
+    /* accent */
+    --accent: #4F46E5;                /* links / icons / text accents (6.3:1 on white) */
+    --accent-soft: #EEF0FF;
+    --accent-2: #06B6D4;              /* cyan highlight */
+    --btn: #4F46E5;                   /* button fill, white text 6.3:1 */
+    --btn-hover: #4338CA;
+    --ring: rgba(79, 70, 229, .30);
+
+    /* semantic */
+    --success: #047857; --success-soft: #ECFDF5; --success-line: #A7F3D0;
+    --danger:  #B91C1C; --danger-soft:  #FEF2F2; --danger-line:  #FECACA;
+    --warn:    #92400E; --warn-soft:    #FFFBEB; --warn-line:    #FDE68A;
+
+    /* sidebar (always dark) */
+    --sb-bg-1: #090E1F;
+    --sb-bg-2: #0E1633;
+    --sb-text: #B4BEDA;
+    --sb-muted: #8190B5;
+    --sb-line: rgba(255, 255, 255, .07);
+
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05), 0 4px 14px rgba(15, 23, 42, .05);
+    --shadow-md: 0 10px 30px rgba(15, 23, 42, .10);
+    --radius: 16px;
+    --sb-w: 272px;
+    --topbar-h: 68px;
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
+
+:root[data-theme="dark"] {
+    --bg: #0A0F1E;
+    --surface: #111832;
+    --surface-2: #162040;
+    --border: #232E52;
+    --text: #E8ECF8;
+    --muted: #9AA6C6;                 /* 7:1 on --surface */
+    --accent: #A5B4FC;
+    --accent-soft: rgba(99, 102, 241, .16);
+    --ring: rgba(165, 180, 252, .35);
+    --success: #6EE7B7; --success-soft: rgba(16, 185, 129, .14); --success-line: rgba(16, 185, 129, .35);
+    --danger:  #FCA5A5; --danger-soft:  rgba(239, 68, 68, .14);  --danger-line:  rgba(239, 68, 68, .35);
+    --warn:    #FCD34D; --warn-soft:    rgba(245, 158, 11, .14); --warn-line:    rgba(245, 158, 11, .35);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, .4);
+}
+
+html.sb-collapsed { --sb-w: 84px; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+html.no-scroll { overflow: hidden; }
 
 body {
-    font-family: Arial, sans-serif;
-    background: #F8FAFC;
-    color: #1E293B;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s ease, color .25s ease;
 }
 
-/* Layout */
-
-.layout {
-    display: flex;
-    min-height: 100vh;
+:where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--accent-2);
+    outline-offset: 2px;
 }
 
-/* Sidebar */
+.ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+.skip-link { position: fixed; top: 10px; left: 10px; z-index: 400; padding: 10px 16px; border-radius: 10px; background: var(--btn); color: #fff; font-weight: 700; text-decoration: none; transform: translateY(-160%); transition: transform .2s ease; }
+.skip-link:focus { transform: none; }
+
+/* ---------- LAYOUT ---------- */
+.layout { min-height: 100vh; }
+.main { margin-left: var(--sb-w); min-height: 100vh; display: flex; flex-direction: column; transition: margin-left .3s var(--ease); }
+
+/* ---------- SIDEBAR ---------- */
 .sidebar {
-    width: 250px;
-    background: #0F172A;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    z-index: 200;
-}
-
-.sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 22px 24px;
-    color: #fff;
-    font-size: 19px;
-    font-weight: 800;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-    white-space: nowrap;
-}
-
-.sidebar-brand .dot { color: #2563EB; }
-
-.sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 12px;
-}
-
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    margin-bottom: 4px;
-    border-radius: 8px;
-    color: #CBD5E1;
-    text-decoration: none;
-    transition: .2s ease;
-    font-size: 14.5px;
-    font-weight: 600;
-}
-
-.sidebar a:hover {
-    background: rgba(255, 255, 255, .06);
-    color: #fff;
-}
-
-.sidebar a.active {
-    background: #2563EB;
-    color: #fff;
-    box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
-}
-
-.sidebar-footer {
-    padding: 14px 12px;
-    border-top: 1px solid rgba(255, 255, 255, .08);
-}
-
-.sidebar-footer a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    color: #FCA5A5;
-    text-decoration: none;
-    font-size: 14.5px;
-    font-weight: 600;
-    transition: .2s ease;
-}
-
-.sidebar-footer a:hover {
-    background: rgba(239, 68, 68, .12);
-    color: #fff;
-}
-
-/* Mobile topbar (hidden on desktop) */
-
-.mobile-topbar {
-    display: none;
-    align-items: center;
-    gap: 14px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: #0F172A;
-    color: #fff;
-    padding: 0 18px;
-    z-index: 150;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
-}
-
-.sidebar-toggle {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: rgba(255, 255, 255, .08);
-    color: #fff;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.mobile-topbar-brand {
-    font-size: 16px;
-    font-weight: 800;
-}
-
-.sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, .5);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s ease;
-    z-index: 190;
-}
-
-.sidebar-overlay.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Main Content */
-
-.content {
-    margin-left: 250px;
-    width: 100%;
-    padding: 30px;
-}
-
-/* Page Header */
-
-.page-header {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 25px;
-}
-
-.page-header h1 {
-    font-size: 28px;
-    color: #0F172A;
-}
-
-/* Tables */
-
-.table-scroll {
-    width: 100%;
-    overflow-x: auto;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
-}
-
-.table {
-    width: 100%;
-    min-width: 560px;
-    border-collapse: collapse;
-    background: #fff;
-    border-radius: 10px;
+    position: fixed; z-index: 200; left: 0; top: 0; bottom: 0;
+    width: var(--sb-w);
+    display: flex; flex-direction: column;
+    background: radial-gradient(rgba(255, 255, 255, .05) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(180deg, var(--sb-bg-1), var(--sb-bg-2));
+    border-right: 1px solid var(--sb-line);
+    color: var(--sb-text);
+    transition: width .3s var(--ease);
     overflow: hidden;
 }
-
-.table th {
-    background: #F1F5F9;
-    color: #64748B;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: .4px;
-    padding: 15px;
-    text-align: left;
-    white-space: nowrap;
+.sidebar::before {
+    content: ""; position: absolute; z-index: 0; top: -140px; left: -120px; width: 320px; height: 320px; border-radius: 50%;
+    background: #4F46E5; opacity: .35; filter: blur(80px); pointer-events: none;
 }
+.sidebar > * { position: relative; z-index: 1; }
 
-.table td {
-    padding: 15px;
-    border-bottom: 1px solid #E2E8F0;
+.sidebar-brand { display: flex; align-items: center; gap: 12px; height: var(--topbar-h); padding: 0 22px; border-bottom: 1px solid var(--sb-line); text-decoration: none; white-space: nowrap; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; background: linear-gradient(135deg, #4F46E5, #06B6D4); color: #fff; font-size: 19px; box-shadow: 0 8px 20px rgba(79, 70, 229, .45); }
+.brand-text { display: flex; align-items: baseline; gap: 8px; font-size: 20px; font-weight: 800; letter-spacing: -.027em; color: #F8FAFF; }
+.brand-text b { color: #3B82F6; font-weight: 800; }                     /* "Cart" keeps the logo blue */
+.brand-tag { padding: 3px 8px; border-radius: 999px; background: rgba(6, 182, 212, .16); color: #67E8F9; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+
+.sidebar-nav { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 10px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .15) transparent; }
+.sb-group + .sb-group { margin-top: 18px; }
+.sb-label { display: block; padding: 0 12px 8px; color: var(--sb-muted); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+.sb-link {
+    position: relative; display: flex; align-items: center; gap: 13px;
+    min-height: 44px; padding: 0 14px; margin-bottom: 4px;
+    border: 0; border-radius: 12px; background: none; width: 100%;
+    color: var(--sb-text); font-family: inherit; font-size: 14.5px; font-weight: 600; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: background .2s ease, color .2s ease;
 }
-
-.table tr:last-child td { border-bottom: none; }
-
-.table tr:hover { background: #F8FAFC; }
-
-/* Buttons */
-
-.btn-primary,
-.btn-success,
-.btn-danger {
-    display: inline-block;
-    text-decoration: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 13.5px;
-    border: none;
-    cursor: pointer;
-    transition: .2s ease;
-    color: #fff;
-}
-
-.btn-primary { background: #2563EB; }
-.btn-primary:hover { background: #1D4ED8; }
-
-.btn-success { background: #10B981; }
-.btn-success:hover { background: #059669; }
-
-.btn-danger { background: #EF4444; }
-.btn-danger:hover { background: #DC2626; }
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-
-    .mobile-topbar { display: flex; }
-
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform .3s ease;
-        box-shadow: 0 0 30px rgba(0, 0, 0, .25);
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
-    .content {
-        margin-left: 0;
-        padding: 20px;
-        padding-top: 84px;
-    }
-
-    .page-header h1 { font-size: 22px; }
-}
-
-@media (max-width: 480px) {
-    .content { padding: 16px; padding-top: 80px; }
-    .btn-primary, .btn-success, .btn-danger { padding: 9px 14px; font-size: 13px; }
-}
-
+.sb-link .ico { font-size: 19px; color: var(--sb-muted); transition: color .2s ease, transform .25s var(--ease); }
+.sb-link:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+.sb-link:hover .ico { color: #C7D2FE; transform: scale(1.08); }
+.sb-link.active { background: linear-gradient(90deg, rgba(99, 102, 241, .32), rgba(6, 182, 212, .10)); color: #fff; box-shadow: inset 0 0 0 1px rgba(129, 140, 248, .25); }
+.sb-link.active .ico { color: #67E8F9; }
+.sb-link.active::before { content: ""; position: absolute; left: -14px; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, #818CF8, #22D3EE); }
 
 .notification-badge {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 2px 7px;
-    border-radius: 12px;
-    background: #ef4444;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.5;
+    display: inline-block; margin-left: auto; min-width: 22px; padding: 2px 7px;
+    border-radius: 999px; background: #E11D48; color: #fff;
+    font-size: 11px; font-weight: 800; line-height: 1.5; text-align: center;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, .22);
 }
 
+.sidebar-footer { padding: 12px 14px 16px; border-top: 1px solid var(--sb-line); }
+.sb-user { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border-radius: 14px; background: rgba(255, 255, 255, .05); }
+.avatar { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; background: linear-gradient(135deg, #6366F1, #06B6D4); color: #fff; font-size: 15px; font-weight: 800; }
+.sb-user-meta { min-width: 0; line-height: 1.3; }
+.sb-user-meta strong { display: block; overflow: hidden; color: #F8FAFF; font-size: 14px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.sb-user-meta span { color: var(--sb-muted); font-size: 12px; }
+.sb-logout { margin: 0; }
+.sb-logout .sb-link { margin: 0; color: #FCA5A5; }
+.sb-logout .sb-link .ico { color: #FCA5A5; }
+.sb-logout .sb-link:hover { background: rgba(239, 68, 68, .14); color: #fff; }
+.sb-logout .sb-link:hover .ico { color: #fff; }
 
+.sidebar-overlay { position: fixed; inset: 0; z-index: 190; background: rgba(9, 14, 31, .6); backdrop-filter: blur(3px); opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
+.sidebar-overlay.visible { opacity: 1; visibility: visible; transition: opacity .25s ease, visibility 0s; }
+
+/* ---------- TOPBAR ---------- */
+.topbar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    height: var(--topbar-h); padding: 0 clamp(16px, 2.5vw, 32px);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+}
+.topbar-left, .topbar-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.icon-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; transition: background .2s, border-color .2s, color .2s, transform .2s var(--ease); }
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.icon-btn:active { transform: scale(.95); }
+.crumbs { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.crumbs .sep { color: var(--border); }
+.crumbs strong { overflow: hidden; color: var(--text); font-size: 15px; font-weight: 700; text-overflow: ellipsis; }
+.theme-toggle .ico-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .ico-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .ico-moon { display: none; }
+.store-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; text-decoration: none; transition: background .2s, border-color .2s, color .2s; }
+.store-link .ico { font-size: 16px; color: var(--accent); }
+.store-link:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- CONTENT ---------- */
+.content { width: 100%; max-width: 1560px; margin: 0 auto; padding: clamp(18px, 2.5vw, 32px); animation: fade-up .45s var(--ease) backwards; }
+@keyframes fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 26px; }
+.page-header h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.2; color: var(--text); }
+.page-header p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+
+/* ---------- TABLES ---------- */
+.table-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-sm); }
+.table { width: 100%; min-width: 560px; border-collapse: collapse; background: var(--surface); font-size: 14px; font-variant-numeric: tabular-nums; }
+.table th { padding: 14px 18px; background: var(--surface-2); color: var(--muted); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.table td { padding: 16px 18px; border-bottom: 1px solid var(--border); color: var(--text); }
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr { transition: background .15s ease; }
+.table tbody tr:hover { background: var(--accent-soft); }
+
+/* ---------- BUTTONS ---------- */
+.btn-primary, .btn-success, .btn-danger, .btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 42px; padding: 0 20px;
+    border: 1.5px solid transparent; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700; text-decoration: none; color: #fff; cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, color .2s ease, box-shadow .25s ease, transform .2s var(--ease);
+}
+.btn-primary:hover, .btn-success:hover, .btn-danger:hover { transform: translateY(-1px); }
+.btn-primary:active, .btn-success:active, .btn-danger:active, .btn-outline:active { transform: scale(.98); }
+.btn-primary { background: var(--btn); box-shadow: 0 8px 20px rgba(79, 70, 229, .28); }
+.btn-primary:hover { background: var(--btn-hover); box-shadow: 0 12px 26px rgba(79, 70, 229, .36); }
+.btn-success { background: #047857; box-shadow: 0 8px 20px rgba(4, 120, 87, .25); }
+.btn-success:hover { background: #065F46; }
+.btn-danger { background: #B91C1C; box-shadow: 0 8px 20px rgba(185, 28, 28, .25); }
+.btn-danger:hover { background: #991B1B; }
+.btn-outline { background: var(--surface); border-color: var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+/* ---------- RESPONSIVE: drawer ≤ 1024px ---------- */
+@media (max-width: 1024px) {
+    .main { margin-left: 0; }
+    .sidebar { width: min(300px, 86vw); transform: translateX(-102%); visibility: hidden; box-shadow: 0 0 40px rgba(0, 0, 0, .4); transition: transform .3s var(--ease), visibility 0s linear .3s; }
+    .sidebar.open { transform: none; visibility: visible; transition: transform .3s var(--ease), visibility 0s; }
+}
+@media (max-width: 600px) {
+    .store-link span { display: none; }
+    .store-link { width: 44px; padding: 0; justify-content: center; }
+    .crumbs .root, .crumbs .sep { display: none; }
+}
+
+/* ---------- COLLAPSED sidebar (desktop only) ---------- */
+@media (min-width: 1025px) {
+    html.sb-collapsed .brand-text, html.sb-collapsed .sb-label, html.sb-collapsed .sb-user-meta,
+    html.sb-collapsed .sb-link .nav-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    html.sb-collapsed .sidebar-brand { justify-content: center; padding: 0; }
+    html.sb-collapsed .sb-link { justify-content: center; padding: 0; }
+    html.sb-collapsed .sb-link.active::before { left: -14px; }
+    html.sb-collapsed .sb-group + .sb-group { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--sb-line); }
+    html.sb-collapsed .sb-user { justify-content: center; padding: 8px 0; background: none; }
+    html.sb-collapsed .notification-badge { position: absolute; top: 4px; right: 10px; margin: 0; min-width: 18px; padding: 0 5px; font-size: 10px; box-shadow: 0 0 0 2px #0E1633; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
 </style>
 
 {% block extra_css %}
@@ -301,68 +274,156 @@ body {
 
 <body>
 
-<!-- Mobile topbar -->
-<div class="mobile-topbar">
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">☰</button>
-    <span class="mobile-topbar-brand">🛍️ ShopCart</span>
-</div>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="i-dashboard" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+        <symbol id="i-package-plus" viewBox="0 0 24 24"><path d="M16 16h6"/><path d="M19 13v6"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/><path d="m3.29 7 8.71 5 8.71-5"/><path d="M12 22V12"/></symbol>
+        <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+        <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+        <symbol id="i-orders" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></symbol>
+        <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+        <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+        <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+        <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+        <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+        <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+    </defs>
+</svg>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="layout">
 
-    <!-- Sidebar -->
+    <!-- ===== Sidebar ===== -->
 
-    <div class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
 
-        <div class="sidebar-brand">
-            <span>🛍️</span> ShopCart<span class="dot">.</span>
-        </div>
-        
+        <a class="sidebar-brand" href="{% url 'admin_dashboard' %}" aria-label="ShopCart admin dashboard">
+            <span class="brand-mark" aria-hidden="true"><svg class="ico"><use href="#i-bag"/></svg></span>
+            <span class="brand-text">Shop<b>Cart</b><span class="brand-tag">ADMIN</span></span>
+        </a>
 
+        {% with vn=request.resolver_match.url_name %}
         <nav class="sidebar-nav">
 
-            <a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">📊 Dashboard</a>
+            <div class="sb-group">
+                <span class="sb-label">Overview</span>
+                <a href="{% url 'admin_dashboard' %}" title="Dashboard" class="sb-link{% if vn == 'admin_dashboard' %} active{% endif %}"{% if vn == 'admin_dashboard' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-dashboard"/></svg><span class="nav-text">Dashboard</span>
+                </a>
+            </div>
 
-            <a href="{% url 'add_product' %}" class="{% if request.resolver_match.url_name == 'add_product' %}active{% endif %}">📦 Add Products</a>
+            <div class="sb-group">
+                <span class="sb-label">Catalog</span>
+                <a href="{% url 'add_product' %}" title="Add Products" class="sb-link{% if vn == 'add_product' %} active{% endif %}"{% if vn == 'add_product' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-package-plus"/></svg><span class="nav-text">Add Products</span>
+                </a>
+                <a href="{% url 'see_product' %}" title="Products" class="sb-link{% if vn == 'see_product' %} active{% endif %}"{% if vn == 'see_product' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg><span class="nav-text">Products</span>
+                </a>
+                <a href="{% url 'admin_categories' %}" title="Categories" class="sb-link{% if vn == 'admin_categories' %} active{% endif %}"{% if vn == 'admin_categories' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-layers"/></svg><span class="nav-text">Categories</span>
+                </a>
+            </div>
 
-            <a href="{% url 'see_product' %}" class="{% if request.resolver_match.url_name == 'see_product' %}active{% endif %}">🛒 Products</a>
+            <div class="sb-group">
+                <span class="sb-label">Sales</span>
+                <a href="{% url 'admin_orders' %}" title="Orders" class="sb-link{% if vn == 'admin_orders' %} active{% endif %}"{% if vn == 'admin_orders' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-orders"/></svg><span class="nav-text">Orders</span>
+                </a>
+                <a href="{% url 'customer_list' %}" title="Customers" class="sb-link{% if vn == 'customer_list' %} active{% endif %}"{% if vn == 'customer_list' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-users"/></svg><span class="nav-text">Customers</span>
+                </a>
+            </div>
 
-            <a href="{% url 'admin_categories' %}" class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">🏷️ Categories</a>
-            
-            <a href="{% url 'admin_orders' %}" class="{% if request.resolver_match.url_name == 'admin_orders' %}active{% endif %}">📝 Orders</a>
+            <div class="sb-group">
+                <span class="sb-label">Engagement</span>
+                <a href="{% url 'inbox' %}" title="Chats" class="sb-link{% if vn == 'inbox' %} active{% endif %}"{% if vn == 'inbox' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg><span class="nav-text">Chats</span>
+                </a>
+                <a href="{% url 'notifications:admin_notifications' %}" title="Notifications" class="sb-link{% if vn == 'admin_notifications' %} active{% endif %}"{% if vn == 'admin_notifications' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-bell"/></svg><span class="nav-text">Notifications</span>
+                    <span id="admin-notification-badge"
+                          class="notification-badge"
+                          style="display: none;">0</span>
+                </a>
+                <a href="{% url 'admin_reviews' %}" title="Reviews" class="sb-link{% if vn == 'admin_reviews' %} active{% endif %}"{% if vn == 'admin_reviews' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-star"/></svg><span class="nav-text">Reviews</span>
+                </a>
+            </div>
 
-            <a href="{% url 'customer_list' %}" class="{% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">👥 Customers</a>
-
-            <a href="{% url 'inbox' %}" class="{% if request.resolver_match.url_name == 'inbox' %}active{% endif %}">💬 Chats</a>
-
-
-<a href="{% url 'notifications:admin_notifications' %}"
-   class="{% if request.resolver_match.url_name == 'admin_notifications' %}active{% endif %}">
-    🔔 Notifications
-    <span id="admin-notification-badge"
-          class="notification-badge"
-          style="display: none;">0</span>
-</a>
-
-            <a href="{% url 'admin_reviews' %}">⭐ Reviews</a>
-
-            <a href="{% url 'reports_analytics' %}"class="{% if request.resolver_match.url_name == 'reports_analytics' %}active{% endif %}">📈 Reports & Analytics</a>
+            <div class="sb-group">
+                <span class="sb-label">Insights</span>
+                <a href="{% url 'reports_analytics' %}" title="Reports &amp; Analytics" class="sb-link{% if vn == 'reports_analytics' %} active{% endif %}"{% if vn == 'reports_analytics' %} aria-current="page"{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg><span class="nav-text">Reports &amp; Analytics</span>
+                </a>
+            </div>
 
         </nav>
+        {% endwith %}
 
         <div class="sidebar-footer">
-            <a href="{% url 'logout' %}">🚪 Logout</a>
+            <div class="sb-user">
+                <span class="avatar" aria-hidden="true">{{ request.user.username|first|upper|default:"A" }}</span>
+                <span class="sb-user-meta"><strong>{{ request.user.username|default:"Admin" }}</strong><span>Administrator</span></span>
+            </div>
+
+            {# Django 5+ only allows logout via POST (a plain link returns 405) #}
+            <form method="post" action="{% url 'logout' %}" class="sb-logout">
+                {% csrf_token %}
+                <button type="submit" class="sb-link" title="Logout">
+                    <svg class="ico" aria-hidden="true"><use href="#i-logout"/></svg><span class="nav-text">Logout</span>
+                </button>
+            </form>
         </div>
 
-    </div>
+    </aside>
 
-    <!-- Page Content -->
+    <!-- ===== Main column ===== -->
 
-    <div class="content">
+    <div class="main">
 
-        {% block content %}
-        {% endblock %}
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">
+                    <svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg>
+                </button>
+
+                {% with vn=request.resolver_match.url_name %}
+                <nav class="crumbs" aria-label="Breadcrumb">
+                    <span class="root">Admin</span><span class="sep" aria-hidden="true">/</span>
+                    <strong>{% if vn == 'admin_dashboard' %}Dashboard{% elif vn == 'add_product' %}Add Products{% elif vn == 'see_product' %}Products{% elif vn == 'admin_categories' %}Categories{% elif vn == 'admin_orders' %}Orders{% elif vn == 'customer_list' %}Customers{% elif vn == 'inbox' %}Chats{% elif vn == 'admin_notifications' %}Notifications{% elif vn == 'admin_reviews' %}Reviews{% elif vn == 'reports_analytics' %}Reports &amp; Analytics{% else %}Admin Panel{% endif %}</strong>
+                </nav>
+                {% endwith %}
+            </div>
+
+            <div class="topbar-right">
+                <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Dark mode" aria-pressed="false">
+                    <svg class="ico ico-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+                    <svg class="ico ico-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+                </button>
+
+                <a class="store-link" href="{% url 'home' %}" target="_blank" rel="noopener">
+                    <svg class="ico" aria-hidden="true"><use href="#i-external"/></svg><span>View store</span><span class="sr-only">(opens in a new tab)</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+
+        <main class="content" id="main">
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
 
     </div>
 
@@ -370,29 +431,56 @@ body {
 
 <script>
 (function () {
+    var html = document.documentElement;
     var toggle = document.getElementById('sidebarToggle');
     var sidebar = document.getElementById('sidebar');
     var overlay = document.getElementById('sidebarOverlay');
+    var themeBtn = document.getElementById('themeToggle');
+    var mobile = window.matchMedia('(max-width: 1024px)');
 
+    /* ---- sidebar: drawer on tablets/phones, collapse to icons on desktop ---- */
     function setOpen(open) {
         sidebar.classList.toggle('open', open);
         overlay.classList.toggle('visible', open);
-        toggle.setAttribute('aria-expanded', open);
+        html.classList.toggle('no-scroll', open && mobile.matches);
+        syncAria();
     }
-
+    function syncAria() {
+        var expanded = mobile.matches ? sidebar.classList.contains('open') : !html.classList.contains('sb-collapsed');
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
     toggle.addEventListener('click', function () {
-        setOpen(!sidebar.classList.contains('open'));
+        if (mobile.matches) {
+            var open = !sidebar.classList.contains('open');
+            setOpen(open);
+            if (open) { var first = sidebar.querySelector('a, button'); if (first) first.focus(); }
+        } else {
+            var collapsed = !html.classList.contains('sb-collapsed');
+            html.classList.toggle('sb-collapsed', collapsed);
+            try { localStorage.setItem('admin-sidebar', collapsed ? '1' : '0'); } catch (e) {}
+            syncAria();
+        }
     });
-
-    overlay.addEventListener('click', function () {
-        setOpen(false);
-    });
-
+    overlay.addEventListener('click', function () { setOpen(false); });
     sidebar.querySelectorAll('a').forEach(function (link) {
-        link.addEventListener('click', function () {
-            setOpen(false);
-        });
+        link.addEventListener('click', function () { if (mobile.matches) setOpen(false); });
     });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) { setOpen(false); toggle.focus(); }
+    });
+    var onChange = function () { if (!mobile.matches) setOpen(false); syncAria(); };
+    if (mobile.addEventListener) mobile.addEventListener('change', onChange); else mobile.addListener(onChange);
+    syncAria();
+
+    /* ---- theme: light / dark, remembered ---- */
+    function syncTheme() { themeBtn.setAttribute('aria-pressed', html.getAttribute('data-theme') === 'dark' ? 'true' : 'false'); }
+    themeBtn.addEventListener('click', function () {
+        var dark = html.getAttribute('data-theme') !== 'dark';
+        if (dark) html.setAttribute('data-theme', 'dark'); else html.removeAttribute('data-theme');
+        try { localStorage.setItem('admin-theme', dark ? 'dark' : 'light'); } catch (e) {}
+        syncTheme();
+    });
+    syncTheme();
 })();
 </script>
 

@@ -1,669 +1,571 @@
 {% extends "admin_base.html" %}
 
-{% block content %}
+{% block title %}Order Management{% endblock %}
+
+{% block extra_css %}
 <style>
-    .orders-page {
-        --orders-primary: #5367e8;
-        --orders-text: #202943;
-        --orders-muted: #8490a5;
-        --orders-border: #e9edf5;
-        color: var(--orders-text);
-        padding: 28px;
-        background: #f6f8fc;
-        min-height: 100vh;
-        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    .orders-page * { box-sizing: border-box; }
+/* =========================================================
+   Order management  (ui-ux-pro-max: operations / workflow list)
+   Each order is one form: a scannable summary row (aligned like a table)
+   that expands into items, customer and update controls.
+   - Primary action is on the row: "Move to <next step>" -> Save / Undo
+   - Status = badge text + progress label (never colour alone)
+   - Irreversible changes (Delivered, Cancelled) ask for confirmation
+   - Admin tokens (light/dark), 44px targets, visible focus
+   ========================================================= */
+.od-page [hidden] { display: none !important; }
+.od-page .ico { width: 18px; height: 18px; flex-shrink: 0; }
+.od-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.od-page a:focus-visible, .od-page button:focus-visible, .od-page input:focus-visible, .od-page select:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-    /* ---------- Heading ---------- */
-    .orders-heading {
-        display: flex; justify-content: space-between; align-items: center;
-        gap: 20px; margin-bottom: 22px; flex-wrap: wrap;
-    }
-    .orders-heading h1 { font-size: 27px; font-weight: 750; letter-spacing: -0.8px; margin: 0 0 7px; }
-    .orders-heading p { margin: 0; color: var(--orders-muted); font-size: 14px; }
+.od-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.od-head p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.od-head { margin-bottom: 18px; }
 
-    /* ---------- Flash messages ---------- */
-    .orders-alert {
-        display: flex; align-items: center; gap: 10px;
-        border-radius: 11px; padding: 12px 15px; margin-bottom: 16px;
-        font-size: 13px; font-weight: 600;
-        background: #ddf8e9; color: #198453; border: 1px solid #c3efd9;
-    }
-    .orders-alert.error { background: #ffe6e6; color: #c34444; border-color: #f7cccc; }
+/* messages */
+.od-messages { display: grid; gap: 10px; margin-bottom: 16px; }
+.od-msg { display: flex; align-items: center; gap: 12px; padding: 4px 6px 4px 16px; border: 1px solid var(--success-line); border-radius: 12px; background: var(--success-soft); color: var(--text); font-size: 14px; line-height: 1.5; }
+.od-msg.error { border-color: var(--danger-line); background: var(--danger-soft); }
+.od-msg.warning { border-color: var(--warn-line); background: var(--warn-soft); }
+.od-msg span { flex: 1; min-width: 0; padding: 8px 0; }
+.od-msg button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.od-msg button:hover { background: rgba(127,127,127,.15); color: var(--text); }
 
-    /* ---------- Stat cards (click to filter) ---------- */
-    .orders-stats {
-        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px; margin-bottom: 22px;
-    }
-    .orders-stat {
-        display: flex; align-items: center; gap: 14px; text-align: left;
-        background: white; padding: 18px; font: inherit; color: inherit;
-        border: 1px solid var(--orders-border); border-radius: 16px; cursor: pointer;
-        transition: border-color .15s, box-shadow .15s;
-    }
-    .orders-stat:hover { border-color: #cfd6f5; }
-    .orders-stat.is-active { border-color: var(--orders-primary); box-shadow: 0 0 0 3px rgba(83,103,232,.12); }
-    .orders-stat:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
-    .orders-stat-icon {
-        width: 44px; height: 44px; border-radius: 13px; display: grid;
-        place-items: center; font-size: 20px; flex-shrink: 0;
-    }
-    .stat-purple { background: #eeedff; }
-    .stat-orange { background: #fff2df; }
-    .stat-blue   { background: #e2f4ff; }
-    .stat-green  { background: #e2f8ef; }
-    .stat-red    { background: #ffe9e9; }
-    .orders-stat-label { font-size: 12px; color: var(--orders-muted); margin-bottom: 6px; }
-    .orders-stat-value { font-size: 24px; line-height: 1; font-weight: 750; letter-spacing: -.5px; }
+/* toolbar */
+.od-toolbar { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(160px, 1fr) minmax(140px, .8fr) auto auto; gap: 10px; margin-bottom: 14px; }
+.od-search { position: relative; }
+.od-search .ico { position: absolute; left: 14px; top: 50%; margin-top: -9px; color: var(--muted); pointer-events: none; }
+.od-input { width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 16px; }
+.od-search .od-input { padding-left: 42px; -webkit-appearance: none; appearance: none; }
+.od-search .od-input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.od-input::placeholder { color: var(--muted); opacity: .85; }
+.od-input:hover { border-color: var(--muted); }
+.od-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent); }
+select.od-input { padding-right: 34px; cursor: pointer; }
+select.od-input:disabled { cursor: not-allowed; background: var(--surface-2); color: var(--muted); opacity: 1; }
+select.od-input.changed { border-color: var(--warn); background: var(--warn-soft); }
 
-    /* ---------- Panel ---------- */
-    .orders-panel {
-        background: white; border: 1px solid var(--orders-border);
-        border-radius: 18px; overflow: hidden;
-        box-shadow: 0 5px 22px rgba(31, 45, 85, .035);
-    }
-    .orders-panel-top {
-        padding: 20px 24px; display: flex; justify-content: space-between;
-        align-items: center; gap: 15px; flex-wrap: wrap;
-        border-bottom: 1px solid var(--orders-border);
-    }
-    .orders-panel-top h2 { font-size: 17px; font-weight: 750; margin: 0 0 5px; }
-    .orders-panel-top p { font-size: 12px; color: var(--orders-muted); margin: 0; }
+.od-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s, filter .15s; }
+.od-btn:hover { background: var(--surface-2); border-color: var(--muted); }
+.od-btn.primary { border-color: var(--btn); background: var(--btn); color: #fff; }
+.od-btn.primary:hover { filter: brightness(1.1); }
+.od-btn:disabled { cursor: not-allowed; opacity: .55; }
 
-    /* ---------- Status tabs ---------- */
-    .status-tabs {
-        display: flex; gap: 6px; padding: 12px 24px; overflow-x: auto;
-        border-bottom: 1px solid var(--orders-border); background: #fafbfe;
-    }
-    .status-tab {
-        display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
-        padding: 8px 13px; border: 1px solid transparent; border-radius: 999px;
-        background: transparent; color: #64718a; font: inherit;
-        font-size: 12px; font-weight: 700; cursor: pointer;
-    }
-    .status-tab:hover { background: #eef1f9; }
-    .status-tab:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 1px; }
-    .status-tab.is-active { background: white; color: var(--orders-primary); border-color: #d5dcf8; }
-    .status-tab .count {
-        min-width: 20px; padding: 1px 6px; border-radius: 999px; text-align: center;
-        background: #e8ecf5; color: #526078; font-size: 11px;
-    }
-    .status-tab.is-active .count { background: var(--orders-primary); color: white; }
+/* filter chips */
+.od-chips { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.od-chips::-webkit-scrollbar { display: none; }
+.od-chip { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color .15s, color .15s, border-color .15s; }
+.od-chip b { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.od-chip:hover { border-color: var(--muted); color: var(--text); }
+.od-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.od-chip[aria-pressed="true"] b { background: var(--accent); color: #fff; }
+.od-chip.sep { margin-left: 8px; }
+.od-summary { margin-bottom: 12px; color: var(--muted); font-size: 14px; min-height: 22px; }
+.od-summary strong { color: var(--text); font-weight: 700; }
 
-    /* ---------- Filters ---------- */
-    .orders-filter {
-        padding: 16px 24px; display: grid; gap: 11px;
-        grid-template-columns: minmax(180px, 1.6fr) minmax(150px, 1fr) minmax(130px, .8fr) auto;
-        border-bottom: 1px solid var(--orders-border);
-    }
-    .orders-input {
-        width: 100%; min-width: 0; min-height: 42px; padding: 10px 12px;
-        border: 1px solid #e3e8f1; border-radius: 10px; outline: none;
-        color: #35415c; background: #fff; font-size: 12px; font-family: inherit;
-        transition: border-color .2s, box-shadow .2s;
-    }
-    .orders-input:focus {
-        border-color: var(--orders-primary);
-        box-shadow: 0 0 0 3px rgba(83, 103, 232, .10);
-    }
-    .orders-btn {
-        min-height: 42px; border: 0; border-radius: 10px; padding: 10px 17px;
-        display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-        font-size: 12px; font-weight: 700; font-family: inherit;
-        text-decoration: none; cursor: pointer; transition: background .2s, opacity .2s;
-    }
-    .orders-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
-    .orders-btn-primary { background: var(--orders-primary); color: white; }
-    .orders-btn-primary:hover { background: #4254d0; color: white; }
-    .orders-btn-light { background: #f0f2f8; color: #526078; }
-    .orders-btn-light:hover { background: #e6e9f3; color: #526078; }
+/* ---------- list ---------- */
+.od-cols, .od-head-row { display: grid; align-items: center; gap: 10px 16px; grid-template-columns: 96px minmax(150px, 1.2fr) 110px 150px minmax(150px, 1fr) 240px; grid-template-areas: "order customer total status progress actions"; }
+.od-cols { display: none; padding: 0 17px 8px; color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.od-list { display: grid; gap: 10px; }
 
-    /* ---------- Table ---------- */
-    .orders-table-wrap { overflow-x: auto; }
-    .orders-table { width: 100%; min-width: 1080px; border-collapse: collapse; }
-    .orders-table thead { background: #fafbfe; }
-    .orders-table th {
-        padding: 13px 17px; text-align: left; font-size: 12px; font-weight: 700;
-        color: #8a94a8; border-bottom: 1px solid var(--orders-border); white-space: nowrap;
-    }
-    .orders-table td {
-        padding: 18px 17px; border-bottom: 1px solid #eff2f7;
-        vertical-align: top; font-size: 12px;
-    }
-    .orders-table tbody tr:last-child td { border-bottom: 0; }
-    .orders-table tbody tr:hover { background: #fcfcff; }
-    .order-row { transition: background .2s; }
-    .order-row.is-dirty { background: #fffbf0 !important; box-shadow: inset 3px 0 0 #f0a728; }
-    .order-row.is-cancelled .order-product,
-    .order-row.is-cancelled .order-total { opacity: .55; text-decoration: line-through; }
+.od-card { overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); transition: border-color .15s, box-shadow .15s; }
+.od-card:hover { border-color: var(--muted); }
+.od-card.is-dirty { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn), var(--shadow-sm); }
+.od-card.is-cancelled .od-total, .od-card.is-cancelled .od-name { opacity: .6; text-decoration: line-through; }
 
-    .order-number { font-size: 13px; font-weight: 750; color: #3949ab; margin-bottom: 6px; }
-    .order-date { color: var(--orders-muted); font-size: 11px; white-space: nowrap; }
-    .customer-name { font-size: 12px; font-weight: 750; margin-bottom: 5px; }
-    .customer-detail {
-        color: var(--orders-muted); font-size: 11px; line-height: 1.6;
-        max-width: 190px; overflow-wrap: anywhere;
-    }
-    .order-product { margin-bottom: 7px; color: #48546d; line-height: 1.5; }
-    .order-product:last-child { margin-bottom: 0; }
-    .order-total { font-size: 13px; font-weight: 750; white-space: nowrap; }
-    .order-method {
-        display: inline-block; margin-top: 7px; padding: 4px 7px; border-radius: 6px;
-        background: #f0f3fa; color: #6b7890; font-size: 10px; font-weight: 700;
-    }
+.od-head-row { padding: 14px 16px; }
+.a-order { grid-area: order; } .a-customer { grid-area: customer; } .a-total { grid-area: total; } .a-status { grid-area: status; } .a-progress { grid-area: progress; } .a-actions { grid-area: actions; }
+.od-id { color: var(--accent); font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.od-date { margin-top: 2px; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.od-name { color: var(--text); font-size: 14.5px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.od-sub { margin-top: 2px; color: var(--muted); font-size: 13px; }
+.od-total { color: var(--text); font-size: 15px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.od-method { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 600; }
 
-    /* ---------- Badges ---------- */
-    .status-badge {
-        display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px;
-        border-radius: 7px; font-size: 11px; font-weight: 750; white-space: nowrap;
-    }
-    .status-pending   { background: #fff2d9; color: #a66b08; }
-    .status-confirmed { background: #e9efff; color: #4259bd; }
-    .status-packed    { background: #f0e9ff; color: #7950bd; }
-    .status-shipped   { background: #e2f4ff; color: #1977ad; }
-    .status-delivered { background: #ddf8e9; color: #198453; }
-    .status-cancelled { background: #ffe6e6; color: #c34444; }
-    .payment-paid   { background: #ddf8e9; color: #198453; }
-    .payment-unpaid { background: #fff0df; color: #a66b08; }
+.od-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.od-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: 8px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.od-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.st-pending { background: var(--warn-soft); color: var(--warn); }
+.st-confirmed { background: var(--accent-soft); color: var(--accent); }
+.st-packed { background: rgba(139,92,246,.13); color: #6D28D9; }
+.st-shipped { background: rgba(6,182,212,.14); color: #0E7490; }
+.st-delivered, .pay-paid { background: var(--success-soft); color: var(--success); }
+.st-cancelled { background: var(--danger-soft); color: var(--danger); }
+.pay-unpaid { background: var(--surface-2); color: var(--muted); }
+:root[data-theme="dark"] .st-packed { background: rgba(167,139,250,.18); color: #C4B5FD; }
+:root[data-theme="dark"] .st-shipped { background: rgba(34,211,238,.16); color: #67E8F9; }
+.od-dirtychip { display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); font-size: 12.5px; font-weight: 700; }
 
-    /* ---------- Progress tracker ---------- */
-    .tracker { display: flex; align-items: flex-start; margin: 12px 0 10px; width: 210px; }
-    .tracker-step {
-        position: relative; flex: 1; display: flex; flex-direction: column;
-        align-items: center; gap: 5px; min-width: 0;
-    }
-    .tracker-step::before {
-        content: ""; position: absolute; top: 6px; right: 50%; width: 100%;
-        height: 2px; background: #e3e8f1;
-    }
-    .tracker-step:first-child::before { display: none; }
-    .tracker-dot {
-        position: relative; z-index: 1; width: 14px; height: 14px; border-radius: 50%;
-        background: white; border: 2px solid #d5dbe8;
-    }
-    .tracker-label { font-size: 9.5px; color: #a0a9bb; font-weight: 600; }
-    .tracker-step.done::before,
-    .tracker-step.current::before { background: #22b983; }
-    .tracker-step.done .tracker-dot { background: #22b983; border-color: #22b983; }
-    .tracker-step.current .tracker-dot {
-        background: white; border-color: #22b983; box-shadow: 0 0 0 3px rgba(34,185,131,.2);
-    }
-    .tracker-step.done .tracker-label { color: #6b7890; }
-    .tracker-step.current .tracker-label { color: #198453; font-weight: 750; }
-    .tracker.is-cancelled .tracker-step::before,
-    .tracker.is-cancelled .tracker-dot { background: #f1f3f8; border-color: #e3e8f1; box-shadow: none; }
-    .tracker.is-cancelled .tracker-label { color: #c0c6d3; }
+/* compact progress */
+.od-prog { display: grid; gap: 6px; }
+.od-prog-bar { display: flex; gap: 4px; }
+.od-prog-bar i { flex: 1; height: 6px; border-radius: 99px; background: var(--border); }
+.od-prog-bar i.on { background: var(--success); }
+.od-prog-label { color: var(--muted); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.od-prog-label b { color: var(--text); font-weight: 700; }
 
-    /* ---------- Update form ---------- */
-    .order-update { min-width: 190px; max-width: 220px; }
-    .order-update label {
-        display: block; margin: 0 0 5px; font-size: 11px; font-weight: 700; color: #77839a;
-    }
-    .order-update .orders-input { min-height: 36px; padding: 7px 9px; margin-bottom: 11px; font-size: 12px; }
-    .order-update .orders-input.changed { border-color: #f0a728; background: #fffbf0; }
+/* actions */
+.od-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.od-act { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s, filter .15s; }
+.od-act:hover { background: var(--surface-2); border-color: var(--muted); }
+.od-act.next { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.od-act.next:hover { background: var(--accent-soft); filter: brightness(.96); }
+.od-act.save { border-color: var(--btn); background: var(--btn); color: #fff; }
+.od-act.save:hover { filter: brightness(1.1); }
+.od-act:disabled { cursor: not-allowed; opacity: .55; }
+.od-act[aria-busy="true"] { cursor: progress; }
+.od-act[aria-busy="true"]::before { content: ""; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: od-spin .7s linear infinite; }
+.od-toggle { display: grid; place-items: center; width: 44px; padding: 0; color: var(--muted); }
+.od-toggle .ico { transition: transform .2s; }
+.od-toggle[aria-expanded="true"] .ico { transform: rotate(180deg); }
+@keyframes od-spin { to { transform: rotate(360deg); } }
 
-    .quick-btn {
-        width: 100%; margin-bottom: 8px; min-height: 38px; border-radius: 10px;
-        border: 1px solid #cfd6f5; background: #eef0ff; color: #3d4fc9;
-        font: inherit; font-size: 12px; font-weight: 750; cursor: pointer;
-        transition: background .15s;
-    }
-    .quick-btn:hover { background: #e2e6ff; }
-    .quick-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
-    .quick-btn[hidden] { display: none; }
+/* expanded panel */
+.od-panel { display: grid; grid-template-columns: 1.1fr 1fr 1.1fr; gap: 22px 28px; padding: 18px 16px 20px; border-top: 1px solid var(--border); background: var(--surface-2); }
+.od-panel h3 { margin-bottom: 10px; color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
+.od-track-wrap { grid-column: 1 / -1; }
+.od-track { display: flex; align-items: flex-start; max-width: 560px; }
+.od-step { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.od-step::before { content: ""; position: absolute; top: 7px; right: 50%; width: 100%; height: 2px; background: var(--border); }
+.od-step:first-child::before { display: none; }
+.od-dot { position: relative; z-index: 1; width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 50%; background: var(--surface-2); }
+.od-step .lbl { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.od-step.done::before, .od-step.current::before { background: var(--success); }
+.od-step.done .od-dot { border-color: var(--success); background: var(--success); }
+.od-step.current .od-dot { border-color: var(--success); background: var(--surface); box-shadow: 0 0 0 4px var(--success-soft); }
+.od-step.done .lbl { color: var(--text); }
+.od-step.current .lbl { color: var(--success); font-weight: 700; }
+.od-track.is-cancelled .od-step::before { background: var(--border); }
+.od-track.is-cancelled .od-dot { border-color: var(--border); background: var(--surface-2); box-shadow: none; }
+.od-track.is-cancelled .lbl { color: var(--muted); font-weight: 600; }
 
-    .update-actions { display: flex; gap: 8px; }
-    .save-btn {
-        flex: 1; min-height: 38px; border: 0; border-radius: 10px;
-        background: #202943; color: white; font: inherit; font-size: 12px;
-        font-weight: 700; cursor: pointer; transition: background .2s, opacity .2s;
-    }
-    .save-btn:hover:not(:disabled) { background: #354361; }
-    .save-btn:disabled { background: #e3e7f0; color: #9aa4b8; cursor: not-allowed; }
-    .save-btn:focus-visible { outline: 2px solid var(--orders-primary); outline-offset: 2px; }
-    .undo-btn {
-        min-height: 38px; padding: 0 12px; border: 1px solid #e3e8f1; border-radius: 10px;
-        background: white; color: #64718a; font: inherit; font-size: 12px;
-        font-weight: 700; cursor: pointer;
-    }
-    .undo-btn[hidden] { display: none; }
-    .unsaved-note { margin: 8px 0 0; font-size: 11px; color: #a66b08; font-weight: 600; }
-    .unsaved-note[hidden] { display: none; }
+.od-items { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.od-items li { display: flex; justify-content: space-between; gap: 12px; color: var(--text); font-size: 14px; line-height: 1.45; }
+.od-items b { flex-shrink: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.od-dl { display: grid; gap: 10px; margin: 0; font-size: 14px; }
+.od-dl dt { color: var(--muted); font-size: 12.5px; font-weight: 600; }
+.od-dl dd { margin: 1px 0 0; color: var(--text); line-height: 1.5; overflow-wrap: anywhere; }
+.od-dl a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.od-dl a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.od-field { margin-bottom: 12px; }
+.od-field label { display: block; margin-bottom: 6px; color: var(--text); font-size: 13.5px; font-weight: 600; }
+.od-field .hint { margin-top: 5px; color: var(--muted); font-size: 12.5px; }
+.od-update-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
-    /* ---------- Empty state ---------- */
-    .orders-empty { padding: 60px 20px !important; text-align: center; color: var(--orders-muted); }
-    .orders-empty-icon { font-size: 32px; margin-bottom: 12px; }
-    .orders-empty h3 { color: var(--orders-text); font-size: 16px; font-weight: 750; margin: 0 0 6px; }
-    .orders-empty p { font-size: 12px; margin: 0; }
-    #tab-empty { display: none; }
+.od-empty { display: none; padding: 56px 20px; border: 1px dashed var(--border); border-radius: 16px; text-align: center; }
+.od-empty.show, .od-empty.static { display: block; }
+.od-empty-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.od-empty-icon .ico { width: 26px; height: 26px; }
+.od-empty strong { display: block; color: var(--text); font-size: 16px; }
+.od-empty p { margin: 4px auto 18px; max-width: 380px; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
-    /* ---------- Responsive ---------- */
-    @media (max-width: 1000px) {
-        .orders-page { padding: 20px; }
-        .orders-filter { grid-template-columns: 1fr 1fr; }
-        .orders-filter .orders-search { grid-column: 1 / -1; }
-        .orders-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 600px) {
-        .orders-page { padding: 14px; }
-        .orders-heading h1 { font-size: 23px; }
-        .orders-stats { gap: 10px; }
-        .orders-stat { padding: 14px; gap: 10px; }
-        .orders-stat-icon { width: 38px; height: 38px; font-size: 17px; }
-        .orders-panel-top { padding: 18px; }
-        .status-tabs { padding: 10px 14px; }
-        .orders-filter { padding: 15px; gap: 9px; }
-        .orders-filter > * { grid-column: 1 / -1; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .orders-page * { transition: none !important; }
-    }
+/* dialog */
+.od-dialog { width: min(440px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.od-dialog::backdrop { background: rgba(15, 23, 42, .55); }
+.od-dialog-body { padding: 24px 24px 8px; }
+.od-dialog-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 14px; border-radius: 12px; background: var(--danger-soft); color: var(--danger); }
+.od-dialog-icon.ok { background: var(--success-soft); color: var(--success); }
+.od-dialog h2 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
+.od-dialog p { margin-top: 8px; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+.od-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 20px 24px 24px; }
+.od-dialog-actions .od-btn { min-width: 130px; }
+.od-btn.danger { border-color: #DC2626; background: #DC2626; color: #fff; }
+.od-btn.danger:hover { border-color: #B91C1C; background: #B91C1C; }
+
+/* ---------- responsive ---------- */
+@media (min-width: 1181px) { .od-cols { display: grid; } }
+@media (max-width: 1180px) {
+    .od-head-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 240px; grid-template-areas: "order customer actions" "total status actions" "progress progress progress"; }
+    .od-toolbar { grid-template-columns: 1fr 1fr 1fr; }
+    .od-toolbar .od-search { grid-column: 1 / -1; }
+    .od-toolbar .od-btn.primary { grid-column: 1 / 3; }
+    .od-panel { grid-template-columns: 1fr 1fr; }
+    .od-panel .p-update { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+    .od-head-row { grid-template-columns: 1fr 1fr; grid-template-areas: "order total" "customer customer" "status status" "progress progress" "actions actions"; padding: 14px; }
+    .a-total { text-align: right; }
+    .a-actions .od-actions { justify-content: stretch; }
+    .a-actions .od-act:not(.od-toggle) { flex: 1; }
+    .od-toolbar { grid-template-columns: 1fr; }
+    .od-toolbar .od-btn.primary { grid-column: auto; }
+    .od-panel { grid-template-columns: 1fr; padding: 16px 14px; }
+    .od-track { max-width: none; }
+    .od-dialog-actions .od-btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .od-page * { transition: none !important; } .od-act[aria-busy="true"]::before { animation-duration: 2s; } }
 </style>
+{% endblock %}
 
-<div class="orders-page">
+{% block content %}
 
-    <div class="orders-heading">
+<div class="od-page">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="od-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="od-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="od-i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="od-i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></symbol>
+        <symbol id="od-i-box" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+        <symbol id="od-i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
+        <symbol id="od-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+    </defs>
+</svg>
+
+<header class="od-head">
+    <h1>Orders</h1>
+    <p>Move orders through fulfilment, track payment, and review customer details.</p>
+</header>
+
+{% if messages %}
+<div class="od-messages">
+    {% for message in messages %}
+    <div class="od-msg {{ message.tags }}" role="status">
+        <span>{{ message }}</span>
+        <button type="button" data-dismiss aria-label="Dismiss message"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#od-i-x"/></svg></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ===== Search + server filters ===== -->
+<form method="get" class="od-toolbar" role="search" aria-label="Search and filter orders">
+    <div class="od-search">
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#od-i-search"/></svg>
+        <label class="sr-only" for="od-q">Search orders</label>
+        <input class="od-input" type="search" id="od-q" name="q" value="{{ search_query|default:'' }}" placeholder="Search order, customer or phone" autocomplete="off" enterkeyhint="search">
+    </div>
+    <div>
+        <label class="sr-only" for="od-fstatus">Delivery status</label>
+        <select class="od-input" id="od-fstatus" name="status">
+            <option value="">All delivery statuses</option>
+            {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="sr-only" for="od-fpay">Payment status</label>
+        <select class="od-input" id="od-fpay" name="payment">
+            <option value="">All payments</option>
+            <option value="paid"{% if payment_filter == "paid" %} selected{% endif %}>Paid</option>
+            <option value="unpaid"{% if payment_filter == "unpaid" %} selected{% endif %}>Unpaid</option>
+        </select>
+    </div>
+    <button type="submit" class="od-btn primary">Apply filters</button>
+    <a href="{% url 'admin_orders' %}" class="od-btn">Reset</a>
+</form>
+
+<!-- ===== Quick views (filter the orders on this page) ===== -->
+<div class="od-chips" id="od-chips" role="group" aria-label="Quick views">
+    <button type="button" class="od-chip" data-filter="all" aria-pressed="true">All <b data-count="all">0</b></button>
+    <button type="button" class="od-chip" data-filter="Pending" aria-pressed="false">Pending <b data-count="Pending">0</b></button>
+    <button type="button" class="od-chip" data-filter="Confirmed" aria-pressed="false">Confirmed <b data-count="Confirmed">0</b></button>
+    <button type="button" class="od-chip" data-filter="Packed" aria-pressed="false">Packed <b data-count="Packed">0</b></button>
+    <button type="button" class="od-chip" data-filter="Shipped" aria-pressed="false">Shipped <b data-count="Shipped">0</b></button>
+    <button type="button" class="od-chip" data-filter="Delivered" aria-pressed="false">Delivered <b data-count="Delivered">0</b></button>
+    <button type="button" class="od-chip" data-filter="Cancelled" aria-pressed="false">Cancelled <b data-count="Cancelled">0</b></button>
+    <button type="button" class="od-chip sep" data-filter="unpaid" aria-pressed="false">Unpaid <b data-count="unpaid">0</b></button>
+</div>
+
+<p class="od-summary" id="od-summary" role="status" aria-live="polite">{{ orders|length }} order{{ orders|length|pluralize }}{% if search_query or status_filter or payment_filter %} match your search{% endif %}</p>
+
+{% if orders %}
+<div class="od-cols" aria-hidden="true">
+    <span style="grid-area: order">Order</span><span style="grid-area: customer">Customer</span><span style="grid-area: total">Amount</span><span style="grid-area: status">Status</span><span style="grid-area: progress">Progress</span><span class="c-actions" style="grid-area: actions"></span>
+</div>
+{% endif %}
+
+<!-- ===== Orders ===== -->
+<div class="od-list" id="od-list">
+{% for order in orders %}
+{% with n=order.items.all|length %}
+<form method="post" class="od-card" id="order-{{ order.id }}" aria-label="Order #{{ order.id }}"
+      data-status="{{ order.status }}" data-paid="{% if order.payment_status %}1{% else %}0{% endif %}" data-locked="{% if order.status == 'Cancelled' or order.status == 'Delivered' %}1{% else %}0{% endif %}" data-id="{{ order.id }}">
+    {% csrf_token %}
+    <input type="hidden" name="order_id" value="{{ order.id }}">
+
+    <div class="od-head-row">
+        <div class="a-order">
+            <div class="od-id">#{{ order.id }}</div>
+            <div class="od-date">{{ order.created_at|date:"d M Y" }} · {{ order.created_at|date:"h:i A" }}</div>
+        </div>
+
+        <div class="a-customer">
+            <div class="od-name">{{ order.full_name }}</div>
+            <div class="od-sub">{{ n }} item{{ n|pluralize }}{% if order.phone %} · {{ order.phone }}{% endif %}</div>
+        </div>
+
+        <div class="a-total">
+            <div class="od-total">Rs. {{ order.total|floatformat:2 }}</div>
+            <span class="od-method">{{ order.get_payment_method_display }}</span>
+        </div>
+
+        <div class="a-status">
+            <div class="od-badges">
+                <span class="od-badge js-status-badge {% if order.status == 'Pending' %}st-pending{% elif order.status == 'Confirmed' %}st-confirmed{% elif order.status == 'Packed' %}st-packed{% elif order.status == 'Shipped' %}st-shipped{% elif order.status == 'Delivered' %}st-delivered{% else %}st-cancelled{% endif %}">{{ order.status }}</span>
+                <span class="od-badge {% if order.payment_status %}pay-paid{% else %}pay-unpaid{% endif %}">{% if order.payment_status %}Paid{% else %}Unpaid{% endif %}</span>
+                <span class="od-dirtychip js-dirtychip" hidden>Unsaved</span>
+            </div>
+        </div>
+
+        <div class="a-progress"><div class="od-prog js-progress"></div></div>
+
+        <div class="a-actions">
+            <div class="od-actions">
+                <button type="button" class="od-act next js-next" hidden></button>
+                <button type="submit" class="od-act save js-save-top" hidden>Save</button>
+                <button type="button" class="od-act js-undo-top" hidden aria-label="Undo changes to order #{{ order.id }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#od-i-undo"/></svg>Undo</button>
+                <button type="button" class="od-act od-toggle js-toggle" aria-expanded="false" aria-controls="panel-{{ order.id }}" aria-label="Show details for order #{{ order.id }}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#od-i-down"/></svg></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="od-panel" id="panel-{{ order.id }}" hidden>
+
+        <div class="od-track-wrap">
+            <h3>Progress</h3>
+            <div class="od-track js-tracker" aria-hidden="true"></div>
+        </div>
+
         <div>
-            <h1>Order Management</h1>
-        </div>
-    </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="orders-alert {% if message.tags == 'error' %}error{% endif %}" role="status">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Stat cards: click one to filter the list -->
-    <div class="orders-stats">
-        <button type="button" class="orders-stat is-active" data-filter="all">
-            <div class="orders-stat-icon stat-purple">📦</div>
-            <div>
-                <div class="orders-stat-label">Orders found</div>
-                <div class="orders-stat-value">{{ orders|length }}</div>
-            </div>
-        </button>
-
-        <button type="button" class="orders-stat" data-filter="needs-action">
-            <div class="orders-stat-icon stat-orange">⏳</div>
-            <div>
-                <div class="orders-stat-label">Needs action</div>
-                <div class="orders-stat-value" id="stat-pending">—</div>
-            </div>
-        </button>
-
-        <button type="button" class="orders-stat" data-filter="unpaid">
-            <div class="orders-stat-icon stat-red">💳</div>
-            <div>
-                <div class="orders-stat-label">Unpaid</div>
-                <div class="orders-stat-value" id="stat-unpaid">—</div>
-            </div>
-        </button>
-
-        <button type="button" class="orders-stat" data-filter="Delivered">
-            <div class="orders-stat-icon stat-green">✓</div>
-            <div>
-                <div class="orders-stat-label">Delivered</div>
-                <div class="orders-stat-value" id="stat-delivered">—</div>
-            </div>
-        </button>
-    </div>
-
-    <div class="orders-panel">
-        <div class="orders-panel-top">
-            <div>
-                <h2>All orders</h2>
-                <p>Change a status, then press Save. Use the blue button to move an order to its next step.</p>
-            </div>
-            <a href="{% url 'admin_orders' %}" class="orders-btn orders-btn-light">↻ Reset filters</a>
-        </div>
-
-        <!-- Quick status tabs (filter the rows already loaded) -->
-        <div class="status-tabs" role="tablist" aria-label="Filter by delivery status">
-            <button type="button" class="status-tab is-active" data-filter="all" role="tab">
-                All <span class="count" data-count="all">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Pending" role="tab">
-                Pending <span class="count" data-count="Pending">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Confirmed" role="tab">
-                Confirmed <span class="count" data-count="Confirmed">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Packed" role="tab">
-                Packed <span class="count" data-count="Packed">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Shipped" role="tab">
-                Shipped <span class="count" data-count="Shipped">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Delivered" role="tab">
-                Delivered <span class="count" data-count="Delivered">0</span>
-            </button>
-            <button type="button" class="status-tab" data-filter="Cancelled" role="tab">
-                Cancelled <span class="count" data-count="Cancelled">0</span>
-            </button>
-        </div>
-
-        <form method="get" class="orders-filter">
-            <input
-                class="orders-input orders-search"
-                type="text"
-                name="q"
-                value="{{ search_query }}"
-                placeholder="Search order, customer or phone"
-                aria-label="Search orders"
-            >
-
-            <select name="status" class="orders-input" aria-label="Delivery status">
-                <option value="">All delivery statuses</option>
-                {% for value, label in status_choices %}
-                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
+            <h3>Items</h3>
+            <ul class="od-items">
+                {% for item in order.items.all %}
+                    <li><span>{{ item.product_name }}</span><b>× {{ item.quantity }}</b></li>
+                {% empty %}
+                    <li><span>No items</span></li>
                 {% endfor %}
-            </select>
-
-            <select name="payment" class="orders-input" aria-label="Payment status">
-                <option value="">All payments</option>
-                <option value="paid" {% if payment_filter == "paid" %}selected{% endif %}>Paid</option>
-                <option value="unpaid" {% if payment_filter == "unpaid" %}selected{% endif %}>Unpaid</option>
-            </select>
-
-            <button type="submit" class="orders-btn orders-btn-primary">Apply filters</button>
-        </form>
-
-        <div class="orders-table-wrap">
-            <table class="orders-table">
-                <thead>
-                    <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Amount</th>
-                        <th>Progress</th>
-                        <th>Update order</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for order in orders %}
-                    <tr class="order-row"
-                        data-status="{{ order.status }}"
-                        data-paid="{% if order.payment_status %}1{% else %}0{% endif %}">
-                        <td>
-                            <div class="order-number">#{{ order.id }}</div>
-                            <div class="order-date">{{ order.created_at|date:"d M Y" }}</div>
-                            <div class="order-date">{{ order.created_at|date:"h:i A" }}</div>
-                        </td>
-
-                        <td>
-                            <div class="customer-name">{{ order.full_name }}</div>
-                            <div class="customer-detail">{{ order.user.username }}</div>
-                            <div class="customer-detail">{{ order.phone }}</div>
-                            <div class="customer-detail">{{ order.address }}</div>
-                        </td>
-
-                        <td>
-                            {% for item in order.items.all %}
-                                <div class="order-product">
-                                    {{ item.product_name }} <strong>× {{ item.quantity }}</strong>
-                                </div>
-                            {% empty %}
-                                <span class="customer-detail">No items</span>
-                            {% endfor %}
-                        </td>
-
-                        <td>
-                            <div class="order-total">Rs. {{ order.total }}</div>
-                            <span class="order-method">{{ order.get_payment_method_display }}</span>
-                        </td>
-
-                        <!-- Progress: badges + step tracker (tracker is filled in by JS) -->
-                        <td>
-                            <span class="status-badge js-status-badge
-                                {% if order.status == 'Pending' %}status-pending
-                                {% elif order.status == 'Confirmed' %}status-confirmed
-                                {% elif order.status == 'Packed' %}status-packed
-                                {% elif order.status == 'Shipped' %}status-shipped
-                                {% elif order.status == 'Delivered' %}status-delivered
-                                {% else %}status-cancelled{% endif %}">
-                                {{ order.status }}
-                            </span>
-                            <span class="status-badge js-pay-badge
-                                {% if order.payment_status %}payment-paid{% else %}payment-unpaid{% endif %}">
-                                {% if order.payment_status %}✓ Paid{% else %}◷ Unpaid{% endif %}
-                            </span>
-                            <div class="tracker js-tracker" aria-hidden="true"></div>
-                        </td>
-
-                        <td>
-                            <form method="post" class="order-update">
-                                {% csrf_token %}
-                                <input type="hidden" name="order_id" value="{{ order.id }}">
-
-                                <button type="button" class="quick-btn js-next" hidden></button>
-
-                                <label for="status-{{ order.id }}">Delivery status</label>
-                                <select id="status-{{ order.id }}" name="status" class="orders-input js-status">
-                                    {% for value, label in status_choices %}
-                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
-                                            {{ label }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-
-                                <label for="pay-{{ order.id }}">Payment status</label>
-                                <select id="pay-{{ order.id }}" name="payment_status" class="orders-input js-pay">
-                                    <option value="unpaid" {% if not order.payment_status %}selected{% endif %}>Unpaid</option>
-                                    <option value="paid" {% if order.payment_status %}selected{% endif %}>Paid</option>
-                                </select>
-
-                                <div class="update-actions">
-                                    <button type="submit" class="save-btn js-save" disabled>Save changes</button>
-                                    <button type="button" class="undo-btn js-undo" hidden>Undo</button>
-                                </div>
-                                <p class="unsaved-note js-note" hidden>Unsaved changes</p>
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="orders-empty">
-                            <div class="orders-empty-icon">📦</div>
-                            <h3>No orders found</h3>
-                            <p>Try changing your filters or search for another order.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-
-                    <tr id="tab-empty">
-                        <td colspan="6" class="orders-empty">
-                            <div class="orders-empty-icon">🔎</div>
-                            <h3>No orders in this view</h3>
-                            <p>Pick another status tab to see more orders.</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            </ul>
         </div>
+
+        <div>
+            <h3>Customer</h3>
+            <dl class="od-dl">
+                <div><dt>Name</dt><dd>{{ order.full_name }}{% if order.user.username %} <span class="od-sub">({{ order.user.username }})</span>{% endif %}</dd></div>
+                {% if order.phone %}<div><dt>Phone</dt><dd><a href="tel:{{ order.phone }}">{{ order.phone }}</a></dd></div>{% endif %}
+                {% if order.address %}<div><dt>Address</dt><dd>{{ order.address }}</dd></div>{% endif %}
+            </dl>
+        </div>
+
+        <div class="p-update">
+            <h3>Update order</h3>
+
+            <div class="od-field">
+                <label for="status-{{ order.id }}">Delivery status</label>
+                <select id="status-{{ order.id }}" name="status" class="od-input js-status"{% if order.status == "Cancelled" or order.status == "Delivered" %} disabled{% endif %}>
+                    {% for value, label in status_choices %}<option value="{{ value }}"{% if order.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+                {% if order.status == "Cancelled" or order.status == "Delivered" %}
+                    <input type="hidden" name="status" value="{{ order.status }}">
+                    <p class="hint">{{ order.status }} orders can’t be changed.</p>
+                {% endif %}
+            </div>
+
+            <div class="od-field">
+                <label for="pay-{{ order.id }}">Payment status</label>
+                <select id="pay-{{ order.id }}" name="payment_status" class="od-input js-pay"{% if order.payment_status or order.status == "Cancelled" %} disabled{% endif %}>
+                    <option value="unpaid"{% if not order.payment_status %} selected{% endif %}>Unpaid</option>
+                    <option value="paid"{% if order.payment_status %} selected{% endif %}>Paid</option>
+                </select>
+                {% if order.payment_status %}
+                    <input type="hidden" name="payment_status" value="paid">
+                    <p class="hint">Paid orders can’t be marked unpaid.</p>
+                {% elif order.status == "Cancelled" %}
+                    <input type="hidden" name="payment_status" value="unpaid">
+                {% endif %}
+            </div>
+
+            <div class="od-update-actions">
+                <button type="submit" class="od-act save js-save" disabled>Save changes</button>
+                <button type="button" class="od-act js-undo" hidden>Undo</button>
+            </div>
+        </div>
+
     </div>
+</form>
+{% endwith %}
+{% empty %}
+<div class="od-empty static">
+    <div class="od-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#od-i-box"/></svg></div>
+    <strong>No orders found</strong>
+    <p>Try changing your filters or search for another order.</p>
+    <a class="od-btn primary" href="{% url 'admin_orders' %}">Reset filters</a>
+</div>
+{% endfor %}
+</div>
+
+<div class="od-empty" id="od-viewempty">
+    <div class="od-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#od-i-search"/></svg></div>
+    <strong>No orders in this view</strong>
+    <p>Pick another quick view to see more orders.</p>
+    <button type="button" class="od-btn primary" id="od-showall">Show all orders</button>
+</div>
+
+<!-- confirmation for irreversible changes -->
+<dialog class="od-dialog" id="od-dialog" aria-labelledby="od-d-title" aria-describedby="od-d-text">
+    <div class="od-dialog-body">
+        <div class="od-dialog-icon" id="od-d-icon" aria-hidden="true"><svg class="ico" style="width:22px;height:22px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#od-i-alert"/></svg></div>
+        <h2 id="od-d-title"></h2>
+        <p id="od-d-text"></p>
+    </div>
+    <div class="od-dialog-actions">
+        <button type="button" class="od-btn" id="od-d-cancel" autofocus>Go back</button>
+        <button type="button" class="od-btn danger" id="od-d-confirm"></button>
+    </div>
+</dialog>
+
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     var FLOW = ["Pending", "Confirmed", "Packed", "Shipped", "Delivered"];
-    var BADGE_CLASS = {
-        Pending: "status-pending", Confirmed: "status-confirmed", Packed: "status-packed",
-        Shipped: "status-shipped", Delivered: "status-delivered", Cancelled: "status-cancelled"
-    };
+    var BADGE = { Pending: "st-pending", Confirmed: "st-confirmed", Packed: "st-packed", Shipped: "st-shipped", Delivered: "st-delivered", Cancelled: "st-cancelled" };
 
-    var rows = Array.prototype.slice.call(document.querySelectorAll(".order-row"));
-    var tabs = document.querySelectorAll(".status-tab");
-    var statCards = document.querySelectorAll(".orders-stat");
-    var emptyRow = document.getElementById("tab-empty");
-    var activeFilter = "all";
+    var cards = Array.prototype.slice.call(document.querySelectorAll(".od-card"));
+    var chips = Array.prototype.slice.call(document.querySelectorAll(".od-chip"));
+    var viewEmpty = document.getElementById("od-viewempty");
+    var summary = document.getElementById("od-summary");
+    var base = summary ? summary.textContent : "";
 
-    /* ---------- Tracker ---------- */
-    function renderTracker(row, status) {
-        var el = row.querySelector(".js-tracker");
-        var cancelled = status === "Cancelled";
-        var idx = FLOW.indexOf(status);
+    document.querySelectorAll("[data-dismiss]").forEach(function (b) { b.addEventListener("click", function () { var m = b.closest(".od-msg"); if (m) m.remove(); }); });
+
+    /* ---------- progress (compact + full tracker) ---------- */
+    function progress(card, status, preview) {
+        var el = card.querySelector(".js-progress"), idx = FLOW.indexOf(status), cancelled = status === "Cancelled";
+        var bar = FLOW.map(function (_, i) { return '<i class="' + (!cancelled && i <= idx ? "on" : "") + '"></i>'; }).join("");
+        var label = cancelled ? "<b>Cancelled</b>" : "Step " + (idx + 1) + " of " + FLOW.length + " · <b>" + status + "</b>";
+        el.innerHTML = '<div class="od-prog-bar" aria-hidden="true">' + bar + '</div><div class="od-prog-label">' + label + (preview ? " (unsaved)" : "") + '</div>';
+    }
+    function tracker(card, status) {
+        var el = card.querySelector(".js-tracker"), cancelled = status === "Cancelled", idx = FLOW.indexOf(status);
         el.classList.toggle("is-cancelled", cancelled);
-        el.innerHTML = FLOW.map(function (step, i) {
-            var cls = "";
-            if (!cancelled) {
-                if (i < idx) cls = "done";
-                else if (i === idx) cls = "current";
-            }
-            return '<div class="tracker-step ' + cls + '">' +
-                   '<span class="tracker-dot"></span>' +
-                   '<span class="tracker-label">' + step + '</span></div>';
+        el.innerHTML = FLOW.map(function (s, i) {
+            var cls = cancelled ? "" : (i < idx ? "done" : (i === idx ? "current" : ""));
+            return '<div class="od-step ' + cls + '"><span class="od-dot"></span><span class="lbl">' + s + '</span></div>';
         }).join("");
     }
 
-    /* ---------- Row state ---------- */
-    function refreshRow(row) {
-        var form = row.querySelector(".order-update");
-        var statusSel = form.querySelector(".js-status");
-        var paySel = form.querySelector(".js-pay");
-        var saveBtn = form.querySelector(".js-save");
-        var undoBtn = form.querySelector(".js-undo");
-        var note = form.querySelector(".js-note");
-        var nextBtn = form.querySelector(".js-next");
+    /* ---------- per-order state ---------- */
+    function refresh(card) {
+        var sel = card.querySelector(".js-status"), pay = card.querySelector(".js-pay");
+        var origS = card.dataset.status, origP = card.dataset.paid === "1" ? "paid" : "unpaid";
+        var sc = sel.value !== origS, pc = pay.value !== origP, dirty = sc || pc, locked = card.dataset.locked === "1";
 
-        var origStatus = row.dataset.status;
-        var origPaid = row.dataset.paid === "1" ? "paid" : "unpaid";
+        sel.classList.toggle("changed", sc); pay.classList.toggle("changed", pc);
+        card.classList.toggle("is-dirty", dirty);
+        card.classList.toggle("is-cancelled", origS === "Cancelled");
+        card.querySelector(".js-save").disabled = !dirty;
+        card.querySelector(".js-undo").hidden = !dirty;
+        card.querySelector(".js-save-top").hidden = !dirty;
+        card.querySelector(".js-undo-top").hidden = !dirty;
+        card.querySelector(".js-dirtychip").hidden = !dirty;
 
-        var statusChanged = statusSel.value !== origStatus;
-        var payChanged = paySel.value !== origPaid;
-        var dirty = statusChanged || payChanged;
+        var i = FLOW.indexOf(sel.value), next = card.querySelector(".js-next");
+        if (!locked && !dirty && i > -1 && i < FLOW.length - 1) {
+            next.textContent = "Move to " + FLOW[i + 1]; next.dataset.next = FLOW[i + 1]; next.hidden = false;
+        } else next.hidden = true;
 
-        statusSel.classList.toggle("changed", statusChanged);
-        paySel.classList.toggle("changed", payChanged);
-        row.classList.toggle("is-dirty", dirty);
-        row.classList.toggle("is-cancelled", origStatus === "Cancelled");
-        saveBtn.disabled = !dirty;
-        undoBtn.hidden = !dirty;
-        note.hidden = !dirty;
-
-        /* Preview the tracker for the selected (not yet saved) status */
-        renderTracker(row, statusSel.value);
-
-        /* Quick "next step" button follows the selected status */
-        var i = FLOW.indexOf(statusSel.value);
-        if (i > -1 && i < FLOW.length - 1) {
-            nextBtn.textContent = "Move to " + FLOW[i + 1];
-            nextBtn.dataset.next = FLOW[i + 1];
-            nextBtn.hidden = false;
-        } else {
-            nextBtn.hidden = true;
-        }
+        progress(card, sel.value, sc);
+        tracker(card, sel.value);
+    }
+    function undo(card) {
+        card.querySelector(".js-status").value = card.dataset.status;
+        card.querySelector(".js-pay").value = card.dataset.paid === "1" ? "paid" : "unpaid";
+        refresh(card);
     }
 
-    rows.forEach(function (row) {
-        var form = row.querySelector(".order-update");
-        var statusSel = form.querySelector(".js-status");
-        var paySel = form.querySelector(".js-pay");
-
-        statusSel.addEventListener("change", function () { refreshRow(row); });
-        paySel.addEventListener("change", function () { refreshRow(row); });
-
-        form.querySelector(".js-next").addEventListener("click", function (e) {
-            statusSel.value = e.currentTarget.dataset.next;
-            /* Delivered cash-on-delivery orders are normally paid on arrival */
-            refreshRow(row);
-            form.querySelector(".js-save").focus();
-        });
-
-        form.querySelector(".js-undo").addEventListener("click", function () {
-            statusSel.value = row.dataset.status;
-            paySel.value = row.dataset.paid === "1" ? "paid" : "unpaid";
-            refreshRow(row);
-        });
-
-        form.addEventListener("submit", function (e) {
-            if (statusSel.value === "Cancelled" && row.dataset.status !== "Cancelled") {
-                var id = row.querySelector(".order-number").textContent.trim();
-                if (!confirm("Cancel order " + id + "? The customer will see it as cancelled.")) {
-                    e.preventDefault();
-                }
-            }
-        });
-
-        refreshRow(row);
-    });
-
-    /* ---------- Counts ---------- */
-    function updateCounts() {
-        var counts = { all: rows.length, Pending: 0, Confirmed: 0, Packed: 0,
-                       Shipped: 0, Delivered: 0, Cancelled: 0 };
-        var unpaid = 0;
-        rows.forEach(function (row) {
-            if (counts[row.dataset.status] !== undefined) counts[row.dataset.status]++;
-            if (row.dataset.paid === "0" && row.dataset.status !== "Cancelled") unpaid++;
-        });
-        document.querySelectorAll("[data-count]").forEach(function (el) {
-            el.textContent = counts[el.dataset.count] || 0;
-        });
-        document.getElementById("stat-pending").textContent = counts.Pending;
-        document.getElementById("stat-delivered").textContent = counts.Delivered;
-        document.getElementById("stat-unpaid").textContent = unpaid;
+    /* ---------- confirmation dialog for irreversible moves ---------- */
+    var dlg = document.getElementById("od-dialog"), pending = null;
+    function needsConfirm(card) {
+        var s = card.querySelector(".js-status").value;
+        return s !== card.dataset.status && (s === "Cancelled" || s === "Delivered") ? s : null;
+    }
+    function busy(card) {
+        card.classList.remove("is-dirty");
+        card.querySelectorAll(".js-save, .js-save-top").forEach(function (b) { b.setAttribute("aria-busy", "true"); b.textContent = "Saving…"; setTimeout(function () { b.disabled = true; }, 0); });
     }
 
-    /* ---------- Filtering ---------- */
-    function matches(row, filter) {
-        if (filter === "all") return true;
-        if (filter === "needs-action") return row.dataset.status === "Pending";
-        if (filter === "unpaid") return row.dataset.paid === "0" && row.dataset.status !== "Cancelled";
-        return row.dataset.status === filter;
-    }
+    cards.forEach(function (card) {
+        var sel = card.querySelector(".js-status"), pay = card.querySelector(".js-pay"), toggle = card.querySelector(".js-toggle"), panel = card.querySelector(".od-panel");
 
-    function applyFilter(filter) {
-        activeFilter = filter;
-        var visible = 0;
-        rows.forEach(function (row) {
-            var show = matches(row, filter);
-            row.style.display = show ? "" : "none";
-            if (show) visible++;
+        sel.addEventListener("change", function () { refresh(card); });
+        pay.addEventListener("change", function () { refresh(card); });
+        card.querySelector(".js-undo").addEventListener("click", function () { undo(card); });
+        card.querySelector(".js-undo-top").addEventListener("click", function () { undo(card); });
+        card.querySelector(".js-next").addEventListener("click", function (e) {
+            sel.value = e.currentTarget.dataset.next; refresh(card); card.querySelector(".js-save-top").focus();
         });
-        if (emptyRow) emptyRow.style.display = (rows.length && !visible) ? "table-row" : "none";
-
-        tabs.forEach(function (t) {
-            var on = t.dataset.filter === filter;
-            t.classList.toggle("is-active", on);
-            t.setAttribute("aria-selected", on ? "true" : "false");
+        toggle.addEventListener("click", function () {
+            var open = toggle.getAttribute("aria-expanded") !== "true";
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+            toggle.setAttribute("aria-label", (open ? "Hide" : "Show") + " details for order #" + card.dataset.id);
+            panel.hidden = !open;
         });
-        statCards.forEach(function (c) {
-            c.classList.toggle("is-active", c.dataset.filter === filter);
-        });
-    }
 
-    tabs.forEach(function (t) {
-        t.addEventListener("click", function () { applyFilter(t.dataset.filter); });
-    });
-    statCards.forEach(function (c) {
-        c.addEventListener("click", function () { applyFilter(c.dataset.filter); });
-    });
-
-    /* Warn before leaving with unsaved edits */
-    window.addEventListener("beforeunload", function (e) {
-        if (document.querySelector(".order-row.is-dirty")) {
+        card.addEventListener("submit", function (e) {
+            if (card.dataset.confirmed === "1") { busy(card); return; }
+            var target = needsConfirm(card);
+            if (!target) { busy(card); return; }
             e.preventDefault();
-            e.returnValue = "";
-        }
-    });
-    document.querySelectorAll(".order-update").forEach(function (f) {
-        f.addEventListener("submit", function () {
-            /* Clear dirty flag so the leave-warning doesn't fire on a real save */
-            f.closest(".order-row").classList.remove("is-dirty");
+            var id = "#" + card.dataset.id, cancel = target === "Cancelled";
+            if (!dlg || typeof dlg.showModal !== "function") {
+                if (confirm((cancel ? "Cancel order " : "Mark order as delivered ") + id + "? This can't be undone.")) { card.dataset.confirmed = "1"; card.submit(); }
+                return;
+            }
+            pending = card;
+            document.getElementById("od-d-title").textContent = cancel ? "Cancel order " + id + "?" : "Mark order " + id + " as delivered?";
+            document.getElementById("od-d-text").textContent = cancel
+                ? "The customer will see this order as cancelled. Cancelled orders can’t be changed afterwards."
+                : "Delivered orders are final and their delivery status can’t be changed afterwards.";
+            document.getElementById("od-d-icon").classList.toggle("ok", !cancel);
+            var c = document.getElementById("od-d-confirm");
+            c.textContent = cancel ? "Cancel order" : "Mark delivered";
+            c.className = "od-btn " + (cancel ? "danger" : "primary");
+            dlg.showModal();
         });
+        refresh(card);
     });
 
-    updateCounts();
-    applyFilter("all");
+    if (dlg) {
+        document.getElementById("od-d-cancel").addEventListener("click", function () { pending = null; dlg.close(); });
+        document.getElementById("od-d-confirm").addEventListener("click", function () {
+            if (!pending) return;
+            var c = pending; c.dataset.confirmed = "1"; dlg.close();
+            if (c.requestSubmit) c.requestSubmit(); else c.submit();
+        });
+        dlg.addEventListener("click", function (e) { if (e.target === dlg) { pending = null; dlg.close(); } });
+    }
+
+    /* ---------- counts + quick views ---------- */
+    var active = "all";
+    function matches(card, f) {
+        if (f === "all") return true;
+        if (f === "unpaid") return card.dataset.paid === "0" && card.dataset.status !== "Cancelled";
+        return card.dataset.status === f;
+    }
+    function counts() {
+        var c = { all: cards.length, Pending: 0, Confirmed: 0, Packed: 0, Shipped: 0, Delivered: 0, Cancelled: 0, unpaid: 0 };
+        cards.forEach(function (x) { if (c[x.dataset.status] !== undefined) c[x.dataset.status]++; if (matches(x, "unpaid")) c.unpaid++; });
+        document.querySelectorAll("[data-count]").forEach(function (el) { el.textContent = c[el.dataset.count] || 0; });
+    }
+    function apply(f) {
+        active = f; var shown = 0;
+        cards.forEach(function (x) { var ok = matches(x, f); x.hidden = !ok; if (ok) shown++; });
+        if (viewEmpty) viewEmpty.classList.toggle("show", cards.length > 0 && shown === 0);
+        chips.forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.filter === f ? "true" : "false"); });
+        if (summary && cards.length) summary.innerHTML = f === "all" ? base : "Showing <strong>" + shown + "</strong> of " + cards.length + " orders";
+    }
+    chips.forEach(function (c) { c.addEventListener("click", function () { apply(c.dataset.filter); }); });
+    var showAll = document.getElementById("od-showall");
+    if (showAll) showAll.addEventListener("click", function () { apply("all"); });
+
+    /* warn before leaving with unsaved edits */
+    window.addEventListener("beforeunload", function (e) {
+        if (document.querySelector(".od-card.is-dirty")) { e.preventDefault(); e.returnValue = ""; }
+    });
+
+    counts(); apply("all");
 });
 </script>
+
 {% endblock %}

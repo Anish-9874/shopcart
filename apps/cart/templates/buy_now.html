@@ -1,484 +1,338 @@
-
 {% extends 'base.html' %}
 
 {% block content %}
-
 <style>
-:root {
-    --accent: #1D4ED8;
-    --accent-dark: #0B0C10;
-    --accent-soft: #EFF4FF;
-    --accent-ring: rgba(29, 78, 216, .18);
-    --highlight: #3B82F6;
+/* =========================================================
+   ShopCart – Buy Now checkout  (warm orange / cream palette, same as
+   header, home, products, categories and cart checkout)
+   Everything is scoped under .bn-page with a "bn-" prefix. Your old
+   version defined :root { --accent, --ink, --border … } plus global
+   .card / .msg rules: those leaked into the header and every other page
+   (turning header accents blue). This version touches nothing outside
+   the page.
+   ========================================================= */
+.bn-page {
+  --c-primary: #C2410C;          /* actions, totals          (5.2:1 with white text) */
+  --c-primary-hover: #9A3412;
+  --c-ink: #1C1917;
+  --c-ink-2: #292524;
+  --c-muted: #57534E;            /* 7:1 on white */
+  --c-border: #FDE0C4;
+  --c-border-soft: #FFEDD5;
+  --c-field: #D6D3D1;
+  --c-surface: #FFFFFF;
+  --c-cream: #FFF7ED;
+  --c-tint: #FFEDD5;
+  --c-orange: #F97316;
+  --c-orange-l: #FDBA74;
+  --c-ring: rgba(59, 130, 246, .18);          /* input focus (brand blue)  */
+  --c-accent-ring: rgba(249, 115, 22, .22);   /* selected states (orange)  */
+  --c-highlight: #3B82F6;
+  --c-danger: #B91C1C; --c-danger-soft: #FEF2F2; --c-danger-border: #FCA5A5;
+  --c-success: #166534; --c-success-soft: #F0FDF4; --c-success-border: #86EFAC;
+  --c-warn: #92400E; --c-warn-soft: #FFFBEB; --c-warn-border: #FCD34D;
 
-    --ink: #0B0C10;
-    --muted: #64748B;
-    --border: #E2E8F0;
+  --r-sm: 12px; --r-md: 14px; --r-lg: 22px;
+  --shadow-sm: 0 1px 2px rgba(124,45,18,.06), 0 6px 18px rgba(124,45,18,.06);
+  --shadow-md: 0 20px 44px rgba(124,45,18,.14);
+  --gutter: clamp(16px, 4vw, 28px);
+  --sticky-top: 88px;
+  --ease: cubic-bezier(.22, 1, .36, 1);
 
-    --gradient: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  box-sizing: border-box;
+  width: 100%; max-width: 1120px; margin: 0 auto;
+  padding: clamp(24px, 4vw, 44px) var(--gutter) 72px;
+  color: var(--c-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+.bn-page *, .bn-page *::before, .bn-page *::after { box-sizing: border-box; }
+.bn-page :is(h1, h2, p, ul) { margin: 0; padding: 0; }
+.bn-page :is(a, button, input, select, textarea):focus-visible { outline: 3px solid var(--c-highlight); outline-offset: 2px; }
+.bn-page .bn-ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes bn-spin { to { transform: rotate(360deg); } }
+@keyframes bn-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-.checkout-container {
-    max-width: 1100px;
-    margin: 48px auto;
-    padding: 0 20px;
-
-    display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 28px;
-
-    align-items: start;
-
-    font-family: system-ui, sans-serif;
-    color: var(--ink);
+/* ---------- HEAD ---------- */
+.bn-page .bn-top {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 18px 24px;
+  margin-bottom: 28px; padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--c-border); border-radius: 28px;
+  background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #FFFDFA, #FFF4E8 55%, #FFE3C7);
+  animation: bn-rise .6s var(--ease) backwards;
 }
+.bn-page .bn-top::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--c-orange-l); opacity: .45; filter: blur(60px); }
+.bn-page .bn-eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--c-primary); font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: .14em; }
+.bn-page .bn-eyebrow::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--c-orange); }
+.bn-page .bn-title { font-size: clamp(1.9rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.bn-page .bn-lead { margin-top: 10px; color: var(--c-muted); font-size: 15px; }
+.bn-page .bn-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--c-border); border-radius: 999px; background: #fff; box-shadow: var(--shadow-sm); color: var(--c-primary); font-size: 14px; font-weight: 700; }
+.bn-page .bn-pill .bn-ico { font-size: 16px; }
 
-/* Cards */
-.card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 32px;
+/* ---------- LAYOUT + CARDS ---------- */
+.bn-page .bn-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.bn-page .bn-card { padding: clamp(20px, 3vw, 32px); background: var(--c-surface); border: 1px solid var(--c-border-soft); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); animation: bn-rise .6s .1s var(--ease) backwards; }
+.bn-page .bn-card-title { margin-bottom: 20px; font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; }
+
+/* ---------- MESSAGES / ALERTS ---------- */
+.bn-page .bn-msgs { display: grid; gap: 10px; margin-bottom: 20px; }
+.bn-page .bn-msg { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border: 1px solid var(--c-border); border-radius: var(--r-md); background: var(--c-surface); color: var(--c-ink-2); font-size: 14px; font-weight: 600; }
+.bn-page .bn-msg .bn-ico { margin-top: 3px; font-size: 17px; }
+.bn-page .bn-msg.success { border-color: var(--c-success-border); background: var(--c-success-soft); color: var(--c-success); }
+.bn-page .bn-msg.error   { border-color: var(--c-danger-border);  background: var(--c-danger-soft);  color: var(--c-danger); }
+.bn-page .bn-msg.warning { border-color: var(--c-warn-border);     background: var(--c-warn-soft);     color: var(--c-warn); }
+.bn-page .bn-msg.info, .bn-page .bn-msg.debug { border-color: var(--c-border); background: var(--c-cream); color: var(--c-primary-hover); }
+
+/* Django error lists (non-field + field errors) */
+.bn-page .errorlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bn-page .errorlist li { display: flex; align-items: flex-start; gap: 8px; color: var(--c-danger); font-size: 13px; font-weight: 600; }
+.bn-page .errorlist li::before { content: "!"; flex-shrink: 0; display: grid; place-items: center; width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; background: var(--c-danger); color: #fff; font-size: 11px; font-weight: 800; line-height: 1; }
+.bn-page .bn-alert { margin-bottom: 20px; padding: 12px 16px; border: 1px solid var(--c-danger-border); border-radius: var(--r-md); background: var(--c-danger-soft); }
+
+/* ---------- FIELDS ---------- */
+.bn-page .bn-field { margin-bottom: 20px; }
+.bn-page .bn-field > label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: var(--c-ink); }
+.bn-page .bn-control :is(input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]), textarea, select) {
+  display: block; width: 100%; min-height: 48px; margin: 0; padding: 11px 14px;
+  border: 1px solid var(--c-field); border-radius: var(--r-sm); background: var(--c-cream); color: var(--c-ink);
+  font-family: inherit; font-size: 16px; line-height: 1.5;      /* 16px prevents iOS zoom */
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
+.bn-page .bn-control textarea { min-height: 112px; resize: vertical; }
+.bn-page .bn-control :is(input:not([type="radio"]):not([type="checkbox"]), textarea, select):hover { border-color: var(--c-orange); }
+.bn-page .bn-control :is(input:not([type="radio"]):not([type="checkbox"]), textarea, select):focus { border-color: var(--c-highlight); background: #fff; outline: none; box-shadow: 0 0 0 4px var(--c-ring); }
+.bn-page .bn-field.has-error .bn-control :is(input:not([type="radio"]), textarea, select) { border-color: var(--c-danger); background: #FFFAFA; }
+.bn-page .bn-field.has-error .bn-control :is(input, textarea, select):focus { box-shadow: 0 0 0 4px rgba(185,28,28,.18); }
+.bn-page .bn-errors { margin-top: 6px; }
 
-.card h2 {
-    margin: 0 0 20px;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--accent);
+/* payment method as radio cards (a normal <select> also works) */
+.bn-page .bn-control :is(ul, div[id]):has(input[type="radio"]) { display: grid; gap: 10px; list-style: none; }
+.bn-page .bn-control :is(ul, div[id]):has(input[type="radio"]) > * { margin: 0; padding: 0; list-style: none; }
+.bn-page .bn-control label:has(input[type="radio"]) { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 12px 16px; border: 1px solid var(--c-field); border-radius: var(--r-sm); background: var(--c-surface); color: var(--c-ink); font-size: 15px; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+.bn-page .bn-control label:has(input[type="radio"]):hover { border-color: var(--c-orange); background: var(--c-cream); }
+.bn-page .bn-control label:has(input[type="radio"]:checked) { border-color: var(--c-primary); background: var(--c-tint); color: var(--c-primary-hover); box-shadow: 0 0 0 3px var(--c-accent-ring); }
+.bn-page .bn-control label:has(input[type="radio"]:focus-visible) { outline: 3px solid var(--c-highlight); outline-offset: 2px; }
+.bn-page .bn-control input[type="radio"] { width: 20px; height: 20px; margin: 0; accent-color: var(--c-primary); flex-shrink: 0; }
+
+/* ---------- SUBMIT ---------- */
+.bn-page .bn-submit { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 54px; margin-top: 8px; padding: 0 20px; border: 0; border-radius: 14px; background: var(--c-primary); color: #fff; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 24px rgba(194,65,12,.30); transition: background .2s ease, box-shadow .2s ease, transform .25s var(--ease); }
+.bn-page .bn-submit .bn-ico { font-size: 18px; }
+.bn-page .bn-submit:hover { background: var(--c-primary-hover); box-shadow: 0 14px 30px rgba(154,52,18,.34); transform: translateY(-2px); }
+.bn-page .bn-submit:active { transform: scale(.985); }
+.bn-page .bn-submit[disabled] { cursor: progress; transform: none; opacity: .92; }
+.bn-page .bn-submit.is-loading .bn-ico { display: none; }
+.bn-page .bn-submit.is-loading::before { content: ""; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: bn-spin .7s linear infinite; }
+.bn-page .bn-secure { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; color: var(--c-muted); font-size: 13px; }
+.bn-page .bn-secure .bn-ico { font-size: 15px; color: var(--c-primary); }
+
+/* ---------- ORDER SUMMARY ---------- */
+.bn-page .bn-summary { position: sticky; top: var(--sticky-top); box-shadow: var(--shadow-md); }
+.bn-page .bn-product { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; margin-bottom: 16px; border-bottom: 1px dashed var(--c-border); }
+.bn-page .bn-thumb { position: relative; flex-shrink: 0; width: 64px; height: 64px; border-radius: var(--r-sm); background: linear-gradient(135deg, var(--c-tint), var(--c-cream)); }
+.bn-page .bn-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-sm); }
+.bn-page .bn-noimg { width: 100%; height: 100%; display: grid; place-items: center; color: var(--c-primary); font-size: 24px; }
+.bn-page .bn-qty { position: absolute; right: -7px; bottom: -7px; min-width: 24px; padding: 2px 7px; border: 2px solid #fff; border-radius: 999px; background: var(--c-primary); color: #fff; font-size: 12px; font-weight: 800; line-height: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.bn-page .bn-name { font-size: 15px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bn-page .bn-unit { margin-top: 3px; color: var(--c-muted); font-size: 13px; }
+
+.bn-page .bn-line { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; color: var(--c-muted); font-size: 14px; }
+.bn-page .bn-line span:last-child { color: var(--c-ink); font-weight: 600; }
+.bn-page .bn-line .bn-free { color: var(--c-success); font-weight: 700; }
+.bn-page .bn-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 16px; border-top: 2px solid var(--c-orange); }
+.bn-page .bn-total .label { font-size: 15px; font-weight: 600; }
+.bn-page .bn-total .amount { color: var(--c-primary); font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+.bn-page .bn-cod { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--c-border); border-left: 4px solid var(--c-orange); border-radius: var(--r-sm); background: var(--c-cream); color: var(--c-primary-hover); font-size: 13px; font-weight: 600; }
+.bn-page .bn-cod .bn-ico { margin-top: 2px; font-size: 18px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 960px) {
+  .bn-page .bn-layout { grid-template-columns: 1fr; }
+  .bn-page .bn-summary { position: static; order: -1; }   /* see what you're buying first */
 }
-
-/* Messages */
-.msg {
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    font-size: 13px;
-}
-
-.msg.error {
-    color: var(--accent);
-    border-color: var(--accent);
-}
-
-.msg.success {
-    color: #166534;
-    border-color: #86EFAC;
-}
-
-/* Form */
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 11px 13px;
-    box-sizing: border-box;
-
-    border: 1px solid var(--border);
-    border-radius: 5px;
-
-    background: #fff;
-    color: var(--ink);
-
-    font-size: 14px;
-    outline: none;
-
-    transition: .2s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-ring);
-}
-
-.field-errors {
-    margin: 5px 0 0;
-    padding: 0;
-    list-style: none;
-
-    color: var(--accent);
-    font-size: 12px;
-}
-
-/* Place Order */
-.place-order {
-    width: 100%;
-    margin-top: 8px;
-    padding: 14px;
-
-    border: none;
-    border-radius: 5px;
-
-    background: var(--gradient);
-    color: #fff;
-
-    font-size: 14.5px;
-    font-weight: 600;
-
-    cursor: pointer;
-    transition: .25s;
-}
-
-.place-order:hover {
-    background: linear-gradient(
-        135deg,
-        var(--accent),
-        var(--accent-dark)
-    );
-
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px var(--accent-ring);
-}
-
-/* Order Summary */
-.summary {
-    position: sticky;
-    top: 24px;
-}
-
-.summary-product {
-    display: flex;
-    gap: 12px;
-
-    padding-bottom: 18px;
-    margin-bottom: 16px;
-
-    border-bottom: 1px dashed var(--border);
-}
-
-.summary-thumb {
-    position: relative;
-
-    width: 60px;
-    height: 60px;
-
-    flex-shrink: 0;
-
-    overflow: hidden;
-    border-radius: 5px;
-
-    background: var(--accent-soft);
-}
-
-.summary-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.no-image {
-    width: 100%;
-    height: 100%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: var(--muted);
-    font-size: 10px;
-}
-
-.qty {
-    position: absolute;
-    right: -4px;
-    bottom: -4px;
-
-    padding: 1px 6px;
-
-    border-radius: 10px;
-
-    background: var(--accent);
-    color: #fff;
-
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.summary-name {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.summary-unit {
-    margin-top: 3px;
-    color: var(--muted);
-    font-size: 12px;
-}
-
-/* Summary Lines */
-.summary-line {
-    display: flex;
-    justify-content: space-between;
-
-    margin-bottom: 8px;
-
-    color: var(--muted);
-    font-size: 13.5px;
-}
-
-.summary-line span:last-child {
-    color: var(--ink);
-}
-
-/* Total */
-.summary-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-
-    margin-top: 14px;
-    padding-top: 14px;
-
-    border-top: 2px solid var(--accent);
-}
-
-.summary-total .label {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.summary-total .amount {
-    color: var(--accent);
-    font-size: 20px;
-    font-weight: 700;
-}
-
-/* COD */
-.cod {
-    margin-top: 16px;
-    padding: 11px 12px;
-
-    border-left: 3px solid var(--accent);
-    border-radius: 5px;
-
-    background: var(--accent-soft);
-    color: var(--accent);
-
-    font-size: 12.5px;
-    font-weight: 600;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-
-    .checkout-container {
-        grid-template-columns: 1fr;
-    }
-
-    .summary {
-        position: static;
-    }
-}
-
-@media (max-width: 500px) {
-
-    .checkout-container {
-        margin: 25px auto;
-        padding: 0 14px;
-    }
-
-    .card {
-        padding: 24px 20px;
-    }
-
-    .card h2 {
-        font-size: 18px;
-    }
+@media (max-width: 768px) { .bn-page .bn-top { border-radius: 22px; } }
+@media (prefers-reduced-motion: reduce) {
+  .bn-page *, .bn-page *::before, .bn-page *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 </style>
 
+<div class="bn-page">
 
-<div class="checkout-container">
+  <!-- Icon sprite (ids prefixed "bn-i-" so they never clash with your header icons) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="bn-i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+      <symbol id="bn-i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+      <symbol id="bn-i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="bn-i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+      <symbol id="bn-i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
+      <symbol id="bn-i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="bn-i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="bn-top">
+    <div>
+      <span class="bn-eyebrow">SECURE CHECKOUT</span>
+      <h1 class="bn-title">Checkout</h1>
+      <p class="bn-lead">Enter your delivery details to place your order.</p>
+    </div>
+    <span class="bn-pill"><svg class="bn-ico" aria-hidden="true"><use href="#bn-i-zap"/></svg>Buy now</span>
+  </div>
+
+  <div class="bn-layout">
 
     <!-- Shipping -->
-    <div class="card">
+    <section class="bn-card" aria-labelledby="bn-ship-title">
 
-        <h2>Shipping Information</h2>
+      <h2 id="bn-ship-title" class="bn-card-title">Shipping Information</h2>
 
+      {% if messages %}
+      <div class="bn-msgs" role="status">
         {% for message in messages %}
-            <div class="msg {{ message.tags }}">
-                {{ message }}
-            </div>
+          <div class="bn-msg {{ message.tags }}">
+            <svg class="bn-ico" aria-hidden="true"><use href="{% if 'success' in message.tags %}#bn-i-ok{% else %}#bn-i-alert{% endif %}"/></svg>
+            <span>{{ message }}</span>
+          </div>
         {% endfor %}
+      </div>
+      {% endif %}
 
-        <form method="POST">
+      <form method="POST" id="bn-form">
 
-            {% csrf_token %}
+        {% csrf_token %}
 
-            <input type="hidden"
-                   name="quantity"
-                   value="{{ quantity }}">
+        <input type="hidden" name="quantity" value="{{ quantity }}">
 
-            {{ form.non_field_errors }}
+        {% if form.non_field_errors %}
+        <div class="bn-alert" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
 
+        <div class="bn-field{% if form.full_name.errors %} has-error{% endif %}">
+          {{ form.full_name.label_tag }}
+          <div class="bn-control">{{ form.full_name }}</div>
+          {% if form.full_name.errors %}<div class="bn-errors" id="{{ form.full_name.id_for_label }}-error">{{ form.full_name.errors }}</div>{% endif %}
+        </div>
 
-            <div class="form-group">
+        <div class="bn-field{% if form.phone.errors %} has-error{% endif %}">
+          {{ form.phone.label_tag }}
+          <div class="bn-control">{{ form.phone }}</div>
+          {% if form.phone.errors %}<div class="bn-errors" id="{{ form.phone.id_for_label }}-error">{{ form.phone.errors }}</div>{% endif %}
+        </div>
 
-                {{ form.full_name.label_tag }}
+        <div class="bn-field{% if form.address.errors %} has-error{% endif %}">
+          {{ form.address.label_tag }}
+          <div class="bn-control">{{ form.address }}</div>
+          {% if form.address.errors %}<div class="bn-errors" id="{{ form.address.id_for_label }}-error">{{ form.address.errors }}</div>{% endif %}
+        </div>
 
-                {{ form.full_name }}
+        <div class="bn-field{% if form.payment_method.errors %} has-error{% endif %}">
+          {{ form.payment_method.label_tag }}
+          <div class="bn-control">{{ form.payment_method }}</div>
+          {% if form.payment_method.errors %}<div class="bn-errors" id="{{ form.payment_method.id_for_label }}-error">{{ form.payment_method.errors }}</div>{% endif %}
+        </div>
 
-                <ul class="field-errors">
-                    {{ form.full_name.errors }}
-                </ul>
+        <button class="bn-submit" id="bn-submit" type="submit">
+          <svg class="bn-ico" aria-hidden="true"><use href="#bn-i-lock"/></svg>
+          <span id="bn-submit-label">Place Order · Rs. {{ total }}</span>
+        </button>
 
-            </div>
+        <p class="bn-secure"><svg class="bn-ico" aria-hidden="true"><use href="#bn-i-shield"/></svg>Your details are sent over a secure connection.</p>
 
+      </form>
 
-            <div class="form-group">
-
-                {{ form.phone.label_tag }}
-
-                {{ form.phone }}
-
-                <ul class="field-errors">
-                    {{ form.phone.errors }}
-                </ul>
-
-            </div>
-
-
-            <div class="form-group">
-
-                {{ form.address.label_tag }}
-
-                {{ form.address }}
-
-                <ul class="field-errors">
-                    {{ form.address.errors }}
-                </ul>
-
-            </div>
-
-
-            <div class="form-group">
-
-                {{ form.payment_method.label_tag }}
-
-                {{ form.payment_method }}
-
-                <ul class="field-errors">
-                    {{ form.payment_method.errors }}
-                </ul>
-
-            </div>
-
-
-            <button class="place-order" type="submit">
-                Place Order
-            </button>
-
-        </form>
-
-    </div>
-
+    </section>
 
     <!-- Order Summary -->
-    <div class="card summary">
+    <aside class="bn-card bn-summary" aria-labelledby="bn-sum-title">
 
-        <h2>Order Summary</h2>
+      <h2 id="bn-sum-title" class="bn-card-title">Order Summary</h2>
 
-
-        <div class="summary-product">
-
-            <div class="summary-thumb">
-
-                {% if product.image %}
-
-                    <img src="{{ product.image.url }}"
-                         alt="{{ product.name }}">
-
-                {% else %}
-
-                    <div class="no-image">
-                        No Image
-                    </div>
-
-                {% endif %}
-
-
-                <span class="qty">
-                    &times;{{ quantity }}
-                </span>
-
-            </div>
-
-
-            <div>
-
-                <div class="summary-name">
-                    {{ product.name }}
-                </div>
-
-                <div class="summary-unit">
-                    Rs. {{ product.price }} each
-                </div>
-
-            </div>
-
+      <div class="bn-product">
+        <div class="bn-thumb">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="" width="64" height="64" decoding="async">
+          {% else %}
+            <div class="bn-noimg"><svg class="bn-ico" aria-hidden="true"><use href="#bn-i-box"/></svg></div>
+          {% endif %}
+          <span class="bn-qty"><span class="bn-sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Quantity </span>&times;{{ quantity }}</span>
         </div>
 
-
-        <div class="summary-line">
-
-            <span>
-                Subtotal
-            </span>
-
-            <span>
-                Rs. {{ total }}
-            </span>
-
+        <div>
+          <p class="bn-name">{{ product.name }}</p>
+          <p class="bn-unit">Rs. {{ product.price }} each</p>
         </div>
+      </div>
 
+      <div class="bn-line"><span>Subtotal</span><span>Rs. {{ total }}</span></div>
+      <div class="bn-line"><span>Shipping</span><span class="bn-free">Free</span></div>
 
-        <div class="summary-line">
+      <div class="bn-total"><span class="label">Total</span><span class="amount">Rs. {{ total }}</span></div>
 
-            <span>
-                Shipping
-            </span>
+      <div class="bn-cod">
+        <svg class="bn-ico" aria-hidden="true"><use href="#bn-i-truck"/></svg>
+        <span>Cash on Delivery &mdash; pay when your order arrives.</span>
+      </div>
 
-            <span>
-                Free
-            </span>
+    </aside>
 
-        </div>
-
-
-        <div class="summary-total">
-
-            <span class="label">
-                Total
-            </span>
-
-            <span class="amount">
-                Rs. {{ total }}
-            </span>
-
-        </div>
-
-
-        <div class="cod">
-            Cash on Delivery &mdash; pay when your order arrives.
-        </div>
-
-    </div>
+  </div>
 
 </div>
 
-{% endblock %}
+<script>
+/* Buy-now page only – scoped to .bn-page, never touches the navbar/header. */
+(function () {
+  var page = document.querySelector('.bn-page');
+  var form = document.getElementById('bn-form');
+  if (!page || !form) return;
 
+  /* 1. Autofill hints + right mobile keyboard */
+  var hints = {
+    full_name: { autocomplete: 'name' },
+    phone:     { autocomplete: 'tel', inputmode: 'tel' },
+    address:   { autocomplete: 'street-address' }
+  };
+  Object.keys(hints).forEach(function (name) {
+    var el = form.querySelector('[name="' + name + '"]');
+    if (!el) return;
+    Object.keys(hints[name]).forEach(function (a) { if (!el.hasAttribute(a)) el.setAttribute(a, hints[name][a]); });
+  });
+
+  /* 2. Tell screen readers which inputs are invalid and why */
+  page.querySelectorAll('.bn-field').forEach(function (wrap) {
+    var err = wrap.querySelector('.bn-errors');
+    if (!err) return;
+    wrap.querySelectorAll('input:not([type="hidden"]), textarea, select').forEach(function (el) {
+      el.setAttribute('aria-invalid', 'true');
+      el.setAttribute('aria-describedby', err.id);
+    });
+  });
+
+  /* 3. After a failed submit, jump to the first invalid field */
+  var bad = form.querySelector('[aria-invalid="true"]');
+  if (bad) { bad.focus({ preventScroll: true }); bad.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+
+  /* 4. Prevent duplicate orders: lock the button once the form is sent */
+  var btn = document.getElementById('bn-submit');
+  var label = document.getElementById('bn-submit-label');
+  var original = label ? label.textContent : '';
+  form.addEventListener('submit', function () {
+    if (!btn || btn.disabled) return;
+    setTimeout(function () {                       // after the browser has built the form data
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      if (label) label.textContent = 'Placing your order…';
+    }, 0);
+  });
+  window.addEventListener('pageshow', function () {   // back button restores the button
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    if (label) label.textContent = original;
+  });
+})();
+</script>
+
+{% endblock %}

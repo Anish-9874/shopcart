@@ -1,221 +1,291 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications | ShopCart{% endblock %}
 
 {% block content %}
-
 <style>
-.notifications {
-    max-width: 680px;
-    margin: 40px auto;
-    padding: 0 16px;
+/* =========================================================
+   ShopCart – Notifications page
+   Same warm palette + components as Home / Products / Categories.
+   EVERY selector below starts with .notif-page (or an n-* class),
+   so nothing here can leak into the header, footer or base.
+   ========================================================= */
+.notif-page {
+  --p-cream: #fff7ed; --p-peach: #ffedd5; --p-line: #fde0c4; --p-line-soft: #ffedd5;
+  --p-ink: #1c1917; --p-text: #44403c; --p-muted: #57534e;
+  --p-orange: #f97316; --p-orange-d: #ea580c; --p-orange-dd: #c2410c; --p-orange-ddd: #9a3412; --p-orange-l: #fdba74;
+  --p-blue: #3b82f6; --p-green: #15803d;
+  --p-gutter: clamp(16px, 4vw, 32px);
+  --p-shadow: 0 1px 2px rgba(124,45,18,.06), 0 8px 24px rgba(124,45,18,.07);
+  --p-shadow-lg: 0 20px 44px rgba(124,45,18,.16);
+  --p-ease: cubic-bezier(.22, 1, .36, 1);
+
+  width: 100%; max-width: 820px; margin: 0 auto;
+  padding: clamp(20px, 3.5vw, 40px) var(--p-gutter) 88px;
+  color: var(--p-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.notif-page :is(a, button, .notification):focus-visible { outline: 3px solid var(--p-blue); outline-offset: 2px; }
+.notif-page .ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.notif-page :is(h1, h2, h3, p) { margin: 0; }
+@keyframes n-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes n-in { from { opacity: 0; transform: translateY(-10px) scale(.98); background: var(--p-orange-l); } to { opacity: 1; transform: none; } }
+
+.notif-page .eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--p-orange-dd); font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: .14em; }
+.notif-page .eyebrow::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--p-orange); }
+
+/* ---------- HEAD ---------- */
+.notif-page .n-head {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 18px;
+  padding: clamp(22px, 4vw, 36px); margin-bottom: 20px;
+  border: 1px solid var(--p-line); border-radius: 28px;
+  background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #fffdfa, #fff4e8 55%, #ffe3c7);
+  animation: n-rise .6s var(--p-ease) backwards;
+}
+.notif-page .n-head::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--p-orange-l); opacity: .45; filter: blur(60px); }
+.notif-page h1 { color: var(--p-ink); font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.notif-page .n-sub { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--p-muted); font-size: 15px; }
+.notif-page .n-sub .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--p-orange-dd); box-shadow: 0 0 0 4px rgba(194,65,12,.16); }
+.notif-page .n-sub.clear .dot { background: var(--p-green); box-shadow: 0 0 0 4px rgba(21,128,61,.16); }
+
+/* Buttons: scoped so they never touch the header's .btn */
+.notif-page .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 14px; font-family: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .25s var(--p-ease), box-shadow .25s, opacity .2s; }
+.notif-page .btn .ico { font-size: 18px; }
+.notif-page .btn--primary { border: 0; background: var(--p-orange-dd); color: #fff; box-shadow: 0 10px 24px rgba(194,65,12,.28); }
+.notif-page .btn--primary:hover:not(:disabled) { background: var(--p-orange-ddd); transform: translateY(-2px); }
+.notif-page .btn--primary:disabled { opacity: .65; cursor: progress; }
+.notif-page .btn[hidden] { display: none; }
+
+/* ---------- TOOLBAR ---------- */
+.notif-page .n-tabs { display: inline-flex; gap: 6px; padding: 5px; margin-bottom: 16px; background: #fff; border: 1px solid var(--p-line); border-radius: 16px; box-shadow: var(--p-shadow); animation: n-rise .6s .08s var(--p-ease) backwards; }
+.notif-page .n-tab { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; color: var(--p-text); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s, color .2s; }
+.notif-page .n-tab:hover { background: var(--p-cream); }
+.notif-page .n-tab[aria-pressed="true"] { background: var(--p-orange-dd); color: #fff; }
+.notif-page .n-tab .count { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--p-peach); color: var(--p-orange-ddd); font-size: 12px; font-weight: 800; }
+.notif-page .n-tab[aria-pressed="true"] .count { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ---------- LIST ---------- */
+.notif-page .n-card { overflow: hidden; background: #fff; border: 1px solid var(--p-line-soft); border-radius: 26px; box-shadow: var(--p-shadow); animation: n-rise .6s .14s var(--p-ease) backwards; }
+.notif-page .day-group[hidden], .notif-page .notification[hidden] { display: none; }
+.notif-page .day { display: flex; align-items: center; gap: 12px; padding: 18px 24px 8px; color: var(--p-orange-dd); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.notif-page .day::after { content: ""; flex: 1; height: 1px; background: var(--p-line-soft); }
+
+.notif-page .notification { position: relative; display: flex; align-items: flex-start; gap: 14px; padding: 16px 24px; border-bottom: 1px solid var(--p-line-soft); transition: background .2s; }
+.notif-page .day-group:last-child .notification:last-child { border-bottom: 0; }
+.notif-page .notification.unread { background: var(--p-cream); cursor: pointer; }
+.notif-page .notification.unread::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--p-orange-dd); }
+@media (hover: hover) { .notif-page .notification.unread:hover { background: var(--p-peach); } }
+.notif-page .notification.is-new { animation: n-in .6s var(--p-ease); }
+.notif-page .notification.busy { opacity: .6; pointer-events: none; }
+
+.notif-page .icon { flex: 0 0 44px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: #f5f5f4; color: #78716c; font-size: 20px; transition: background .3s, color .3s; }
+.notif-page .unread .icon { background: var(--p-orange-dd); color: #fff; box-shadow: 0 8px 18px rgba(194,65,12,.28); }
+.notif-page .info { flex: 1; min-width: 0; }
+.notif-page .info p { color: var(--p-text); font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.notif-page .unread .info p { color: var(--p-ink); font-weight: 600; }
+.notif-page .time { margin-top: 4px; color: var(--p-muted); font-size: 13px; }
+.notif-page .state { flex: 0 0 auto; align-self: center; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--p-peach); color: var(--p-orange-ddd); font-size: 12px; font-weight: 800; }
+.notif-page .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--p-orange-dd); }
+.notif-page .notification:not(.unread) .state { display: none; }
+
+/* ---------- EMPTY ---------- */
+.notif-page .empty { padding: 56px 24px 64px; text-align: center; }
+.notif-page .empty[hidden] { display: none; }
+.notif-page .empty-icon { width: 76px; height: 76px; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 50%; background: var(--p-peach); color: var(--p-orange-dd); font-size: 34px; }
+.notif-page .empty h3 { margin: 14px 0 6px; font-size: 20px; font-weight: 700; }
+.notif-page .empty p { margin: 0 auto 22px; max-width: 320px; color: var(--p-muted); font-size: 14px; line-height: 1.6; }
+.notif-page .empty .btn--ghost { border: 1.5px solid var(--p-orange-dd); background: #fff; color: var(--p-orange-dd); }
+.notif-page .empty .btn--ghost:hover { background: var(--p-peach); }
+
+/* toast */
+.notif-page .n-toast { position: fixed; z-index: 400; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); max-width: calc(100% - 32px); padding: 12px 20px; border-radius: 999px; background: var(--p-ink); color: #fff; font-size: 14px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .25s, transform .3s var(--p-ease); }
+.notif-page .n-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.notif-page .n-toast.error { background: #b91c1c; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 640px) {
+  .notif-page .n-head { border-radius: 22px; padding: 20px; }
+  .notif-page .n-head .btn { width: 100%; }
+  .notif-page .n-tabs { display: flex; }
+  .notif-page .n-tab { flex: 1; justify-content: center; padding: 0 10px; }
+  .notif-page .n-card { border-radius: 20px; }
+  .notif-page .day, .notif-page .notification { padding-left: 16px; padding-right: 16px; }
+  .notif-page .state { display: none !important; }
 }
 
-.card {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0,0,0,.06);
-}
-
-.header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 21px;
-    color: #111827;
-}
-
-.header p {
-    margin: 4px 0 0;
-    font-size: 13px;
-    color: #64748b;
-}
-
-.day {
-    padding: 12px 24px 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #2563eb;
-}
-
-.notification {
-    display: flex;
-    gap: 14px;
-    padding: 15px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.notification:hover {
-    background: #f8fafc;
-}
-
-.notification.unread {
-    background: #99b1a5;
-    border-left: 3px solid #0020645d;
-    padding-left: 21px;
-}
-
-.icon {
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #497c9f;
-    font-size: 17px;
-}
-
-.unread .icon {
-    background: #001530;
-}
-
-.info {
-    flex: 1;
-}
-
-.info p {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.45;
-    color: #1e293b;
-}
-
-.time {
-    margin-top: 4px;
-    font-size: 12px;
-    color: #6f6161;
-}
-
-.empty {
-    padding: 60px 20px;
-    text-align: center;
-}
-
-.empty h3 {
-    margin: 0 0 6px;
-    color: #001e4f;
-}
-
-.empty p {
-    margin: 0 0 16px;
-    color: #001027;
-    font-size: 14px;
-}
-
-.empty a {
-    color: #004aeb;
-    font-weight: 600;
-    text-decoration: none;
+@media (prefers-reduced-motion: reduce) {
+  .notif-page *, .notif-page *::before, .notif-page *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 </style>
 
+<div class="notif-page">
 
-<div class="notifications">
-    <div class="card">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-checks" viewBox="0 0 24 24"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+    </defs>
+  </svg>
 
-        <div class="header">
-            <h1>Notifications</h1>
-            <p>
-                {% if unread_count %}
-                    {{ unread_count }} unread
-                {% else %}
-                    You're all caught up
-                {% endif %}
-            </p>
-        </div>
-
-        <div id="notificationList">
-
-            {% regroup notifications by day_bucket as groups %}
-
-            {% for group in groups %}
-
-                <div class="day-group" data-day="{{ group.grouper }}">
-
-                    <div class="day">
-                        {{ group.grouper }}
-                    </div>
-
-                    {% for notification in group.list %}
-
-                        <div class="notification
-                            {% if not notification.is_read %}unread{% endif %}"
-                            data-id="{{ notification.id }}"
-                            data-read-url="{% url 'notifications:mark_as_read' notification.id %}">
-
-                            <div class="icon">
-                                {% if notification.chat_message %}💬{% else %}🔔{% endif %}
-                            </div>
-
-                            <div class="info">
-                                <p>{{ notification.text }}</p>
-                                <div class="time">
-                                    {{ notification.created_at|timesince }} ago
-                                </div>
-                            </div>
-
-                        </div>
-
-                    {% endfor %}
-                </div>
-
-            {% empty %}
-
-                <div class="empty" id="emptyNotifications">
-                    <h3>No notifications yet</h3>
-                    <p>New messages and order updates will appear here.</p>
-                    <a href="{% url 'product_list' %}">Browse products</a>
-                </div>
-
-            {% endfor %}
-
-        </div>
+  <header class="n-head">
+    <div>
+      <span class="eyebrow">UPDATES</span>
+      <h1>Notifications</h1>
+      <p class="n-sub{% if not unread_count %} clear{% endif %}" id="headerStatus" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="headerText">{% if unread_count %}{{ unread_count }} unread{% else %}You're all caught up{% endif %}</span></p>
     </div>
+    <button type="button" class="btn btn--primary" id="markAll"{% if not unread_count %} hidden{% endif %}><svg class="ico" aria-hidden="true"><use href="#i-checks"/></svg>Mark all as read</button>
+  </header>
+
+  <div class="n-tabs" role="group" aria-label="Filter notifications">
+    <button type="button" class="n-tab" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" class="n-tab" data-filter="unread" aria-pressed="false">Unread<span class="count" id="tabUnread">{{ unread_count|default:0 }}</span></button>
+  </div>
+
+  <div class="n-card">
+    <div id="notificationList">
+
+      {% regroup notifications by day_bucket as groups %}
+
+      {% for group in groups %}
+
+        <section class="day-group" data-day="{{ group.grouper }}">
+
+          <h2 class="day">{{ group.grouper }}</h2>
+
+          {% for notification in group.list %}
+
+            <div class="notification{% if not notification.is_read %} unread{% endif %}"
+                 data-id="{{ notification.id }}"
+                 data-read-url="{% url 'notifications:mark_as_read' notification.id %}"
+                 {% if not notification.is_read %}role="button" tabindex="0" aria-label="Unread: {{ notification.text|truncatechars:80 }}. Press to mark as read."{% endif %}>
+
+              <div class="icon" aria-hidden="true">
+                {% if notification.chat_message %}<svg class="ico"><use href="#i-chat"/></svg>{% else %}<svg class="ico"><use href="#i-bell"/></svg>{% endif %}
+              </div>
+
+              <div class="info">
+                <p>{{ notification.text }}</p>
+                <div class="time">{{ notification.created_at|timesince }} ago</div>
+              </div>
+
+              <span class="state">New</span>
+
+            </div>
+
+          {% endfor %}
+        </section>
+
+      {% empty %}
+
+        <div class="empty" id="emptyNotifications">
+          <div class="empty-icon" aria-hidden="true"><svg class="ico"><use href="#i-bell"/></svg></div>
+          <h3>No notifications yet</h3>
+          <p>New messages and order updates will appear here.</p>
+          <a href="{% url 'product_list' %}" class="btn btn--ghost"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>Browse products</a>
+        </div>
+
+      {% endfor %}
+
+    </div>
+
+    <div class="empty" id="noUnread" hidden>
+      <div class="empty-icon" aria-hidden="true"><svg class="ico"><use href="#i-check"/></svg></div>
+      <h3>Nothing unread</h3>
+      <p>You've read everything. We'll let you know when something new arrives.</p>
+    </div>
+  </div>
+
+  <div class="n-toast" id="nToast" role="status" aria-live="polite"></div>
+
 </div>
 
-
 <script>
+/* Wrapped in an IIFE so none of these names can collide with base.js globals */
+(function () {
 const list = document.getElementById("notificationList");
+const markAllBtn = document.getElementById("markAll");
+const toastEl = document.getElementById("nToast");
+const ICON_BELL = '<svg class="ico"><use href="#i-bell"/></svg>';
+const ICON_CHAT = '<svg class="ico"><use href="#i-chat"/></svg>';
+let filter = "all", toastTimer;
+
+
+function toast(text, isError) {
+    toastEl.textContent = text;
+    toastEl.classList.toggle("error", !!isError);
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2400);
+}
+
+
+/* One place that keeps counts, header text, filter and empty states in sync */
+function refresh() {
+    const unread = list.querySelectorAll(".notification.unread").length;
+
+    document.getElementById("headerText").textContent =
+        unread ? unread + " unread" : "You're all caught up";
+    document.getElementById("headerStatus").classList.toggle("clear", !unread);
+    document.getElementById("tabUnread").textContent = unread;
+    markAllBtn.hidden = !unread;
+
+    list.querySelectorAll(".notification").forEach(row => {
+        row.hidden = filter === "unread" && !row.classList.contains("unread");
+    });
+    list.querySelectorAll(".day-group").forEach(group => {
+        group.hidden = !group.querySelector(".notification:not([hidden])");
+    });
+
+    const hasAny = list.querySelector(".notification");
+    document.getElementById("noUnread").hidden = !(filter === "unread" && hasAny && !unread);
+}
+
+
+async function markRead(row) {
+    if (!row.classList.contains("unread") || row.classList.contains("busy")) return false;
+
+    row.classList.add("busy");
+
+    try {
+        const data = await window.Notifications.markAsRead(
+            row.dataset.id,
+            row.dataset.readUrl
+        );
+
+        if (data.success) {
+            row.classList.remove("unread");
+            row.removeAttribute("role");
+            row.removeAttribute("tabindex");
+            row.removeAttribute("aria-label");
+            return true;
+        }
+    } catch (error) {
+        console.error("Could not mark notification as read:", error);
+    } finally {
+        row.classList.remove("busy");
+    }
+
+    return false;
+}
 
 
 function bindNotification(row) {
     row.onclick = async function () {
-        if (!row.classList.contains("unread")) return;
+        const ok = await markRead(row);
+        if (ok) refresh();
+        else if (row.classList.contains("unread")) toast("Could not mark this as read. Please try again.", true);
+    };
 
-        row.style.pointerEvents = "none";
-
-        try {
-            const data = await window.Notifications.markAsRead(
-                row.dataset.id,
-                row.dataset.readUrl
-            );
-
-            if (data.success) {
-                row.classList.remove("unread");
-
-                const headerText = document.querySelector(".header p");
-
-                if (headerText) {
-                    const unreadRows = document.querySelectorAll(
-                        "#notificationList .notification.unread"
-                    ).length;
-
-                    headerText.textContent = unreadRows
-                        ? unreadRows + " unread"
-                        : "You're all caught up";
-                }
-            }
-        } catch (error) {
-            console.error("Could not mark notification as read:", error);
-            alert("Could not mark this notification as read. Please try again.");
-        } finally {
-            row.style.pointerEvents = "";
+    row.onkeydown = function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            row.click();
         }
     };
 }
@@ -224,6 +294,40 @@ function bindNotification(row) {
 document.querySelectorAll(".notification").forEach(bindNotification);
 
 
+/* Mark all as read (uses the same endpoint, one notification at a time) */
+markAllBtn.addEventListener("click", async () => {
+    const rows = [...list.querySelectorAll(".notification.unread")];
+    if (!rows.length) return;
+
+    markAllBtn.disabled = true;
+
+    let failed = 0;
+    for (const row of rows) {
+        const ok = await markRead(row);
+        if (!ok) failed++;
+    }
+
+    markAllBtn.disabled = false;
+    refresh();
+
+    if (failed) toast(failed + " could not be marked. Please try again.", true);
+    else toast("All notifications marked as read");
+});
+
+
+/* Filter tabs */
+document.querySelectorAll(".n-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        filter = tab.dataset.filter;
+        document.querySelectorAll(".n-tab").forEach(t =>
+            t.setAttribute("aria-pressed", t === tab ? "true" : "false")
+        );
+        refresh();
+    });
+});
+
+
+/* Live notifications */
 document.addEventListener("notification:new", e => {
 
     document.getElementById("emptyNotifications")?.remove();
@@ -232,33 +336,43 @@ document.addEventListener("notification:new", e => {
     let today = list.querySelector('[data-day="Today"]');
 
     if (!today) {
-        today = document.createElement("div");
+        today = document.createElement("section");
         today.className = "day-group";
         today.dataset.day = "Today";
-        today.innerHTML = '<div class="day">Today</div>';
+        today.innerHTML = '<h2 class="day">Today</h2>';
         list.prepend(today);
     }
 
     const row = document.createElement("div");
 
-    row.className = "notification unread";
+    row.className = "notification unread is-new";
     row.dataset.id = n.id;
     row.dataset.readUrl =
         "{% url 'notifications:mark_as_read' 0 %}".replace("0/", `${n.id}/`);
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
 
     row.innerHTML = `
-        <div class="icon">🔔</div>
+        <div class="icon" aria-hidden="true">${n.chat_message ? ICON_CHAT : ICON_BELL}</div>
         <div class="info">
             <p></p>
             <div class="time">just now</div>
         </div>
+        <span class="state">New</span>
     `;
 
     row.querySelector("p").textContent = n.text;
+    row.setAttribute("aria-label", "Unread: " + String(n.text).slice(0, 80) + ". Press to mark as read.");
 
     bindNotification(row);
-    today.appendChild(row);
+    today.querySelector(".day").after(row);   /* newest first */
+
+    refresh();
 });
+
+
+refresh();
+})();
 </script>
 
 {% endblock %}

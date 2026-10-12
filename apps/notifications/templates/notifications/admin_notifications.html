@@ -1,288 +1,517 @@
-
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Notifications | ShopCart Admin{% endblock %}
 
 {% block extra_css %}
 <style>
-    .notification-page {
-        max-width: 1000px;
-        margin: 0 auto;
-    }
+/* =========================================================
+   Admin notifications center  (ui-ux-pro-max: activity feed / inbox)
+   - Same design language as the customer-chats inbox (admin tokens, light/dark)
+   - Clickable stat tiles double as filters with live counts
+   - One panel, sticky day headings, full-width rows, 44px+ targets
+   - Unread = tint + bar + dot + text label (never colour alone)
+   - Search, mark-all, relative times, keyboard + screen-reader friendly
+   ========================================================= */
+.nt-page {
+    --nt-surface: var(--surface, #ffffff);
+    --nt-surface-2: var(--surface-2, #f1f5f9);
+    --nt-border: var(--border, #e2e8f0);
+    --nt-text: var(--text, #0f172a);
+    --nt-muted: var(--muted, #526077);
+    --nt-accent: var(--accent, #4f46e5);
+    --nt-accent-soft: var(--accent-soft, rgba(79,70,229,.09));
+    --nt-focus: var(--accent-2, #6366f1);
+    --nt-success: var(--success, #15803d);
+    --nt-success-soft: var(--success-soft, rgba(22,163,74,.13));
+    --nt-warn: var(--warn, #b45309);
+    --nt-warn-soft: var(--warn-soft, rgba(245,158,11,.16));
+    --nt-danger: var(--danger, #b91c1c);
+    --nt-btn: var(--btn, #4f46e5);
+    --nt-shadow: var(--shadow-sm, 0 1px 2px rgba(15,23,42,.05), 0 6px 16px rgba(15,23,42,.05));
 
-    .notification-summary {
-        color: #64748b;
-        margin-top: 8px;
-        font-size: 14px;
-    }
+    max-width: 980px;
+    margin: 0 auto;
+    padding-bottom: 56px;
+}
+.nt-page *, .nt-page *::before, .nt-page *::after { box-sizing: border-box; }
+.nt-page [hidden] { display: none !important; }
+.nt-page .ico { width: 20px; height: 20px; flex-shrink: 0; }
+.nt-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.nt-page a:focus-visible, .nt-page button:focus-visible, .nt-page input:focus-visible { outline: 3px solid var(--nt-focus); outline-offset: 2px; }
 
-    .notification-list {
-        display: grid;
-        gap: 12px;
-    }
+/* ---------- Header ---------- */
+.nt-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 20px; }
+.nt-head h1 { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--nt-text); font-size: clamp(1.45rem, 2.6vw, 1.85rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.nt-head h1 .nt-bell { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--nt-accent-soft); color: var(--nt-accent); }
+.nt-head h1 .nt-bell .ico { width: 24px; height: 24px; }
+.nt-head h1 .nt-bell[data-active="true"]::after { content: ""; position: absolute; top: 9px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #dc2626; border: 2px solid var(--nt-surface); }
+.nt-sub { margin: 6px 0 0; color: var(--nt-muted); font-size: 14.5px; line-height: 1.5; }
+.nt-sub strong { color: var(--nt-text); font-weight: 700; }
 
-    .notification-card {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        padding: 20px;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-    }
+.nt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border: 1px solid var(--nt-btn); border-radius: 10px; background: var(--nt-btn); color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; transition: filter .15s, transform .1s, opacity .15s; }
+.nt-btn .ico { width: 18px; height: 18px; }
+.nt-btn:hover:not(:disabled) { filter: brightness(1.1); }
+.nt-btn:active:not(:disabled) { transform: scale(.98); }
+.nt-btn:disabled { opacity: .45; cursor: not-allowed; }
+.nt-btn.ghost { background: var(--nt-surface); color: var(--nt-text); border-color: var(--nt-border); }
+.nt-btn.ghost:hover:not(:disabled) { filter: none; background: var(--nt-surface-2); }
 
-    .notification-card.unread {
-        border-left: 4px solid #2563eb;
-        background: #eff6ff;
-    }
+/* ---------- Stat tiles (filters) ---------- */
+.nt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.nt-stat { position: relative; display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 14px 16px; border: 1px solid var(--nt-border); border-radius: 14px; background: var(--nt-surface); color: inherit; font: inherit; text-align: left; cursor: pointer; box-shadow: var(--nt-shadow); transition: border-color .15s, background-color .15s, transform .15s; }
+.nt-stat:hover { border-color: var(--nt-muted); transform: translateY(-1px); }
+.nt-stat[aria-pressed="true"] { border-color: var(--nt-accent); background: var(--nt-accent-soft); box-shadow: 0 0 0 1px var(--nt-accent) inset; }
+.nt-stat-ico { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: var(--nt-surface-2); color: var(--nt-muted); }
+.nt-stat[aria-pressed="true"] .nt-stat-ico { background: var(--nt-accent); color: #fff; }
+.nt-stat-num { display: block; color: var(--nt-text); font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.nt-stat-lbl { display: block; margin-top: 2px; color: var(--nt-muted); font-size: 13px; font-weight: 600; }
 
-    .notification-icon {
-        display: grid;
-        place-items: center;
-        width: 44px;
-        height: 44px;
-        flex-shrink: 0;
-        background: #dbeafe;
-        border-radius: 12px;
-        font-size: 21px;
-    }
+/* ---------- Search ---------- */
+.nt-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 12px; }
+.nt-field { position: relative; flex: 1 1 280px; max-width: 460px; }
+.nt-field .ico { position: absolute; left: 14px; top: 50%; margin-top: -9px; width: 18px; height: 18px; color: var(--nt-muted); pointer-events: none; }
+.nt-field input { width: 100%; min-height: 46px; padding: 0 44px 0 42px; border: 1px solid var(--nt-border); border-radius: 10px; background: var(--nt-surface); color: var(--nt-text); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.nt-field input::placeholder { color: var(--nt-muted); opacity: .85; }
+.nt-field input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.nt-field input:hover { border-color: var(--nt-muted); }
+.nt-field input:focus-visible { outline: none; border-color: var(--nt-accent); box-shadow: 0 0 0 4px var(--nt-accent-soft), 0 0 0 1px var(--nt-accent); }
+.nt-clear { position: absolute; right: 4px; top: 50%; display: grid; place-items: center; width: 40px; height: 40px; margin-top: -20px; border: 0; border-radius: 8px; background: transparent; color: var(--nt-muted); cursor: pointer; }
+.nt-clear .ico { position: static; margin: 0; width: 18px; height: 18px; }
+.nt-clear:hover { background: var(--nt-surface-2); color: var(--nt-text); }
+.nt-count { margin: 0; color: var(--nt-muted); font-size: 14px; }
+.nt-count strong { color: var(--nt-text); font-weight: 700; }
 
-    .notification-body {
-        flex: 1;
-        min-width: 0;
-    }
+/* ---------- Panel + groups ---------- */
+.nt-panel { border: 1px solid var(--nt-border); border-radius: 18px; background: var(--nt-surface); box-shadow: var(--nt-shadow); overflow: clip; }
+.nt-day-h { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px; margin: 0; padding: 10px 20px; border-top: 1px solid var(--nt-border); background: var(--nt-surface-2); color: var(--nt-muted); font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.nt-day:first-child .nt-day-h { border-top: 0; }
+.nt-day-h span { padding: 1px 8px; border-radius: 99px; background: var(--nt-surface); color: var(--nt-text); font-size: 12px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 
-    .notification-message {
-        color: #0f172a;
-        font-weight: 600;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-    }
+/* ---------- Row ---------- */
+.nt-row { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 16px 20px; border-top: 1px solid var(--nt-border); transition: background-color .15s, opacity .25s, transform .25s; }
+.nt-day-h + .nt-row { border-top: 0; }
+.nt-row:hover { background: var(--nt-surface-2); }
+.nt-row.is-unread { background: var(--nt-accent-soft); }
+.nt-row.is-unread::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--nt-accent); }
+.nt-row.is-leaving { opacity: 0; transform: translateX(14px); }
+.nt-row.flash { animation: nt-flash 1.8s ease-out; }
+@keyframes nt-flash { from { background: var(--nt-warn-soft); } }
 
-    .notification-time {
-        margin-top: 7px;
-        color: #64748b;
-        font-size: 12px;
-    }
+.nt-ico { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--t-bg); color: var(--t-fg); }
+.nt-ico .ico { width: 23px; height: 23px; }
+.k-order   { --t-bg: rgba(245,158,11,.16); --t-fg: #b45309; }
+.k-message { --t-bg: rgba(79,70,229,.13);  --t-fg: #4338ca; }
+.k-other   { --t-bg: rgba(100,116,139,.15); --t-fg: #475569; }
+:root[data-theme="dark"] .k-order   { --t-bg: rgba(251,191,36,.18);  --t-fg: #fcd34d; }
+:root[data-theme="dark"] .k-message { --t-bg: rgba(129,140,248,.2);  --t-fg: #c7d2fe; }
+:root[data-theme="dark"] .k-other   { --t-bg: rgba(148,163,184,.2);  --t-fg: #cbd5e1; }
 
-    .notification-status {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 4px 8px;
-        border-radius: 20px;
-        background: #dbeafe;
-        color: #1d4ed8;
-        font-size: 11px;
-        font-weight: 700;
-    }
+.nt-main { min-width: 0; }
+.nt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 3px; color: var(--nt-muted); font-size: 12.5px; }
+.nt-type { color: var(--t-fg); font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.nt-time { font-variant-numeric: tabular-nums; }
+.nt-time::before { content: "•"; margin-right: 10px; opacity: .55; }
+.nt-text { margin: 0; color: var(--nt-text); font-size: 15.5px; font-weight: 500; line-height: 1.55; overflow-wrap: anywhere; }
+.is-unread .nt-text { font-weight: 700; }
 
-    .notification-card:not(.unread) .notification-status {
-        background: #f1f5f9;
-        color: #64748b;
-    }
+.nt-state { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.nt-state .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.nt-state .ico { width: 15px; height: 15px; }
+.nt-state.unread { background: var(--nt-surface); color: var(--nt-accent); border: 1px solid var(--nt-accent); }
+.nt-state.read { background: var(--nt-surface-2); color: var(--nt-muted); }
+.nt-state.read .ico { color: var(--nt-success); }
 
-    .notification-action {
-        flex-shrink: 0;
-        padding: 8px 12px;
-        border: none;
-        border-radius: 7px;
-        background: #2563eb;
-        color: white;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-    }
+.nt-act { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 16px; border: 1px solid var(--nt-border); border-radius: 10px; background: var(--nt-surface); color: var(--nt-text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.nt-act .ico { width: 18px; height: 18px; }
+.nt-act:hover:not(:disabled) { background: var(--nt-btn); border-color: var(--nt-btn); color: #fff; }
+.nt-act:disabled { opacity: .65; cursor: progress; }
+.nt-act.is-error { border-color: var(--nt-danger); color: var(--nt-danger); }
+.nt-spin { width: 16px; height: 16px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: nt-spin .7s linear infinite; }
+@keyframes nt-spin { to { transform: rotate(360deg); } }
 
-    .notification-action:hover {
-        background: #1d4ed8;
-    }
+/* ---------- Empty ---------- */
+.nt-empty { padding: 64px 20px; text-align: center; }
+.nt-empty-icon { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--nt-accent-soft); color: var(--nt-accent); }
+.nt-empty-icon .ico { width: 28px; height: 28px; }
+.nt-empty strong { display: block; color: var(--nt-text); font-size: 17px; }
+.nt-empty p { margin: 6px auto 18px; max-width: 380px; color: var(--nt-muted); font-size: 14px; line-height: 1.6; }
 
-    .notification-action:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+/* ---------- Toast ---------- */
+.nt-toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 1000; max-width: calc(100vw - 32px); padding: 12px 18px; border-radius: 10px; background: #0f172a; color: #fff; font-size: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.28); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+.nt-toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-    .empty-notifications {
-        padding: 60px 20px;
-        background: #fff;
-        border: 1px dashed #cbd5e1;
-        border-radius: 12px;
-        text-align: center;
-        color: #64748b;
-    }
-
-    .empty-notifications .empty-icon {
-        font-size: 42px;
-        margin-bottom: 12px;
-    }
-
-    .day-heading {
-        margin: 24px 0 12px;
-        color: #475569;
-        font-size: 13px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-    }
-
-    @media (max-width: 600px) {
-        .notification-card {
-            padding: 14px;
-            gap: 10px;
-        }
-
-        .notification-icon {
-            width: 36px;
-            height: 36px;
-            font-size: 18px;
-        }
-
-        .notification-action {
-            padding: 7px 9px;
-        }
-    }
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+    .nt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+    .nt-row { grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "ico main" "ico state" "act act"; gap: 8px 14px; padding: 14px 16px; }
+    .nt-ico { grid-area: ico; align-self: start; width: 44px; height: 44px; }
+    .nt-main { grid-area: main; }
+    .nt-state-wrap { grid-area: state; justify-self: start; }
+    .nt-act { grid-area: act; width: 100%; }
+    .nt-day-h { padding: 10px 16px; }
+    .nt-head .nt-btn { width: 100%; }
+}
+@media (max-width: 380px) {
+    .nt-stat { padding: 12px; gap: 10px; }
+    .nt-stat-ico { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nt-page *, .nt-toast { transition: none !important; animation: none !important; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="notification-page">
+<div class="nt-page">
 
-    <div class="page-header">
-        <div>
-            <h1>🔔 Notifications</h1>
-            <p class="notification-summary">
-                Stay updated about customer messages and new orders.
-            </p>
-        </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="nt-i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+        <symbol id="nt-i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+        <symbol id="nt-i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12Z"/></symbol>
+        <symbol id="nt-i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+        <symbol id="nt-i-checks" viewBox="0 0 24 24"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></symbol>
+        <symbol id="nt-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="nt-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="nt-i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol>
+        <symbol id="nt-i-retry" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></symbol>
+    </defs>
+</svg>
+
+<header class="nt-head">
+    <div>
+        <h1>
+            <span class="nt-bell" id="nt-bell" data-active="false" aria-hidden="true">
+                <svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-bell"/></svg>
+            </span>
+            Notifications
+        </h1>
+        <p class="nt-sub" id="nt-sub">Stay updated about customer messages and new orders.</p>
     </div>
+    {% if notifications %}
+    <button type="button" class="nt-btn" id="nt-markall" disabled>
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-checks"/></svg>
+        Mark all as read
+    </button>
+    {% endif %}
+</header>
 
-    <div id="admin-notification-list">
+{% if notifications %}
 
-        {% if notifications %}
-            {% regroup notifications by day_bucket as notification_groups %}
+<div class="nt-stats" role="group" aria-label="Quick views">
+    <button type="button" class="nt-stat" data-filter="all" aria-pressed="true">
+        <span class="nt-stat-ico"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-layers"/></svg></span>
+        <span><span class="nt-stat-num" data-count="all">0</span><span class="nt-stat-lbl">All</span></span>
+    </button>
+    <button type="button" class="nt-stat" data-filter="unread" aria-pressed="false">
+        <span class="nt-stat-ico"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-bell"/></svg></span>
+        <span><span class="nt-stat-num" data-count="unread">0</span><span class="nt-stat-lbl">Unread</span></span>
+    </button>
+    <button type="button" class="nt-stat" data-filter="order" aria-pressed="false">
+        <span class="nt-stat-ico"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-box"/></svg></span>
+        <span><span class="nt-stat-num" data-count="order">0</span><span class="nt-stat-lbl">Orders</span></span>
+    </button>
+    <button type="button" class="nt-stat" data-filter="message" aria-pressed="false">
+        <span class="nt-stat-ico"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-chat"/></svg></span>
+        <span><span class="nt-stat-num" data-count="message">0</span><span class="nt-stat-lbl">Messages</span></span>
+    </button>
+</div>
 
-            {% for group in notification_groups %}
-                <h2 class="day-heading">{{ group.grouper }}</h2>
+<div class="nt-tools">
+    <div class="nt-field" role="search">
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#nt-i-search"/></svg>
+        <label class="sr-only" for="nt-q">Search notifications</label>
+        <input type="search" id="nt-q" placeholder="Search notifications" autocomplete="off" enterkeyhint="search">
+        <button type="button" class="nt-clear" id="nt-clear" aria-label="Clear search" hidden>
+            <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#nt-i-x"/></svg>
+        </button>
+    </div>
+    <p class="nt-count" id="nt-count" role="status" aria-live="polite"></p>
+</div>
 
-                <div class="notification-list">
-                    {% for notification in group.list %}
-                        <article
-                            class="notification-card {% if not notification.is_read %}unread{% endif %}"
-                            data-id="{{ notification.id }}"
-                            data-read-url="{% url 'notifications:mark_as_read' notification.id %}"
-                        >
-                            <div class="notification-icon">
-                                {% if notification.order %}
-                                    📦
-                                {% elif notification.chat_message %}
-                                    💬
-                                {% else %}
-                                    🔔
-                                {% endif %}
-                            </div>
+{% endif %}
 
-                            <div class="notification-body">
-                                <div class="notification-message">
-                                    {{ notification.text }}
-                                </div>
+<div class="nt-panel">
+<div id="admin-notification-list">
 
-                                <div class="notification-time">
-                                    {{ notification.created_at|date:"M d, Y · g:i A" }}
-                                </div>
+    {% if notifications %}
+        {% regroup notifications by day_bucket as notification_groups %}
 
-                                <span class="notification-status">
-                                    {% if notification.is_read %}
-                                        Read
-                                    {% else %}
-                                        Unread
-                                    {% endif %}
-                                </span>
-                            </div>
+        {% for group in notification_groups %}
+        <section class="nt-day" aria-labelledby="nt-day-{{ forloop.counter }}">
+            <h2 class="nt-day-h" id="nt-day-{{ forloop.counter }}">{{ group.grouper }} <span data-day-count>{{ group.list|length }}</span></h2>
 
-                            {% if not notification.is_read %}
-                                <button
-                                    type="button"
-                                    class="notification-action"
-                                    data-mark-read
-                                >
-                                    Mark read
-                                </button>
-                            {% endif %}
-                        </article>
-                    {% endfor %}
+            {% for notification in group.list %}
+            <article
+                class="nt-row {% if notification.order %}k-order{% elif notification.chat_message %}k-message{% else %}k-other{% endif %}{% if not notification.is_read %} is-unread{% endif %}"
+                data-id="{{ notification.id }}"
+                data-read-url="{% url 'notifications:mark_as_read' notification.id %}"
+                data-kind="{% if notification.order %}order{% elif notification.chat_message %}message{% else %}other{% endif %}"
+                data-unread="{% if notification.is_read %}0{% else %}1{% endif %}"
+            >
+                <span class="nt-ico" aria-hidden="true">
+                    <svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        {% if notification.order %}<use href="#nt-i-box"/>{% elif notification.chat_message %}<use href="#nt-i-chat"/>{% else %}<use href="#nt-i-bell"/>{% endif %}
+                    </svg>
+                </span>
+
+                <div class="nt-main">
+                    <div class="nt-meta">
+                        <span class="nt-type">{% if notification.order %}New order{% elif notification.chat_message %}Customer message{% else %}Update{% endif %}</span>
+                        <time class="nt-time" datetime="{{ notification.created_at|date:'c' }}" title="{{ notification.created_at|date:'M d, Y · g:i A' }}" data-relative>{{ notification.created_at|date:"M d, Y · g:i A" }}</time>
+                    </div>
+                    <p class="nt-text">{{ notification.text }}</p>
                 </div>
+
+                <span class="nt-state-wrap">
+                    {% if notification.is_read %}
+                        <span class="nt-state read"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-check"/></svg>Read</span>
+                    {% else %}
+                        <span class="nt-state unread"><span class="dot" aria-hidden="true"></span>Unread</span>
+                    {% endif %}
+                </span>
+
+                {% if not notification.is_read %}
+                <button type="button" class="nt-act" data-mark-read aria-label="Mark as read: {{ notification.text|truncatechars:60 }}">
+                    <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-check"/></svg>
+                    <span class="lbl">Mark read</span>
+                </button>
+                {% endif %}
+            </article>
             {% endfor %}
+        </section>
+        {% endfor %}
 
-        {% else %}
-            <div class="empty-notifications" id="admin-notification-empty">
-                <div class="empty-icon">🔔</div>
-                <h2>No notifications yet</h2>
-                <p>New orders and customer messages will appear here.</p>
-            </div>
-        {% endif %}
+        <div class="nt-empty" id="nt-viewempty" hidden>
+            <div class="nt-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-checks"/></svg></div>
+            <strong id="nt-viewempty-title">Nothing here</strong>
+            <p id="nt-viewempty-text">You're all caught up.</p>
+            <button type="button" class="nt-btn ghost" id="nt-reset">Show all notifications</button>
+        </div>
 
-    </div>
+    {% else %}
+        <div class="nt-empty" id="admin-notification-empty">
+            <div class="nt-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-bell"/></svg></div>
+            <strong>No notifications yet</strong>
+            <p>New orders and customer messages will appear here.</p>
+        </div>
+    {% endif %}
+
+</div>
+</div>
+
+<div class="sr-only" id="nt-announce" role="status" aria-live="polite"></div>
+<div class="nt-toast" id="nt-toast" role="alert"></div>
+
 </div>
 
 <script>
 (function () {
     const list = document.getElementById("admin-notification-list");
-
     if (!list) return;
 
-    list.addEventListener("click", async function (event) {
-        const button = event.target.closest("[data-mark-read]");
+    const baseTitle = document.title.replace(/^\(\d+\)\s*/, "");
+    const stats = Array.from(document.querySelectorAll(".nt-stat"));
+    const markAll = document.getElementById("nt-markall");
+    const sub = document.getElementById("nt-sub");
+    const bell = document.getElementById("nt-bell");
+    const countEl = document.getElementById("nt-count");
+    const input = document.getElementById("nt-q");
+    const clearBtn = document.getElementById("nt-clear");
+    const viewEmpty = document.getElementById("nt-viewempty");
+    const announceEl = document.getElementById("nt-announce");
+    const toast = document.getElementById("nt-toast");
+    const defaultSub = sub ? sub.textContent.trim() : "";
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        if (!button) return;
+    let filter = "all", query = "", toastTimer;
 
-        const card = button.closest(".notification-card");
+    const rows = () => Array.from(list.querySelectorAll(".nt-row"));
+    const isUnread = (r) => r.dataset.unread === "1";
 
-        if (!card || !card.dataset.readUrl) return;
+    const READ_HTML = '<span class="nt-state read"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-check"/></svg>Read</span>';
+    const CHECK_ICON = '<svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-check"/></svg>';
+    const RETRY_ICON = '<svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#nt-i-retry"/></svg>';
 
-        button.disabled = true;
+    /* ---------- helpers ---------- */
+    function csrf() {
+        const c = document.cookie.split("; ").find((r) => r.startsWith("csrftoken="));
+        return c ? decodeURIComponent(c.split("=")[1]) : "";
+    }
+    function say(msg) { if (announceEl) announceEl.textContent = msg; }
+    function showToast(msg) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 4200);
+    }
 
-        try {
-            const response = await fetch(card.dataset.readUrl, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCsrfToken(),
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            });
+    /* ---------- relative time ---------- */
+    function relative(date) {
+        const s = Math.round((Date.now() - date.getTime()) / 1000);
+        if (s < 45) return "Just now";
+        const m = Math.round(s / 60);
+        if (m < 60) return m + " min ago";
+        const h = Math.round(m / 60);
+        if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+        const d = Math.round(h / 24);
+        if (d < 7) return d + (d === 1 ? " day ago" : " days ago");
+        return null; // fall back to the server-rendered absolute date
+    }
+    function updateTimes() {
+        list.querySelectorAll("time[data-relative]").forEach((t) => {
+            const d = new Date(t.getAttribute("datetime"));
+            if (isNaN(d)) return;
+            const txt = relative(d);
+            if (txt) t.textContent = txt;
+        });
+    }
 
-            const data = await response.json();
+    /* ---------- counts / filter / search ---------- */
+    function visible(r) {
+        let ok = true;
+        if (filter === "unread") ok = isUnread(r);
+        else if (filter === "order" || filter === "message") ok = r.dataset.kind === filter;
+        if (ok && query) ok = r.textContent.toLowerCase().includes(query);
+        return ok;
+    }
 
-            if (!response.ok || !data.success) {
-                throw new Error("Could not mark notification as read.");
-            }
+    function refresh() {
+        const all = rows();
+        const c = {
+            all: all.length,
+            unread: all.filter(isUnread).length,
+            order: all.filter((r) => r.dataset.kind === "order").length,
+            message: all.filter((r) => r.dataset.kind === "message").length,
+        };
+        document.querySelectorAll("[data-count]").forEach((n) => { n.textContent = c[n.dataset.count]; });
+        stats.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.filter === filter)));
 
-            if (data.was_unread) {
-                card.classList.remove("unread");
+        let shown = 0;
+        all.forEach((r) => { const ok = visible(r); r.hidden = !ok; if (ok) shown++; });
 
-                const status = card.querySelector(".notification-status");
-                if (status) status.textContent = "Read";
+        list.querySelectorAll(".nt-day").forEach((g) => {
+            const vis = Array.from(g.querySelectorAll(".nt-row")).filter((r) => !r.hidden).length;
+            g.hidden = vis === 0;
+            const badge = g.querySelector("[data-day-count]");
+            if (badge) badge.textContent = vis;
+        });
 
-                button.remove();
-
-                if (window.Notifications) {
-                    window.Notifications.fetchUnreadCount();
-                }
-            }
-        } catch (error) {
-            console.error(error);
-            button.disabled = false;
-            button.textContent = "Try again";
+        if (viewEmpty) {
+            viewEmpty.hidden = !(all.length > 0 && shown === 0);
+            const t = document.getElementById("nt-viewempty-title");
+            const p = document.getElementById("nt-viewempty-text");
+            if (query) { t.textContent = "No matching notifications"; p.textContent = "Try a different search term."; }
+            else if (filter === "unread") { t.textContent = "You're all caught up"; p.textContent = "There are no unread notifications right now."; }
+            else if (filter === "order") { t.textContent = "No order notifications"; p.textContent = "New orders will show up here."; }
+            else { t.textContent = "No message notifications"; p.textContent = "Customer messages will show up here."; }
         }
+
+        if (countEl) countEl.innerHTML = "Showing <strong>" + shown + "</strong> of " + c.all;
+        if (markAll) markAll.disabled = c.unread === 0;
+        if (bell) bell.dataset.active = c.unread > 0 ? "true" : "false";
+        if (sub) {
+            sub.innerHTML = c.unread
+                ? "You have <strong>" + c.unread + "</strong> unread notification" + (c.unread === 1 ? "" : "s") + "."
+                : "You're all caught up. " + defaultSub;
+        }
+        document.title = (c.unread > 0 ? "(" + c.unread + ") " : "") + baseTitle;
+    }
+
+    stats.forEach((b) => b.addEventListener("click", () => { filter = b.dataset.filter; refresh(); }));
+
+    if (input) {
+        input.addEventListener("input", () => {
+            query = input.value.trim().toLowerCase();
+            if (clearBtn) clearBtn.hidden = !input.value;
+            refresh();
+        });
+        input.addEventListener("keydown", (e) => { if (e.key === "Escape" && input.value) { input.value = ""; input.dispatchEvent(new Event("input")); } });
+    }
+    if (clearBtn) clearBtn.addEventListener("click", () => { input.value = ""; input.dispatchEvent(new Event("input")); input.focus(); });
+
+    const reset = document.getElementById("nt-reset");
+    if (reset) reset.addEventListener("click", () => {
+        filter = "all"; query = ""; if (input) input.value = ""; if (clearBtn) clearBtn.hidden = true; refresh();
     });
 
-    function getCsrfToken() {
-        const cookie = document.cookie
-            .split("; ")
-            .find(row => row.startsWith("csrftoken="));
+    /* ---------- mark one as read ---------- */
+    async function markRead(row, btn) {
+        const lbl = btn.querySelector(".lbl");
+        btn.disabled = true;
+        btn.classList.remove("is-error");
+        btn.innerHTML = '<span class="nt-spin" aria-hidden="true"></span><span class="lbl">Marking…</span>';
 
-        return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
+        try {
+            const response = await fetch(row.dataset.readUrl, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrf(), "X-Requested-With": "XMLHttpRequest" },
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) throw new Error("Could not mark notification as read.");
+
+            if (data.was_unread) {
+                row.classList.remove("is-unread");
+                row.dataset.unread = "0";
+                const wrap = row.querySelector(".nt-state-wrap");
+                if (wrap) wrap.innerHTML = READ_HTML;
+                btn.remove();
+
+                if (window.Notifications) window.Notifications.fetchUnreadCount();
+            }
+
+            if (filter === "unread" && !reduceMotion) {
+                row.classList.add("is-leaving");
+                setTimeout(refresh, 240);
+            } else {
+                refresh();
+            }
+            return true;
+        } catch (error) {
+            console.error(error);
+            btn.disabled = false;
+            btn.classList.add("is-error");
+            btn.innerHTML = RETRY_ICON + '<span class="lbl">Try again</span>';
+            showToast("Couldn't mark that notification as read. Please try again.");
+            return false;
+        }
     }
+
+    list.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-mark-read]");
+        if (!btn) return;
+        const row = btn.closest(".nt-row");
+        if (!row || !row.dataset.readUrl) return;
+        markRead(row, btn).then((ok) => { if (ok) say("Notification marked as read."); });
+    });
+
+    /* ---------- mark all as read ---------- */
+    if (markAll) {
+        markAll.addEventListener("click", async () => {
+            const targets = rows().filter(isUnread);
+            if (!targets.length) return;
+            markAll.disabled = true;
+
+            const results = await Promise.all(targets.map((row) => {
+                const btn = row.querySelector("[data-mark-read]");
+                return btn ? markRead(row, btn) : Promise.resolve(true);
+            }));
+
+            const failed = results.filter((ok) => !ok).length;
+            if (failed) showToast(failed + " notification" + (failed === 1 ? "" : "s") + " couldn't be updated.");
+            else say("All notifications marked as read.");
+            refresh();
+        });
+    }
+
+    updateTimes();
+    setInterval(updateTimes, 60000);
+    refresh();
 })();
 </script>
 {% endblock %}

@@ -1,400 +1,389 @@
-
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shopping Cart | ShopCart{% endblock %}
 
 {% block content %}
-
 <style>
-:root {
-    --accent: #1D4ED8;
-    --accent-dark: #0B0C10;
-    --accent-soft: #EFF4FF;
-    --accent-ring: rgba(29, 78, 216, .18);
-    --highlight: #3B82F6;
-
-    --ink: #0B0C10;
-    --muted: #64748B;
-    --border: #E2E8F0;
-
-    --gradient: linear-gradient(135deg, var(--accent-dark), var(--accent));
-}
-
+/* =========================================================
+   ShopCart – Cart page
+   Every selector lives under .cart-page and every class uses
+   the "cp-" prefix, so nothing here can touch the navbar,
+   header, footer or any other page. No :root, body, header,
+   nav, a, button, svg or h1–h3 rules outside .cart-page.
+   ========================================================= */
 .cart-page {
-    max-width: 850px;
-    margin: 48px auto;
-    padding: 0 20px;
-    font-family: system-ui, sans-serif;
-    color: var(--ink);
+  --p-cream: #fff7ed; --p-peach: #ffedd5; --p-line: #fde0c4; --p-line-soft: #ffedd5;
+  --p-ink: #1c1917; --p-text: #44403c; --p-muted: #57534e;
+  --p-orange: #f97316; --p-orange-dd: #c2410c; --p-orange-ddd: #9a3412; --p-orange-l: #fdba74;
+  --p-blue: #3b82f6; --p-red: #b91c1c;
+  --p-gutter: clamp(16px, 4vw, 32px);
+  --p-shadow: 0 1px 2px rgba(124,45,18,.06), 0 8px 24px rgba(124,45,18,.07);
+  --p-shadow-lg: 0 20px 44px rgba(124,45,18,.16);
+  --p-ease: cubic-bezier(.22, 1, .36, 1);
+  /* If your header is taller/shorter, change this one value */
+  --p-sticky-top: 88px;
+
+  box-sizing: border-box;
+  width: 100%; max-width: 1180px; margin: 0 auto;
+  padding: clamp(20px, 3.5vw, 40px) var(--p-gutter) 112px;
+  color: var(--p-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  animation: cp-fade .5s var(--p-ease) backwards;
+}
+.cart-page *, .cart-page *::before, .cart-page *::after { box-sizing: border-box; }
+.cart-page :is(a, button):focus-visible { outline: 3px solid var(--p-blue); outline-offset: 2px; }
+.cart-page :is(h1, h2, h3, p, ul) { margin: 0; padding: 0; }
+.cart-page .cp-ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes cp-fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes cp-spin { to { transform: rotate(360deg); } }
+
+/* ---------- HEAD ---------- */
+.cart-page .cp-head {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 18px;
+  padding: clamp(22px, 4vw, 36px); margin-bottom: 24px;
+  border: 1px solid var(--p-line); border-radius: 28px;
+  background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #fffdfa, #fff4e8 55%, #ffe3c7);
+}
+.cart-page .cp-head::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--p-orange-l); opacity: .45; filter: blur(60px); }
+.cart-page .cp-title { color: var(--p-ink); font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.cart-page .cp-lead { margin-top: 10px; color: var(--p-muted); font-size: 15px; }
+.cart-page .cp-orders { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 1px solid var(--p-line); border-radius: 14px; background: #fff; box-shadow: var(--p-shadow); color: var(--p-ink); font-size: 15px; font-weight: 700; text-decoration: none; transition: background .2s, border-color .2s; }
+.cart-page .cp-orders .cp-ico { font-size: 18px; color: var(--p-orange-dd); }
+.cart-page .cp-orders:hover { border-color: var(--p-orange); background: var(--p-cream); color: var(--p-ink); }
+
+/* ---------- MESSAGES ---------- */
+.cart-page .cp-msgs { display: grid; gap: 10px; margin-bottom: 20px; }
+.cart-page .cp-msg { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border: 1px solid var(--p-line); border-radius: 14px; background: #fff; color: var(--p-text); font-size: 14px; font-weight: 600; line-height: 1.5; }
+.cart-page .cp-msg .cp-ico { margin-top: 2px; font-size: 18px; }
+.cart-page .cp-msg.success { border-color: #86efac; background: #f0fdf4; color: #166534; }
+.cart-page .cp-msg.error { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+.cart-page .cp-msg.warning { border-color: #fcd34d; background: #fffbeb; color: #92400e; }
+.cart-page .cp-msg.info, .cart-page .cp-msg.debug { border-color: var(--p-line); background: var(--p-cream); color: var(--p-orange-ddd); }
+
+/* ---------- LAYOUT ---------- */
+.cart-page .cp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+.cart-page .cp-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cart-page .cp-list-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
+.cart-page .cp-pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border: 1px solid var(--p-line); border-radius: 999px; background: #fff; color: var(--p-orange-dd); font-size: 13px; font-weight: 700; }
+.cart-page .cp-items { display: grid; gap: 14px; list-style: none; }
+
+/* ---------- ITEM ---------- */
+.cart-page .cp-item { position: relative; display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; gap: 8px 20px; align-items: center; padding: 16px; background: #fff; border: 1px solid var(--p-line-soft); border-radius: 22px; box-shadow: var(--p-shadow); transition: border-color .25s, box-shadow .25s, opacity .25s; }
+@media (hover: hover) { .cart-page .cp-item:hover { border-color: var(--p-orange-l); box-shadow: var(--p-shadow-lg); } }
+.cart-page .cp-item.is-busy { opacity: .55; pointer-events: none; }
+.cart-page .cp-item.is-busy::after { content: ""; position: absolute; top: 50%; left: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 3px solid var(--p-peach); border-top-color: var(--p-orange-dd); border-radius: 50%; animation: cp-spin .7s linear infinite; }
+.cart-page .cp-thumb { display: grid; place-items: center; width: 104px; height: 104px; overflow: hidden; border-radius: 16px; background: var(--p-cream); color: #78716c; font-size: 28px; }
+.cart-page .cp-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cart-page .cp-info { min-width: 0; }
+.cart-page .cp-name { font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cart-page .cp-unit { margin-top: 4px; color: var(--p-muted); font-size: 14px; }
+.cart-page .cp-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.cart-page .cp-controls form { margin: 0; }
+
+.cart-page .cp-stepper { display: inline-flex; align-items: center; overflow: hidden; border: 1px solid var(--p-line); border-radius: 12px; background: #fff; }
+.cart-page .cp-stepper form { display: block; }
+.cart-page .cp-qty-btn { display: grid; place-items: center; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; border-radius: 0; background: var(--p-cream); color: var(--p-ink); font-family: inherit; font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer; transition: background .15s, color .15s; }
+.cart-page .cp-qty-btn:hover { background: var(--p-peach); color: var(--p-orange-dd); }
+.cart-page .cp-qty-value { min-width: 48px; text-align: center; border-left: 1px solid var(--p-line); border-right: 1px solid var(--p-line); font-size: 15px; font-weight: 700; line-height: 44px; }
+
+.cart-page .cp-remove { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--p-red); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.cart-page .cp-remove .cp-ico { font-size: 17px; }
+.cart-page .cp-remove:hover { background: #fef2f2; }
+
+.cart-page .cp-sub-wrap { text-align: right; }
+.cart-page .cp-sub-label { color: var(--p-muted); font-size: 12px; font-weight: 700; }
+.cart-page .cp-subtotal { margin-top: 2px; color: var(--p-orange-dd); font-size: 20px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+
+.cart-page .cp-continue { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 16px; color: var(--p-orange-dd); font-size: 14px; font-weight: 700; text-decoration: none; }
+.cart-page .cp-continue .cp-ico { font-size: 16px; transition: transform .25s var(--p-ease); }
+.cart-page .cp-continue:hover { color: var(--p-orange-ddd); text-decoration: underline; }
+.cart-page .cp-continue:hover .cp-ico { transform: translateX(-3px); }
+
+/* ---------- SUMMARY ---------- */
+.cart-page .cp-summary { position: sticky; top: var(--p-sticky-top); padding: 26px; background: #fff; border: 1px solid var(--p-line-soft); border-radius: 26px; box-shadow: var(--p-shadow-lg); }
+.cart-page .cp-summary-title { margin-bottom: 18px; font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
+.cart-page .cp-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; color: var(--p-text); font-size: 15px; }
+.cart-page .cp-line span:last-child { font-weight: 700; color: var(--p-ink); }
+.cart-page .cp-line .cp-note { color: var(--p-muted); font-size: 13px; font-weight: 600; }
+.cart-page .cp-total { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; padding-top: 18px; border-top: 1px dashed var(--p-orange-l); }
+.cart-page .cp-total span { font-size: 15px; font-weight: 700; }
+.cart-page .cp-total strong { color: var(--p-orange-dd); font-size: 1.75rem; font-weight: 800; letter-spacing: -.03em; }
+.cart-page .cp-checkout { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; margin-top: 20px; border-radius: 16px; background: var(--p-orange-dd); color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; box-shadow: 0 12px 26px rgba(194,65,12,.3); transition: background .2s, transform .15s, box-shadow .2s; }
+.cart-page .cp-checkout .cp-ico { font-size: 19px; transition: transform .25s var(--p-ease); }
+.cart-page .cp-checkout:hover { background: var(--p-orange-ddd); color: #fff; box-shadow: 0 16px 32px rgba(194,65,12,.36); }
+.cart-page .cp-checkout:hover .cp-ico { transform: translateX(3px); }
+.cart-page .cp-checkout:active { transform: scale(.98); }
+.cart-page .cp-trust { display: grid; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--p-line-soft); list-style: none; }
+.cart-page .cp-trust li { display: flex; align-items: center; gap: 10px; color: var(--p-muted); font-size: 13px; font-weight: 600; }
+.cart-page .cp-trust .cp-ico { font-size: 18px; color: var(--p-orange-dd); }
+
+/* mobile sticky checkout bar (hidden on desktop) */
+.cart-page .cp-bar { display: none; }
+
+/* ---------- EMPTY ---------- */
+.cart-page .cp-empty { max-width: 560px; margin: 24px auto 0; padding: 64px 24px; text-align: center; background: var(--p-cream); border: 1.5px dashed var(--p-orange-l); border-radius: 28px; }
+.cart-page .cp-empty-icon { width: 84px; height: 84px; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 50%; background: var(--p-peach); color: var(--p-orange-dd); font-size: 38px; }
+.cart-page .cp-empty-title { margin: 16px 0 6px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+.cart-page .cp-empty-text { margin: 0 auto 24px; max-width: 320px; color: var(--p-muted); font-size: 15px; line-height: 1.6; }
+.cart-page .cp-cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 26px; border-radius: 14px; background: var(--p-orange-dd); color: #fff; font-size: 15px; font-weight: 700; text-decoration: none; box-shadow: 0 10px 24px rgba(194,65,12,.28); transition: background .2s; }
+.cart-page .cp-cta .cp-ico { font-size: 18px; }
+.cart-page .cp-cta:hover { background: var(--p-orange-ddd); color: #fff; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 960px) {
+  .cart-page .cp-layout { grid-template-columns: 1fr; }
+  .cart-page .cp-summary { position: static; }
+  /* z-index kept low so it never covers menus, dropdowns or the sticky header */
+  .cart-page .cp-bar { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px var(--p-gutter) calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-top: 1px solid var(--p-line); box-shadow: 0 -10px 30px rgba(124,45,18,.1); }
+  .cart-page .cp-bar small { display: block; color: var(--p-muted); font-size: 12px; font-weight: 700; }
+  .cart-page .cp-bar strong { display: block; color: var(--p-orange-dd); font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; }
+  .cart-page .cp-bar a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 24px; border-radius: 14px; background: var(--p-orange-dd); color: #fff; font-size: 15px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 20px rgba(194,65,12,.3); }
+  .cart-page .cp-bar a:hover { background: var(--p-orange-ddd); color: #fff; }
+  .cart-page .cp-summary .cp-checkout { display: none; }
+}
+@media (max-width: 640px) {
+  .cart-page .cp-head { border-radius: 22px; padding: 20px; }
+  .cart-page .cp-orders { width: 100%; justify-content: center; }
+  .cart-page .cp-item { grid-template-columns: 84px minmax(0, 1fr); gap: 8px 14px; padding: 14px; border-radius: 18px; }
+  .cart-page .cp-thumb { width: 84px; height: 84px; border-radius: 14px; }
+  .cart-page .cp-sub-wrap { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; padding-top: 10px; border-top: 1px dashed var(--p-line); text-align: left; }
+  .cart-page .cp-subtotal { font-size: 18px; }
+  .cart-page .cp-summary { border-radius: 22px; padding: 22px; }
 }
 
-.cart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 22px;
-}
-
-.cart-header h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 700;
-}
-
-.orders-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 16px;
-
-    color: var(--accent);
-    background: var(--accent-soft);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-
-    transition: .2s;
-}
-
-.orders-link:hover {
-    color: #fff;
-    background: var(--gradient);
-    border-color: transparent;
-}
-
-.msg {
-    padding: 10px 14px;
-    margin-bottom: 10px;
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    font-size: 13px;
-}
-
-.msg.error {
-    color: #B42318;
-    border-color: #F0B8B3;
-}
-
-.msg.warning {
-    color: #8A5A00;
-    border-color: #E8D49A;
-}
-
-.msg.success {
-    color: var(--accent);
-    border-color: #AFC6F5;
-}
-
-.cart-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 0;
-    border-bottom: 1px dashed var(--border);
-}
-
-.cart-item img {
-    width: 72px;
-    height: 72px;
-    object-fit: cover;
-    border-radius: 7px;
-    flex-shrink: 0;
-    background: var(--accent-soft);
-}
-
-.item-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.item-info h3 {
-    margin: 0 0 4px;
-    font-size: 14.5px;
-    font-weight: 600;
-}
-
-.item-info p {
-    margin: 0 0 10px;
-    color: var(--muted);
-    font-size: 13px;
-}
-
-.qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.qty-controls form {
-    display: inline;
-}
-
-.qty-btn {
-    width: 27px;
-    height: 27px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-
-    background: #fff;
-    color: var(--ink);
-
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-
-    transition: .2s;
-}
-
-.qty-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--accent-soft);
-}
-
-.qty-value {
-    min-width: 16px;
-    text-align: center;
-    font-size: 13.5px;
-    font-weight: 600;
-}
-
-.remove-btn {
-    margin-left: 6px;
-    border: none;
-    background: none;
-
-    color: #B42318;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.remove-btn:hover {
-    text-decoration: underline;
-}
-
-.item-subtotal {
-    flex-shrink: 0;
-    color: var(--accent);
-    font-size: 14.5px;
-    font-weight: 700;
-}
-
-.cart-total {
-    margin-top: 20px;
-    text-align: right;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.checkout-btn {
-    display: block;
-    margin-top: 16px;
-    padding: 15px;
-
-    border-radius: 7px;
-
-    background: var(--gradient);
-    color: #fff;
-
-    text-align: center;
-    text-decoration: none;
-
-    font-size: 14.5px;
-    font-weight: 700;
-
-    transition: .25s;
-}
-
-.checkout-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px var(--accent-ring);
-}
-
-.empty-cart {
-    padding: 50px 20px;
-    text-align: center;
-}
-
-.empty-cart h3 {
-    margin: 0 0 8px;
-    font-size: 17px;
-}
-
-.empty-cart a {
-    color: var(--accent);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.empty-cart a:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 600px) {
-    .cart-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .cart-item {
-        align-items: flex-start;
-    }
-
-    .item-subtotal {
-        font-size: 13px;
-    }
-
-    .qty-controls {
-        flex-wrap: wrap;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .cart-page, .cart-page *, .cart-page *::before, .cart-page *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 </style>
 
-
 <div class="cart-page">
 
-    <div class="cart-header">
+  <!-- Icon sprite: all ids prefixed "cp-i-" so they can never clash with icons in your navbar/header -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="cp-i-orders" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+      <symbol id="cp-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="cp-i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+      <symbol id="cp-i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol>
+      <symbol id="cp-i-cart" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></symbol>
+      <symbol id="cp-i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+      <symbol id="cp-i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="cp-i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+      <symbol id="cp-i-return" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+      <symbol id="cp-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="cp-i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+    </defs>
+  </svg>
 
-        <h2>Shopping Cart</h2>
-
-        <a href="{% url 'my_orders' %}" class="orders-link">
-
-            <svg width="14" height="14"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round">
-
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-
-            </svg>
-
-            View My Orders
-
-        </a>
-
+  <header class="cp-head">
+    <div>
+      <h1 class="cp-title">Shopping Cart</h1>
+      <p class="cp-lead">{% if items %}Review your items, then check out securely.{% else %}Nothing here yet.{% endif %}</p>
     </div>
+    <a href="{% url 'my_orders' %}" class="cp-orders"><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-orders"/></svg>View my orders</a>
+  </header>
 
-    <hr>
-
+  {% if messages %}
+  <div class="cp-msgs" role="status">
     {% for message in messages %}
-
-        <div class="msg {{ message.tags }}">
-            {{ message }}
-        </div>
-
+      <div class="cp-msg {{ message.tags }}">
+        <svg class="cp-ico" aria-hidden="true"><use href="{% if 'success' in message.tags %}#cp-i-check{% else %}#cp-i-alert{% endif %}"/></svg>
+        <span>{{ message }}</span>
+      </div>
     {% endfor %}
+  </div>
+  {% endif %}
 
+  {% if items %}
 
-    {% if items %}
+  <div class="cp-layout">
 
+    <!-- ===== ITEMS ===== -->
+    <section aria-labelledby="cp-items-title">
+      <div class="cp-list-head">
+        <h2 id="cp-items-title" class="cp-list-title">Your items</h2>
+        <span class="cp-pill">{{ items|length }} item{{ items|length|pluralize }}</span>
+      </div>
+
+      <ul class="cp-items">
         {% for item in items %}
+        <li class="cp-item">
 
-        <div class="cart-item">
+          <div class="cp-thumb">
+            {% if item.product.image %}
+              <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" width="104" height="104" loading="lazy" decoding="async">
+            {% else %}
+              <svg class="cp-ico" aria-hidden="true"><use href="#cp-i-box"/></svg>
+            {% endif %}
+          </div>
 
-            <img
-                src="{{ item.product.image.url }}"
-                alt="{{ item.product.name }}"
-            >
+          <div class="cp-info">
+            <h3 class="cp-name">{{ item.product.name }}</h3>
+            <p class="cp-unit">Rs. {{ item.product.price }} each</p>
 
-            <div class="item-info">
+            <div class="cp-controls">
+              <div class="cp-stepper" role="group" aria-label="Quantity of {{ item.product.name }}">
+                <form method="POST" action="{% url 'update_quantity' item.id 'decrease' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="cp-qty-btn" aria-label="Decrease quantity of {{ item.product.name }}">−</button>
+                </form>
 
-                <h3>
-                    {{ item.product.name }}
-                </h3>
+                <span class="cp-qty-value" aria-live="polite">{{ item.quantity }}</span>
 
-                <p>
-                    Rs. {{ item.product.price }}
-                </p>
+                <form method="POST" action="{% url 'update_quantity' item.id 'increase' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="cp-qty-btn" aria-label="Increase quantity of {{ item.product.name }}">+</button>
+                </form>
+              </div>
 
-                <div class="qty-controls">
-
-                    <form method="POST"
-                          action="{% url 'update_quantity' item.id 'decrease' %}">
-
-                        {% csrf_token %}
-
-                        <button type="submit" class="qty-btn">
-                            −
-                        </button>
-
-                    </form>
-
-
-                    <span class="qty-value">
-                        {{ item.quantity }}
-                    </span>
-
-
-                    <form method="POST"
-                          action="{% url 'update_quantity' item.id 'increase' %}">
-
-                        {% csrf_token %}
-
-                        <button type="submit" class="qty-btn">
-                            +
-                        </button>
-
-                    </form>
-
-
-                    <form method="POST"
-                          action="{% url 'remove_item' item.id %}">
-
-                        {% csrf_token %}
-
-                        <button type="submit" class="remove-btn">
-                            Remove
-                        </button>
-
-                    </form>
-
-                </div>
-
+              <form method="POST" action="{% url 'remove_item' item.id %}" data-confirm="Remove this item from your cart?">
+                {% csrf_token %}
+                <button type="submit" class="cp-remove" aria-label="Remove {{ item.product.name }} from cart"><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-trash"/></svg>Remove</button>
+              </form>
             </div>
+          </div>
 
+          <div class="cp-sub-wrap">
+            <div class="cp-sub-label">Subtotal</div>
+            <div class="cp-subtotal">Rs. {{ item.subtotal }}</div>
+          </div>
 
-            <div class="item-subtotal">
-                Rs. {{ item.subtotal }}
-            </div>
-
-        </div>
-
+        </li>
         {% endfor %}
+      </ul>
 
+      <a href="{% url 'product_list' %}" class="cp-continue"><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-back"/></svg>Continue shopping</a>
+    </section>
 
-        <div class="cart-total">
-            Total: Rs. {{ total }}
-        </div>
+    <!-- ===== SUMMARY ===== -->
+    <aside class="cp-summary" aria-labelledby="cp-summary-title">
+      <h2 id="cp-summary-title" class="cp-summary-title">Order summary</h2>
 
+      <div class="cp-line"><span>Items ({{ items|length }})</span><span>Rs. {{ total }}</span></div>
+      <div class="cp-line"><span>Delivery</span><span class="cp-note">Calculated at checkout</span></div>
 
-        <a href="{% url 'checkout' %}" class="checkout-btn">
-            Proceed to Checkout →
-        </a>
+      <div class="cp-total"><span>Total</span><strong>Rs. {{ total }}</strong></div>
 
+      <a href="{% url 'checkout' %}" class="cp-checkout">Proceed to checkout <svg class="cp-ico" aria-hidden="true"><use href="#cp-i-arrow"/></svg></a>
 
-    {% else %}
+      <ul class="cp-trust">
+        <li><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-shield"/></svg>Secure, encrypted checkout</li>
+        <li><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-truck"/></svg>Fast, tracked delivery</li>
+        <li><svg class="cp-ico" aria-hidden="true"><use href="#cp-i-return"/></svg>Easy returns</li>
+      </ul>
+    </aside>
 
-        <div class="empty-cart">
+  </div>
 
-            <h3>
-                Your cart is empty.
-            </h3>
+  <!-- mobile sticky checkout bar -->
+  <div class="cp-bar">
+    <div><small>Total</small><strong>Rs. {{ total }}</strong></div>
+    <a href="{% url 'checkout' %}">Checkout <svg class="cp-ico" aria-hidden="true" width="18" height="18"><use href="#cp-i-arrow"/></svg></a>
+  </div>
 
-            <a href="{% url 'product_list' %}">
-                Browse Products →
-            </a>
+  {% else %}
 
-        </div>
+  <section class="cp-empty">
+    <div class="cp-empty-icon" aria-hidden="true"><svg class="cp-ico"><use href="#cp-i-cart"/></svg></div>
+    <h2 class="cp-empty-title">Your cart is empty</h2>
+    <p class="cp-empty-text">You haven't added anything yet. Browse the shop to find something you like.</p>
+    <a href="{% url 'product_list' %}" class="cp-cta">Browse products <svg class="cp-ico" aria-hidden="true"><use href="#cp-i-arrow"/></svg></a>
+  </section>
 
-    {% endif %}
+  {% endif %}
 
 </div>
+
+<!-- Screen-reader announcements (kept outside .cart-page so it survives updates) -->
+<div id="cp-live" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;"></div>
+
+<script>
+/* Cart page only – updates quantity / remove WITHOUT a full page reload.
+   How it works: the form is POSTed with fetch(); your existing Django views
+   run unchanged and redirect back to the cart, so the response is the freshly
+   calculated cart page. We swap that into place, so every total, subtotal and
+   item count still comes from the server (no math in JavaScript).
+   Scoped to .cart-page: the navbar/header are never touched. */
+(function () {
+  var page = document.querySelector('.cart-page');
+  if (!page) return;
+  var live = document.getElementById('cp-live');
+  var inFlight = false;
+  var msgTimer;
+
+  function announce(text) { if (live) { live.textContent = ''; setTimeout(function () { live.textContent = text; }, 50); } }
+
+  function autoDismissMessages() {
+    clearTimeout(msgTimer);
+    var box = page.querySelector('.cp-msgs');
+    if (box) msgTimer = setTimeout(function () { box.style.display = 'none'; }, 4000);
+  }
+
+  page.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form.closest || !form.closest('.cp-item')) return;   // only cart item forms
+    e.preventDefault();
+    if (inFlight) return;
+
+    var msg = form.getAttribute('data-confirm');
+    if (msg && !window.confirm(msg)) return;
+
+    var item = form.closest('.cp-item');
+    var action = form.getAttribute('action');
+    var wasRemove = !!form.querySelector('.cp-remove');
+
+    inFlight = true;
+    item.classList.add('is-busy');
+    item.setAttribute('aria-busy', 'true');
+
+    fetch(action, {
+      method: 'POST',
+      body: new FormData(form),
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text().then(function (html) { return { html: html, url: res.url }; });
+    })
+    .then(function (r) {
+      var doc = new DOMParser().parseFromString(r.html, 'text/html');
+      var fresh = doc.querySelector('.cart-page');
+      if (!fresh) { window.location.href = r.url; return; }  // e.g. redirected to login
+
+      page.innerHTML = fresh.innerHTML;                      // server-calculated totals
+
+      // keep keyboard focus where the user was
+      var again = page.querySelector('.cp-item form[action="' + action + '"] button');
+      if (again) { again.focus(); }
+      else {
+        var next = page.querySelector('.cp-qty-btn') || page.querySelector('.cp-cta');
+        if (next) next.focus();
+      }
+
+      var total = page.querySelector('.cp-total strong');
+      announce((wasRemove ? 'Item removed. ' : 'Quantity updated. ') + (total ? 'Cart total ' + total.textContent : ''));
+      autoDismissMessages();
+
+      // Optional hook: let your header listen if it shows a cart badge
+      document.dispatchEvent(new CustomEvent('cart:updated', { detail: { html: r.html } }));
+    })
+    .catch(function () {
+      form.submit();                                         // safe fallback: normal page reload
+    })
+    .then(function () { inFlight = false; });
+  });
+
+  /* Restore the page if the user returns with the back button (bfcache) */
+  window.addEventListener('pageshow', function (ev) {
+    if (ev.persisted) { window.location.reload(); }
+  });
+
+  autoDismissMessages();
+})();
+</script>
 
 {% endblock %}

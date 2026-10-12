@@ -1,13 +1,134 @@
-<h2>Delete Product</h2>
+{% extends 'admin_base.html' %}
 
-<p>Are you sure you want to delete "{{ product.name }}"?</p>
+{% block title %}Delete Product{% endblock %}
 
-<form method="POST">
-    {% if next_url %}
-    <input type="hidden" name="next" value="{{ next_url }}">
-{% endif %}
-    {% csrf_token %}
-    <button type="submit">Delete</button>
-</form>
+{% block extra_css %}
+<style>
+/* =========================================================
+   Delete product confirmation  (ui-ux-pro-max: destructive actions)
+   - Safe default: Cancel is first and focused
+   - Names exactly what will be deleted, shows it, explains permanence
+   - Admin tokens (light + dark), 44px+ targets, saving state on submit
+   ========================================================= */
+.pd-page { max-width: 560px; margin: 0 auto; }
+.pd-page a:focus-visible, .pd-page button:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-<a href="{% url 'see_product' %}">Cancel</a>
+.pd-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--muted); font-size: 14px; }
+.pd-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.pd-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.pd-card { overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.pd-top { padding: 28px 28px 22px; }
+.pd-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 16px; border-radius: 14px; background: var(--danger-soft); color: var(--danger); }
+.pd-icon svg { width: 24px; height: 24px; }
+.pd-card h1 { color: var(--text); font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; }
+.pd-lead { margin-top: 8px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.pd-lead strong { color: var(--text); font-weight: 700; overflow-wrap: anywhere; }
+
+/* what is being deleted */
+.pd-summary { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.pd-thumb { display: grid; place-items: center; width: 64px; height: 64px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); }
+.pd-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pd-thumb svg { width: 24px; height: 24px; }
+.pd-info { min-width: 0; flex: 1; }
+.pd-name { color: var(--text); font-size: 15px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.pd-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; color: var(--muted); font-size: 13.5px; }
+.pd-meta b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.pd-note { display: flex; gap: 10px; margin-top: 16px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.pd-note svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; color: var(--danger); }
+
+/* actions */
+.pd-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 18px 28px; border-top: 1px solid var(--border); background: var(--surface-2); }
+.pd-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; min-width: 130px; padding: 0 22px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s, filter .15s; }
+.pd-btn:hover { background: var(--surface-2); border-color: var(--muted); }
+.pd-btn.danger { border-color: #DC2626; background: #DC2626; color: #fff; }
+.pd-btn.danger:hover { border-color: #B91C1C; background: #B91C1C; }
+.pd-btn[aria-busy="true"] { cursor: progress; opacity: .85; }
+.pd-btn[aria-busy="true"]::before { content: ""; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: pd-spin .7s linear infinite; }
+@keyframes pd-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 520px) {
+    .pd-top { padding: 22px 18px 18px; }
+    .pd-actions { flex-direction: column; padding: 16px 18px; }
+    .pd-btn { width: 100%; }
+    .pd-summary { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .pd-btn { transition: none; } .pd-btn[aria-busy="true"]::before { animation-duration: 2s; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="pd-page">
+
+<nav class="pd-crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'see_product' %}">Products</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Delete product</span>
+</nav>
+
+<section class="pd-card" aria-labelledby="pd-title">
+
+    <div class="pd-top">
+        <div class="pd-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg>
+        </div>
+
+        <h1 id="pd-title">Delete this product?</h1>
+        <p class="pd-lead">You are about to permanently delete <strong>{{ product.name }}</strong>. This can’t be undone.</p>
+
+        <div class="pd-summary">
+            <span class="pd-thumb">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="" width="64" height="64">
+                {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L6 21"/></svg>
+                {% endif %}
+            </span>
+            <div class="pd-info">
+                <div class="pd-name">{{ product.name }}</div>
+                <div class="pd-meta">
+                    {% if product.category %}<span>{{ product.category }}</span>{% endif %}
+                    <span>Rs. <b>{{ product.price|floatformat:2 }}</b></span>
+                    <span>Stock <b>{{ product.stock }}</b></span>
+                </div>
+            </div>
+        </div>
+
+        <p class="pd-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg>
+            <span>The product will disappear from your store and from the products list.</span>
+        </p>
+    </div>
+
+    <form method="POST" class="pd-actions" id="pd-form">
+        {% csrf_token %}
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+
+        <a class="pd-btn" href="{% url 'see_product' %}" autofocus>Keep product</a>
+        <button type="submit" class="pd-btn danger" id="pd-delete">Delete product</button>
+    </form>
+
+</section>
+
+</div>
+
+<script>
+/* Show a deleting state and block double submits. */
+(function () {
+    var form = document.getElementById('pd-form'), btn = document.getElementById('pd-delete');
+    if (!form || !btn) return;
+    var label = btn.textContent;
+    form.addEventListener('submit', function () {
+        btn.setAttribute('aria-busy', 'true');
+        btn.textContent = 'Deleting…';
+        setTimeout(function () { btn.disabled = true; }, 0);
+    });
+    window.addEventListener('pageshow', function () {
+        btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = label;
+    });
+})();
+</script>
+
+{% endblock %}

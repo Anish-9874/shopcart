@@ -112,21 +112,95 @@ def product_list(request):
 # ============================================================
 
 
-@cache_page(60 * 15)
+# ============================================================
+# SEE PRODUCTS WITH SEARCH, FILTERS, SORTING AND PAGINATION
+# ============================================================
+
+
 def see_product(request):
-    products = Product.objects.all().order_by("-id")
+    # Read filter values from the query string.
+    q = request.GET.get("q", "").strip()
+    category_id = request.GET.get("category", "").strip()
+    stock = request.GET.get("stock", "").strip()
+    sort = request.GET.get("sort", "newest").strip()
 
+    # Start with all products.
+    products = Product.objects.select_related("category").all()
+
+    # Search by product name, description, category name or ID.
+    if q:
+        search_filter = (
+            Q(name__icontains=q)
+            | Q(description__icontains=q)
+            | Q(category__name__icontains=q)
+        )
+
+        # Allow searching by numeric product ID.
+        if q.isdigit():
+            search_filter |= Q(id=int(q))
+
+        products = products.filter(search_filter)
+
+    # Filter by category.
+    active_category = None
+
+    if category_id:
+        if category_id.isdigit():
+            active_category = Category.objects.filter(id=int(category_id)).first()
+
+            if active_category:
+                products = products.filter(category_id=active_category.id)
+            else:
+                category_id = ""
+        else:
+            category_id = ""
+
+    # Filter by stock level.
+    if stock == "in":
+        products = products.filter(stock__gt=500)
+
+    elif stock == "low":
+        products = products.filter(stock__gt=0, stock__lte=500)
+
+    elif stock == "out":
+        products = products.filter(stock__lte=0)
+
+    # Sort the filtered results.
+    sort_options = {
+        "newest": "-id",
+        "name": "name",
+        "price_asc": "price",
+        "price_desc": "-price",
+        "stock_asc": "stock",
+    }
+
+    if sort not in sort_options:
+        sort = "newest"
+
+    products = products.order_by(sort_options[sort], "id")
+
+    # Paginate after filtering and sorting.
     paginator = Paginator(products, 20)
-
     page_number = request.GET.get("page")
-
     page = paginator.get_page(page_number)
+
+    # Preserve active filters in pagination links.
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    querystring = query_params.urlencode()
 
     return render(
         request,
         "see_product.html",
         {
             "products": page,
+            "q": q,
+            "category_id": category_id,
+            "active_category": active_category,
+            "stock": stock,
+            "sort": sort,
+            "categories": Category.objects.all().order_by("name"),
+            "querystring": querystring,
         },
     )
 

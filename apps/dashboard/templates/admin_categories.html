@@ -1,268 +1,325 @@
-
 {% extends "admin_base.html" %}
 
-{% block content %}
+{% block title %}Category Management{% endblock %}
+
+{% block extra_css %}
 <style>
-    .category-page {
-        padding: 25px;
-        color: #e5e7eb;
-    }
+/* =========================================================
+   Category management  (ui-ux-pro-max: catalogue / card gallery)
+   Categories are visual objects (cover + name + product count), so this
+   page is a gallery with a grid/list switch, instant search and sort.
+   - Admin tokens from admin_base.html (light + dark safe)
+   - 44px targets, visible focus, icon buttons have labels
+   - Motion: short colour/transform transitions, reduced-motion respected
+   ========================================================= */
+.cg-page [hidden] { display: none !important; }
+.cg-page .ico { width: 18px; height: 18px; flex-shrink: 0; }
+.cg-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cg-page a:focus-visible, .cg-page button:focus-visible, .cg-page input:focus-visible, .cg-page select:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-    .category-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 15px;
-        flex-wrap: wrap;
-        margin-bottom: 25px;
-    }
+/* ---------- Header ---------- */
+.cg-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 18px; }
+.cg-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.cg-head p { margin-top: 4px; color: var(--muted); font-size: 14px; }
+.cg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--btn); border-radius: 10px; background: var(--btn); color: #fff; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; box-shadow: var(--shadow-sm); transition: filter .15s; }
+.cg-btn:hover { filter: brightness(1.1); }
 
-    .category-header h2 {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 700;
-    }
+/* ---------- Messages ---------- */
+.cg-messages { display: grid; gap: 10px; margin-bottom: 16px; }
+.cg-msg { display: flex; align-items: center; gap: 12px; padding: 4px 6px 4px 16px; border: 1px solid var(--success-line); border-radius: 12px; background: var(--success-soft); color: var(--text); font-size: 14px; line-height: 1.5; }
+.cg-msg.error { border-color: var(--danger-line); background: var(--danger-soft); }
+.cg-msg.warning { border-color: var(--warn-line); background: var(--warn-soft); }
+.cg-msg.info { border-color: var(--border); background: var(--surface-2); }
+.cg-msg span { flex: 1; min-width: 0; padding: 8px 0; }
+.cg-msg button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.cg-msg button:hover { background: rgba(127,127,127,.15); color: var(--text); }
 
-    .category-header p {
-        color: #9ca3af;
-        margin-top: 8px;
-    }
+/* ---------- Toolbar ---------- */
+.cg-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.cg-search { position: relative; flex: 1 1 260px; min-width: 0; }
+.cg-search .ico { position: absolute; left: 14px; top: 50%; margin-top: -9px; color: var(--muted); pointer-events: none; }
+.cg-search input { width: 100%; min-height: 46px; padding: 0 14px 0 42px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.cg-search input::placeholder { color: var(--muted); opacity: .85; }
+.cg-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.cg-select { min-height: 46px; padding: 0 34px 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+.cg-search input:hover, .cg-select:hover { border-color: var(--muted); }
+.cg-search input:focus-visible, .cg-select:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent); }
 
-    .add-category-btn {
-        background: #147d78;
-        color: white;
-        padding: 11px 18px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-    }
+.cg-views { display: inline-flex; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.cg-views button { display: grid; place-items: center; width: 44px; height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background-color .15s, color .15s; }
+.cg-views button:hover { color: var(--text); }
+.cg-views button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-sm); }
 
-    .add-category-btn:hover {
-        background: #106660;
-        color: white;
-    }
+.cg-summary { margin-bottom: 14px; color: var(--muted); font-size: 14px; min-height: 22px; }
+.cg-summary strong { color: var(--text); font-weight: 700; }
 
-    .category-table-wrapper {
-        overflow-x: auto;
-        background: #171b24;
-        border: 1px solid #303746;
-        border-radius: 12px;
-    }
+/* ---------- Gallery ---------- */
+.cg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(264px, 1fr)); gap: 18px; }
+.cg-card { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); transition: border-color .2s, box-shadow .2s, transform .2s; }
+@media (hover: hover) { .cg-card:hover { border-color: var(--muted); box-shadow: var(--shadow-md); transform: translateY(-2px); } }
 
-    .category-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 700px;
-    }
+.cg-cover { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; background: var(--t-bg); color: var(--t-fg); }
+.cg-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cg-cover b { font-size: 3rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
 
-    .category-table th,
-    .category-table td {
-        padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #303746;
-        vertical-align: middle;
-    }
+.cg-body { flex: 1; min-width: 0; padding: 16px 18px 4px; }
+.cg-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.cg-name { color: var(--text); font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.3; overflow-wrap: anywhere; }
+.cg-count { flex-shrink: 0; padding: 3px 10px; border-radius: 99px; background: var(--t-bg); color: var(--t-fg); font-size: 12.5px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cg-desc { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.cg-desc.none { font-style: italic; opacity: .8; }
 
-    .category-table th {
-        color: #9ca3af;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+.cg-foot { display: flex; align-items: center; gap: 8px; padding: 14px 18px 18px; }
+.cg-view { display: inline-flex; flex: 1; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.cg-view:hover { background: var(--surface-2); border-color: var(--muted); }
+.cg-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); text-decoration: none; transition: background-color .15s, border-color .15s, color .15s; }
+.cg-icon:hover { background: var(--surface-2); border-color: var(--muted); color: var(--text); }
+.cg-icon.danger:hover { background: var(--danger-soft); border-color: var(--danger-line); color: var(--danger); }
 
-    .category-table tr:last-child td {
-        border-bottom: none;
-    }
+/* add tile */
+.cg-add { align-items: center; justify-content: center; gap: 10px; min-height: 220px; border-style: dashed; background: transparent; box-shadow: none; color: var(--muted); font-size: 15px; font-weight: 600; text-decoration: none; text-align: center; }
+.cg-add span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.cg-add span .ico { width: 22px; height: 22px; }
+.cg-add:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); }
 
-    .category-image {
-        width: 65px;
-        height: 55px;
-        object-fit: cover;
-        border-radius: 8px;
-        background: #252b38;
-    }
+/* ---------- List view ---------- */
+.cg-grid.is-list { grid-template-columns: 1fr; gap: 10px; }
+.is-list .cg-card { flex-direction: row; align-items: center; gap: 16px; padding: 12px 14px; border-radius: 14px; }
+@media (hover: hover) { .is-list .cg-card:hover { transform: none; } }
+.is-list .cg-cover { flex-shrink: 0; width: 88px; height: 66px; aspect-ratio: auto; border-radius: 10px; }
+.is-list .cg-cover b { font-size: 1.6rem; }
+.is-list .cg-body { display: flex; align-items: center; gap: 20px; padding: 0; }
+.is-list .cg-title { flex: 0 0 240px; flex-direction: column; align-items: flex-start; gap: 6px; }
+.is-list .cg-desc { flex: 1; margin-top: 0; }
+.is-list .cg-foot { padding: 0; }
+.is-list .cg-view { flex: none; }
+.is-list .cg-add { flex-direction: row; min-height: 64px; justify-content: center; }
+.is-list .cg-add span { width: 36px; height: 36px; }
 
-    .no-image {
-        width: 65px;
-        height: 55px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #252b38;
-        border-radius: 8px;
-        color: #9ca3af;
-        font-size: 11px;
-    }
+/* ---------- Empty states ---------- */
+.cg-empty { display: none; padding: 56px 20px; border: 1px dashed var(--border); border-radius: 16px; text-align: center; }
+.cg-empty.show, .cg-empty.static { display: block; }
+.cg-empty-icon { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.cg-empty-icon .ico { width: 26px; height: 26px; }
+.cg-empty strong { display: block; color: var(--text); font-size: 16px; }
+.cg-empty p { margin: 4px auto 18px; max-width: 380px; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
-    .category-name {
-        font-weight: 600;
-        color: #f9fafb;
-    }
+/* tones (cover tint when a category has no image) */
+.tone-indigo { --t-bg: rgba(99,102,241,.13); --t-fg: #4F46E5; }
+.tone-cyan   { --t-bg: rgba(6,182,212,.14);  --t-fg: #0E7490; }
+.tone-violet { --t-bg: rgba(139,92,246,.13); --t-fg: #6D28D9; }
+.tone-amber  { --t-bg: rgba(245,158,11,.16); --t-fg: #B45309; }
+:root[data-theme="dark"] .tone-indigo { --t-bg: rgba(129,140,248,.18); --t-fg: #A5B4FC; }
+:root[data-theme="dark"] .tone-cyan   { --t-bg: rgba(34,211,238,.16);  --t-fg: #67E8F9; }
+:root[data-theme="dark"] .tone-violet { --t-bg: rgba(167,139,250,.18); --t-fg: #C4B5FD; }
+:root[data-theme="dark"] .tone-amber  { --t-bg: rgba(251,191,36,.16);  --t-fg: #FCD34D; }
 
-    .category-description {
-        color: #9ca3af;
-        max-width: 300px;
-    }
-
-    .product-count {
-        display: inline-block;
-        background: #243b53;
-        color: #93c5fd;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 13px;
-    }
-
-    .action-btn {
-        display: inline-block;
-        padding: 7px 11px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 13px;
-        margin: 3px;
-    }
-
-    .edit-btn {
-        background: #263c59;
-        color: #93c5fd;
-    }
-
-    .delete-btn {
-        background: #49272d;
-        color: #fca5a5;
-    }
-
-    .edit-btn:hover,
-    .delete-btn:hover {
-        filter: brightness(1.2);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 45px 20px;
-        color: #9ca3af;
-    }
-
-    .message {
-        padding: 12px 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        background: #203b32;
-        color: #a7f3d0;
-    }
-
-    @media (max-width: 600px) {
-        .category-page {
-            padding: 15px;
-        }
-
-        .category-header h2 {
-            font-size: 23px;
-        }
-    }
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+    .is-list .cg-body { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .is-list .cg-title { flex: none; }
+    .is-list .cg-desc { display: none; }
+}
+@media (max-width: 640px) {
+    .cg-head .cg-btn { width: 100%; }
+    .cg-select { flex: 1 1 0; min-width: 0; }
+    .is-list .cg-card { flex-wrap: wrap; }
+    .is-list .cg-body { flex: 1; min-width: 0; }
+    .is-list .cg-foot { width: 100%; }
+    .is-list .cg-view { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .cg-page * { transition: none !important; transform: none !important; } }
 </style>
+{% endblock %}
 
-<div class="category-page">
+{% block content %}
 
-    <div class="category-header">
-        <div>
-            <h2>Category Management</h2>
-            <p>Create, update, and organize your product categories.</p>
+<div class="cg-page">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="cg-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="cg-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="cg-i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+        <symbol id="cg-i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol>
+        <symbol id="cg-i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></symbol>
+        <symbol id="cg-i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+        <symbol id="cg-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="cg-i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    </defs>
+</svg>
+
+<!-- ===== Header ===== -->
+<header class="cg-head">
+    <div>
+        <h1>Categories</h1>
+        <p>Organise your catalogue and jump into the products in each category.</p>
+    </div>
+    <a href="{% url 'admin_category_create' %}" class="cg-btn"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cg-i-plus"/></svg>Add category</a>
+</header>
+
+{% if messages %}
+<div class="cg-messages">
+    {% for message in messages %}
+    <div class="cg-msg {{ message.tags }}" role="status">
+        <span>{{ message }}</span>
+        <button type="button" data-dismiss aria-label="Dismiss message"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cg-i-x"/></svg></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if categories %}
+
+<!-- ===== Search, sort, view ===== -->
+<div class="cg-toolbar" role="search">
+    <div class="cg-search">
+        <svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#cg-i-search"/></svg>
+        <label class="sr-only" for="cg-q">Search categories</label>
+        <input type="search" id="cg-q" placeholder="Search categories" autocomplete="off">
+    </div>
+
+    <label class="sr-only" for="cg-sort">Sort categories</label>
+    <select class="cg-select" id="cg-sort">
+        <option value="default">Sort: Default</option>
+        <option value="name">Sort: Name A–Z</option>
+        <option value="most">Sort: Most products</option>
+        <option value="least">Sort: Fewest products</option>
+    </select>
+
+    <div class="cg-views" role="group" aria-label="Layout">
+        <button type="button" data-view="grid" aria-pressed="true" aria-label="Grid view" title="Grid view"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cg-i-grid"/></svg></button>
+        <button type="button" data-view="list" aria-pressed="false" aria-label="List view" title="List view"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cg-i-list"/></svg></button>
+    </div>
+</div>
+
+<p class="cg-summary" id="cg-summary" role="status" aria-live="polite">{{ categories|length }} categor{{ categories|length|pluralize:"y,ies" }}</p>
+
+<!-- ===== Gallery ===== -->
+<div class="cg-grid" id="cg-grid">
+    {% for category in categories %}
+    {% with n=category.products.count %}
+    <article class="cg-card tone-{% cycle 'indigo' 'cyan' 'violet' 'amber' %}" data-card data-i="{{ forloop.counter0 }}" data-name="{{ category.name|lower }}" data-desc="{{ category.description|default:''|lower }}" data-count="{{ n }}">
+
+        <div class="cg-cover">
+            {% if category.image %}
+                <img src="{{ category.image.url }}" alt="" width="320" height="200" loading="lazy" decoding="async">
+            {% else %}
+                <b aria-hidden="true">{{ category.name|first|upper }}</b>
+            {% endif %}
         </div>
 
-        <a href="{% url 'admin_category_create' %}"
-           class="add-category-btn">
-            + Add Category
-        </a>
-    </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="message">
-                {{ message }}
+        <div class="cg-body">
+            <div class="cg-title">
+                <h2 class="cg-name">{{ category.name }}</h2>
+                <span class="cg-count">{{ n }} product{{ n|pluralize }}</span>
             </div>
-        {% endfor %}
-    {% endif %}
+            {% if category.description %}
+                <p class="cg-desc">{{ category.description|truncatechars:120 }}</p>
+            {% else %}
+                <p class="cg-desc none">No description</p>
+            {% endif %}
+        </div>
 
-    <div class="category-table-wrapper">
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Products</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
+        <div class="cg-foot">
+            <a class="cg-view" href="{% url 'admin_category_products' category.id %}">View products</a>
+            <a class="cg-icon" href="{% url 'admin_category_edit' category.id %}" aria-label="Edit {{ category.name }}" title="Edit"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cg-i-edit"/></svg></a>
+            <a class="cg-icon danger" href="{% url 'admin_category_delete' category.id %}" aria-label="Delete {{ category.name }}" title="Delete"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#cg-i-trash"/></svg></a>
+        </div>
 
-            <tbody>
-                {% for category in categories %}
-                    <tr>
-                        <td>
-                            {% if category.image %}
-                                <img
-                                    src="{{ category.image.url }}"
-                                    alt="{{ category.name }}"
-                                    class="category-image"
-                                >
-                            {% else %}
-                                <div class="no-image">No image</div>
-                            {% endif %}
-                        </td>
+    </article>
+    {% endwith %}
+    {% endfor %}
 
-                        <td>
-                            <span class="category-name">
-                                {{ category.name }}
-                            </span>
-                        </td>
-
-                        <td>
-                            <div class="category-description">
-                                {% if category.description %}
-                                    {{ category.description|truncatechars:80 }}
-                                {% else %}
-                                    <span> No description </span>
-                                {% endif %}
-                            </div>
-                        </td>
-
-                       
-<td>
-    <a
-        href="{% url 'admin_category_products' category.id %}"
-        class="action-btn edit-btn">
-        See Products ({{ category.products.count }})
+    <a class="cg-card cg-add" id="cg-add" href="{% url 'admin_category_create' %}">
+        <span aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cg-i-plus"/></svg></span>
+        New category
     </a>
-</td>
+</div>
 
-                        <td>
-                            <a
-                                href="{% url 'admin_category_edit' category.id %}"
-                                class="action-btn edit-btn">
-                                Edit
-                            </a>
+<div class="cg-empty" id="cg-noresults">
+    <div class="cg-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#cg-i-search"/></svg></div>
+    <strong>No categories match your search</strong>
+    <p>Check the spelling or try a shorter search term.</p>
+    <button type="button" class="cg-btn" id="cg-reset">Clear search</button>
+</div>
 
-                            <a
-                                href="{% url 'admin_category_delete' category.id %}"
-                                class="action-btn delete-btn">
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5">
-                            <div class="empty-state">
-                                <h3>No categories yet</h3>
-                                <p>Create your first category to get started.</p>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% else %}
+
+<div class="cg-empty static">
+    <div class="cg-empty-icon" aria-hidden="true"><svg class="ico" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#cg-i-layers"/></svg></div>
+    <strong>No categories yet</strong>
+    <p>Categories group your products so customers can browse your store. Create your first one to get started.</p>
+    <a class="cg-btn" href="{% url 'admin_category_create' %}"><svg class="ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#cg-i-plus"/></svg>Add category</a>
+</div>
+
+{% endif %}
 
 </div>
+
+<script>
+/* Instant search, sort, grid/list switch (remembered) and dismissible messages. */
+(function () {
+    document.querySelectorAll('[data-dismiss]').forEach(function (b) {
+        b.addEventListener('click', function () { var m = b.closest('.cg-msg'); if (m) m.remove(); });
+    });
+
+    var grid = document.getElementById('cg-grid');
+    if (!grid) return;
+
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('[data-card]'));
+    var addTile = document.getElementById('cg-add');
+    var q = document.getElementById('cg-q'), sort = document.getElementById('cg-sort');
+    var summary = document.getElementById('cg-summary'), none = document.getElementById('cg-noresults');
+    var totalProducts = cards.reduce(function (a, c) { return a + (parseInt(c.getAttribute('data-count'), 10) || 0); }, 0);
+
+    function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+    function render() {
+        var term = q.value.trim().toLowerCase(), shown = 0, shownProducts = 0;
+        cards.forEach(function (c) {
+            var hit = !term || c.getAttribute('data-name').indexOf(term) > -1 || c.getAttribute('data-desc').indexOf(term) > -1;
+            c.hidden = !hit;
+            if (hit) { shown++; shownProducts += parseInt(c.getAttribute('data-count'), 10) || 0; }
+        });
+        if (addTile) addTile.hidden = !!term;
+        none.classList.toggle('show', shown === 0);
+        grid.hidden = shown === 0 && !!term;
+        summary.innerHTML = term
+            ? 'Showing <strong>' + shown + '</strong> of ' + plural(cards.length, 'category', 'categories') + ' for “' + q.value.trim().replace(/[<>&]/g, '') + '”'
+            : plural(cards.length, 'category', 'categories') + ' · ' + plural(totalProducts, 'product', 'products');
+    }
+
+    function order() {
+        var mode = sort.value, list = cards.slice();
+        var n = function (c) { return parseInt(c.getAttribute('data-count'), 10) || 0; };
+        var i = function (c) { return parseInt(c.getAttribute('data-i'), 10); };
+        list.sort(function (a, b) {
+            if (mode === 'name') return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+            if (mode === 'most') return n(b) - n(a) || i(a) - i(b);
+            if (mode === 'least') return n(a) - n(b) || i(a) - i(b);
+            return i(a) - i(b);
+        });
+        list.forEach(function (c) { grid.insertBefore(c, addTile); });
+    }
+
+    q.addEventListener('input', render);
+    q.addEventListener('keydown', function (e) { if (e.key === 'Escape' && q.value) { q.value = ''; render(); } });
+    sort.addEventListener('change', order);
+    document.getElementById('cg-reset').addEventListener('click', function () { q.value = ''; render(); q.focus(); });
+
+    /* grid / list switch, remembered per browser */
+    var btns = document.querySelectorAll('[data-view]');
+    function setView(v) {
+        grid.classList.toggle('is-list', v === 'list');
+        btns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-view') === v ? 'true' : 'false'); });
+        try { localStorage.setItem('cg-view', v); } catch (e) {}
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view')); }); });
+    try { var saved = localStorage.getItem('cg-view'); if (saved === 'list' || saved === 'grid') setView(saved); } catch (e) {}
+
+    render();
+})();
+</script>
+
 {% endblock %}

@@ -7,232 +7,137 @@ Customer Profile
 
 {% block extra_css %}
 <style>
+/* =========================================================
+   Customer profile – one clean card: who they are, then their details.
+   Uses the "Midnight" tokens from admin_base.html (light + dark).
+   Classes use the "pf-" prefix.
+   ========================================================= */
+.pf-page { max-width: 820px; margin: 0 auto; }
+.pf-page .ico { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pf-page :is(a, button):focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-* { box-sizing: border-box; }
+/* header */
+.pf-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.pf-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
 
-.profile-wrapper {
-    max-width: 900px;
-    margin: auto;
+.pf-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s, filter .15s; }
+.pf-btn:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.pf-btn.primary { border-color: var(--btn); background: var(--btn); color: #fff; }
+.pf-btn.primary:hover { background: var(--btn); color: #fff; filter: brightness(1.12); }
+
+/* card */
+.pf-card { overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+
+.pf-who { display: flex; align-items: center; gap: 20px; padding: 28px 32px; }
+.pf-avatar { display: grid; place-items: center; width: 76px; height: 76px; flex-shrink: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 28px; font-weight: 700; }
+.pf-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pf-name { flex: 1; min-width: 0; }
+.pf-name h2 { color: var(--text); font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.3; overflow-wrap: anywhere; }
+.pf-name p { margin-top: 2px; color: var(--muted); font-size: 14.5px; overflow-wrap: anywhere; }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* details */
+.pf-list { margin: 0; border-top: 1px solid var(--border); }
+.pf-row { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; padding: 18px 32px; border-top: 1px solid var(--border); }
+.pf-row:first-child { border-top: 0; }
+.pf-row dt { color: var(--muted); font-size: 14px; font-weight: 500; }
+.pf-row dd { margin: 0; color: var(--text); font-size: 15px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.pf-row dd a { color: var(--accent); text-decoration: none; }
+.pf-row dd a:hover { text-decoration: underline; }
+.pf-empty { color: var(--muted); font-weight: 400; }
+
+@media (max-width: 640px) {
+    .pf-head .pf-btn span { display: none; }
+    .pf-who { flex-wrap: wrap; gap: 16px; padding: 22px 20px; }
+    .pf-avatar { width: 64px; height: 64px; font-size: 24px; }
+    .pf-name { flex-basis: calc(100% - 84px); }
+    .pf-actions { width: 100%; }
+    .pf-actions .pf-btn { flex: 1 1 0; }
+    .pf-row { grid-template-columns: 1fr; gap: 2px; padding: 14px 20px; }
 }
-
-.profile-card {
-    background: #fff;
-    border-radius: 15px;
-    padding: 40px;
-    box-shadow: 0 5px 20px rgba(0,0,0,.08);
-}
-
-.header {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    margin-bottom: 35px;
-}
-
-.profile-image {
-    width: 160px;
-    height: 160px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 5px solid #2563EB;
-}
-
-.user-details h2 {
-    color: #0F172A;
-    margin-bottom: 10px;
-    font-size: 28px;
-    font-weight: 800;
-    word-break: break-word;
-}
-
-.user-details p {
-    color: #64748B;
-    font-size: 16px;
-    word-break: break-word;
-}
-
-.info-box {
-    margin-top: 20px;
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 18px 0;
-    border-bottom: 1px solid #E2E8F0;
-}
-
-.info-row:last-child {
-    border-bottom: none;
-}
-
-.info-row span {
-    flex-shrink: 0;
-    font-weight: bold;
-    color: #334155;
-}
-
-.info-row p {
-    margin: 0;
-    color: #64748B;
-    text-align: right;
-    word-break: break-word;
-}
-
-.buttons {
-    margin-top: 35px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.back-btn {
-    text-decoration: none;
-    padding: 12px 22px;
-    border-radius: 8px;
-    color: #fff;
-    font-weight: bold;
-    background: #64748B;
-    transition: .2s ease;
-}
-
-.back-btn:hover {
-    background: #475569;
-}
-
-.chat-btn {
-    text-decoration: none;
-    padding: 12px 22px;
-    border-radius: 8px;
-    color: #fff;
-    font-weight: bold;
-    background: #2563EB;
-    transition: .2s ease;
-}
-
-.chat-btn:hover {
-    background: #1D4ED8;
-}
-
-@media (max-width: 768px) {
-
-    .profile-card { padding: 26px 20px; }
-
-    .header {
-        flex-direction: column;
-        text-align: center;
-        gap: 18px;
-        margin-bottom: 26px;
-    }
-
-    .profile-image { width: 120px; height: 120px; border-width: 4px; }
-
-    .user-details h2 { font-size: 22px; }
-
-    .info-row {
-        flex-direction: column;
-        gap: 6px;
-        padding: 14px 0;
-    }
-
-    .info-row p { text-align: left; }
-
-    .buttons { justify-content: center; }
-    .back-btn, .chat-btn { flex: 1 1 auto; text-align: center; }
-}
-
-@media (max-width: 420px) {
-
-    .page-header h1 { font-size: 20px; }
-
-    .profile-card { padding: 20px 16px; border-radius: 12px; }
-
-    .profile-image { width: 96px; height: 96px; border-width: 3px; }
-
-    .user-details h2 { font-size: 19px; margin-bottom: 6px; }
-    .user-details p { font-size: 14px; }
-
-    .info-row span { font-size: 14px; }
-    .info-row p { font-size: 14px; }
-
-    .back-btn, .chat-btn { padding: 11px 16px; font-size: 14px; }
-}
-
+@media (prefers-reduced-motion: reduce) { .pf-page * { transition: none !important; } }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>👤 Customer Profile</h1>
-</div>
+<div class="pf-page">
 
-<div class="profile-wrapper">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="pf-i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+        <symbol id="pf-i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+        <symbol id="pf-i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    </defs>
+</svg>
 
-    <div class="profile-card">
+<header class="pf-head">
+    <h1>Customer Profile</h1>
+    <a href="{% url 'customer_list' %}" class="pf-btn"><svg class="ico" aria-hidden="true"><use href="#pf-i-back"/></svg><span>Back</span><span class="sr-only">to customers</span></a>
+</header>
 
-        <div class="header">
+<section class="pf-card" aria-labelledby="pf-name">
 
+    <div class="pf-who">
+
+        <div class="pf-avatar">
             {% if profile.profile_image %}
-                <img src="{{ profile.profile_image.url }}" class="profile-image" alt="{{ customer.username }}">
+                <img src="{{ profile.profile_image.url }}" alt="{{ customer.username }}" width="76" height="76">
             {% else %}
-                <img src="{% static 'images/default-profile.png' %}" class="profile-image" alt="{{ customer.username }}">
+                <span aria-hidden="true">{{ customer.username|first|upper }}</span>
+                <span class="sr-only">{{ customer.username }}</span>
             {% endif %}
-
-            <div class="user-details">
-                <h2>{{ customer.username }}</h2>
-                <p>{{ customer.email }}</p>
-            </div>
-
         </div>
 
-        <div class="info-box">
-
-            <div class="info-row">
-                <span>Username</span>
-                <p>{{ customer.username }}</p>
-            </div>
-
-            <div class="info-row">
-                <span>Email</span>
-                <p>{{ customer.email }}</p>
-            </div>
-
-            <div class="info-row">
-                <span>Phone</span>
-                <p>{{ profile.phone|default:"Not Added" }}</p>
-            </div>
-
-            <div class="info-row">
-                <span>Address</span>
-                <p>{{ profile.address|default:"Not Added" }}</p>
-            </div>
-
-            <div class="info-row">
-                <span>Date Joined</span>
-                <p>{{ customer.date_joined|date:"F d, Y" }}</p>
-            </div>
-
+        <div class="pf-name">
+            <h2 id="pf-name">{{ customer.username }}</h2>
+            <p>{{ customer.email }}</p>
         </div>
 
-        <div class="buttons">
-
-            <a href="{% url 'customer_list' %}" class="back-btn">
-                ← Back
-            </a>
-
-            {% comment %}
-            Optional: Add chat button here later
-            <a href="{% url 'admin_chat' room.id %}" class="chat-btn">
-                💬 Open Chat
-            </a>
-            {% endcomment %}
-
+        <div class="pf-actions">
+            {% if customer.email %}<a href="mailto:{{ customer.email }}" class="pf-btn primary"><svg class="ico" aria-hidden="true"><use href="#pf-i-mail"/></svg>Send email</a>{% endif %}
+            {% if profile.phone %}<a href="tel:{{ profile.phone }}" class="pf-btn"><svg class="ico" aria-hidden="true"><use href="#pf-i-phone"/></svg>Call</a>{% endif %}
         </div>
 
     </div>
+
+    <dl class="pf-list">
+
+        <div class="pf-row">
+            <dt>Username</dt>
+            <dd>{{ customer.username }}</dd>
+        </div>
+
+        <div class="pf-row">
+            <dt>Email</dt>
+            <dd>{% if customer.email %}<a href="mailto:{{ customer.email }}">{{ customer.email }}</a>{% else %}<span class="pf-empty">Not Added</span>{% endif %}</dd>
+        </div>
+
+        <div class="pf-row">
+            <dt>Phone</dt>
+            <dd>{% if profile.phone %}<a href="tel:{{ profile.phone }}">{{ profile.phone }}</a>{% else %}<span class="pf-empty">Not Added</span>{% endif %}</dd>
+        </div>
+
+        <div class="pf-row">
+            <dt>Address</dt>
+            <dd>{% if profile.address %}{{ profile.address }}{% else %}<span class="pf-empty">Not Added</span>{% endif %}</dd>
+        </div>
+
+        <div class="pf-row">
+            <dt>Date Joined</dt>
+            <dd>{{ customer.date_joined|date:"F d, Y" }}</dd>
+        </div>
+
+    </dl>
+
+</section>
+
+{% comment %}
+Optional: Add chat button here later
+<a href="{% url 'admin_chat' room.id %}" class="chat-btn">
+    💬 Open Chat
+</a>
+{% endcomment %}
 
 </div>
 

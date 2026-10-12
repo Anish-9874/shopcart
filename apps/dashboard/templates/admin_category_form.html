@@ -1,224 +1,212 @@
 {% extends "admin_base.html" %}
 
-{% block content %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
 <style>
-    .category-form-page {
-        max-width: 850px;
-        margin: 0 auto;
-        padding: 30px 20px;
-        color: #e5e7eb;
-    }
+/* Category form (ui-ux-pro-max: forms & feedback)
+   Visible labels, inline errors + summary, live image preview that matches
+   the 16:10 category card, 44px+ targets, saving state. Admin tokens. */
+.cf-page { max-width: 980px; margin: 0 auto; }
+.cf-page [hidden] { display: none !important; }
+.cf-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cf-page a:focus-visible, .cf-page button:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-    .form-heading {
-        margin-bottom: 25px;
-    }
+.cf-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--muted); font-size: 14px; }
+.cf-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.cf-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cf-head { margin-bottom: 22px; }
+.cf-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.cf-head p { margin-top: 6px; color: var(--muted); font-size: 15px; line-height: 1.5; }
 
-    .form-heading h2 {
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
+.cf-summary { margin-bottom: 20px; padding: 16px 18px; border: 1px solid var(--danger-line); border-radius: 12px; background: var(--danger-soft); color: var(--text); }
+.cf-summary h2 { color: var(--danger); font-size: 15px; font-weight: 700; }
+.cf-summary ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.7; }
+.cf-summary a { color: var(--text); font-weight: 600; text-underline-offset: 3px; }
 
-    .form-heading p {
-        color: #9ca3af;
-    }
+.cf-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.cf-panel { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.cf-panel-head { padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.cf-panel-head h2 { color: var(--text); font-size: 1rem; font-weight: 700; }
+.cf-panel-head p { margin-top: 2px; color: var(--muted); font-size: 13.5px; }
+.cf-panel-body { display: grid; gap: 22px; padding: 22px; }
+.cf-side { position: sticky; top: 16px; display: grid; gap: 16px; }
 
-    .category-form-card {
-        background: #171b24;
-        border: 1px solid #303746;
-        border-radius: 14px;
-        padding: 28px;
-    }
+.cf-field > label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; color: var(--text); font-size: 14px; font-weight: 600; }
+.cf-req { color: var(--danger); }
+.cf-opt { color: var(--muted); font-size: 12.5px; font-weight: 500; }
 
-    .form-field {
-        margin-bottom: 22px;
-    }
+.cf-field input:not([type="checkbox"]):not([type="file"]), .cf-field textarea {
+    display: block; width: 100%; min-height: 46px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); color: var(--text); font: inherit; font-size: 16px; line-height: 1.4; transition: border-color .15s, box-shadow .15s;
+}
+.cf-field textarea { min-height: 132px; resize: vertical; line-height: 1.55; }
+.cf-field input::placeholder, .cf-field textarea::placeholder { color: var(--muted); opacity: .8; }
+.cf-field input:not([type="checkbox"]):not([type="file"]):hover, .cf-field textarea:hover { border-color: var(--muted); }
+.cf-field input:focus-visible, .cf-field textarea:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent); }
 
-    .form-field label {
-        display: block;
-        margin-bottom: 9px;
-        font-weight: 600;
-        color: #f3f4f6;
-    }
+.cf-field input[type="file"] { width: 100%; padding: 8px; border: 1.5px dashed var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+.cf-field input[type="file"]:hover { border-color: var(--accent); }
+.cf-field input[type="file"]:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.cf-field input[type="file"]::file-selector-button { min-height: 36px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.cf-file { line-height: 1.9; color: var(--muted); font-size: 14px; }
+.cf-file a { color: var(--accent); font-weight: 600; word-break: break-all; }
+.cf-file input[type="checkbox"] { width: 18px; height: 18px; margin: 0 6px 0 10px; vertical-align: -3px; accent-color: var(--accent); }
 
-    .form-field input:not([type="checkbox"]),
-    .form-field textarea,
-    .form-field select {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #3b4352;
-        border-radius: 8px;
-        background: #202633;
-        color: #f9fafb;
-        outline: none;
-        box-sizing: border-box;
-    }
+.cf-help { margin-top: 7px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.cf-error { display: flex; gap: 6px; margin-top: 7px; color: var(--danger); font-size: 13.5px; font-weight: 600; line-height: 1.45; }
+.cf-error::before { content: ""; flex-shrink: 0; width: 15px; height: 15px; margin-top: 2px; background: currentColor; -webkit-mask: var(--cf-alert) center / contain no-repeat; mask: var(--cf-alert) center / contain no-repeat; }
+.cf-page { --cf-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 7v6M12 16.5h.01'/%3E%3C/svg%3E"); }
+.has-error input:not([type="checkbox"]):not([type="file"]), .has-error textarea { border-color: var(--danger); background: var(--danger-soft); }
 
-    .form-field input:focus,
-    .form-field textarea:focus {
-        border-color: #14b8a6;
-    }
+/* preview (same 16:10 ratio as the category card cover) */
+.cf-preview { display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border: 1px dashed var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13.5px; text-align: center; }
+.cf-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cf-preview[data-state="empty"] img, .cf-preview[data-state="filled"] span { display: none; }
+.cf-preview span { display: grid; justify-items: center; gap: 8px; padding: 16px; }
+.cf-preview svg { width: 28px; height: 28px; }
+.cf-pname { margin-top: 14px; color: var(--text); font-size: 1rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.cf-pname.empty { color: var(--muted); font-weight: 500; }
+.cf-pdesc { margin-top: 4px; color: var(--muted); font-size: 13.5px; line-height: 1.5; display: -webkit-box; display: box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-    .form-field input[type="file"] {
-        padding: 10px;
-    }
+.cf-actions { display: grid; gap: 10px; padding: 18px; }
+.cf-save { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--btn); color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: filter .15s; }
+.cf-save:hover { filter: brightness(1.1); }
+.cf-save[aria-busy="true"] { cursor: progress; opacity: .85; }
+.cf-save[aria-busy="true"]::before { content: ""; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: cf-spin .7s linear infinite; }
+.cf-cancel { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.cf-cancel:hover { background: var(--surface-2); border-color: var(--muted); }
+@keyframes cf-spin { to { transform: rotate(360deg); } }
 
-    .field-help {
-        display: block;
-        margin-top: 7px;
-        color: #9ca3af;
-        font-size: 13px;
-    }
-
-    .field-error,
-    .form-errors {
-        color: #fca5a5;
-        font-size: 13px;
-        margin-top: 7px;
-    }
-
-    .current-image {
-        margin-top: 15px;
-    }
-
-    .current-image img {
-        width: 150px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 10px;
-        border: 1px solid #3b4352;
-        display: block;
-        margin-top: 8px;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 28px;
-    }
-
-    .form-btn {
-        display: inline-block;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .save-btn {
-        background: #147d78;
-        color: white;
-    }
-
-    .save-btn:hover {
-        background: #106660;
-    }
-
-    .cancel-btn {
-        background: #303746;
-        color: #e5e7eb;
-    }
-
-    @media (max-width: 600px) {
-        .category-form-card {
-            padding: 18px;
-        }
-
-        .form-heading h2 {
-            font-size: 23px;
-        }
-    }
+@media (max-width: 860px) { .cf-layout { grid-template-columns: 1fr; } .cf-side { position: static; } }
+@media (max-width: 600px) { .cf-panel-head, .cf-panel-body { padding-left: 16px; padding-right: 16px; } }
+@media (prefers-reduced-motion: reduce) { .cf-page * { transition: none !important; } .cf-save[aria-busy="true"]::before { animation-duration: 2s; } }
 </style>
+{% endblock %}
 
-<div class="category-form-page">
+{% block content %}
 
-    <div class="form-heading">
-        <h2>{{ page_title }}</h2>
-        <p>
-            Enter the category details below.
-            You can optionally upload a category image.
-        </p>
-    </div>
+<div class="cf-page">
 
-    <div class="category-form-card">
+<nav class="cf-crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'admin_categories' %}">Categories</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{{ page_title }}</span>
+</nav>
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+<header class="cf-head">
+    <h1>{{ page_title }}</h1>
+    <p>Enter the category details below. You can optionally upload a category image.</p>
+</header>
 
-            {% if form.non_field_errors %}
-                <div class="form-errors">
-                    {{ form.non_field_errors }}
-                </div>
-            {% endif %}
-
-            <div class="form-field">
-                <label for="{{ form.name.id_for_label }}">
-                    Category Name
-                </label>
-
-                {{ form.name }}
-
-                {% for error in form.name.errors %}
-                    <div class="field-error">{{ error }}</div>
-                {% endfor %}
-            </div>
-
-            <div class="form-field">
-                <label for="{{ form.description.id_for_label }}">
-                    Description
-                </label>
-
-                {{ form.description }}
-
-                {% for error in form.description.errors %}
-                    <div class="field-error">{{ error }}</div>
-                {% endfor %}
-            </div>
-
-            <div class="form-field">
-                <label for="{{ form.image.id_for_label }}">
-                    Category Image
-                </label>
-
-                {{ form.image }}
-
-                <small class="field-help">
-                    Choose an image file for this category.
-                </small>
-
-                {% for error in form.image.errors %}
-                    <div class="field-error">{{ error }}</div>
-                {% endfor %}
-
-                {% if category and category.image %}
-                    <div class="current-image">
-                        <strong>Current image</strong>
-                        <img
-                            src="{{ category.image.url }}"
-                            alt="{{ category.name }}"
-                        >
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="form-btn save-btn">
-                    Save Category
-                </button>
-
-                <a
-                    href="{% url 'admin_categories' %}"
-                    class="form-btn cancel-btn">
-                    Cancel
-                </a>
-            </div>
-
-        </form>
-
-    </div>
+{% if form.errors %}
+<div class="cf-summary" role="alert" id="cf-summary" tabindex="-1">
+    <h2>Please fix the following before saving</h2>
+    <ul>
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        {% for field in form %}{% if field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }}</a>: {{ field.errors|join:" " }}</li>{% endif %}{% endfor %}
+    </ul>
 </div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data" class="cf-layout" id="cf-form">
+    {% csrf_token %}
+
+    <section class="cf-panel" aria-labelledby="cf-details">
+        <div class="cf-panel-head">
+            <h2 id="cf-details">Category details</h2>
+            <p>Shown on the category card and in your store.</p>
+        </div>
+        <div class="cf-panel-body">
+
+            <div class="cf-field{% if form.name.errors %} has-error{% endif %}">
+                <label for="{{ form.name.id_for_label }}"><span>Category name{% if form.name.field.required %} <span class="cf-req" aria-hidden="true">*</span>{% endif %}</span></label>
+                {{ form.name }}
+                {% for error in form.name.errors %}<p class="cf-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="cf-field{% if form.description.errors %} has-error{% endif %}">
+                <label for="{{ form.description.id_for_label }}"><span>Description{% if form.description.field.required %} <span class="cf-req" aria-hidden="true">*</span>{% endif %}</span>{% if not form.description.field.required %}<span class="cf-opt">Optional</span>{% endif %}</label>
+                {{ form.description }}
+                {% for error in form.description.errors %}<p class="cf-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="cf-field{% if form.image.errors %} has-error{% endif %}">
+                <label for="{{ form.image.id_for_label }}"><span>Category image{% if form.image.field.required %} <span class="cf-req" aria-hidden="true">*</span>{% endif %}</span>{% if not form.image.field.required %}<span class="cf-opt">Optional</span>{% endif %}</label>
+                <div class="cf-file">{{ form.image }}</div>
+                <p class="cf-help">Landscape images (16:10) look best on category cards.</p>
+                {% for error in form.image.errors %}<p class="cf-error">{{ error }}</p>{% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+    <aside class="cf-side">
+
+        <section class="cf-panel" aria-labelledby="cf-prev-title">
+            <div class="cf-panel-head"><h2 id="cf-prev-title">Preview</h2></div>
+            <div class="cf-panel-body" style="gap:0">
+                <div class="cf-preview" id="cf-preview" data-state="{% if category and category.image %}filled{% else %}empty{% endif %}">
+                    <img id="cf-img" alt="Preview of the category image"{% if category and category.image %} src="{{ category.image.url }}"{% endif %}>
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L6 21"/></svg>
+                        No image selected
+                    </span>
+                </div>
+                <div class="cf-pname empty" id="cf-pname" aria-live="polite">Category name</div>
+                <div class="cf-pdesc" id="cf-pdesc"></div>
+            </div>
+        </section>
+
+        <section class="cf-panel cf-actions">
+            <button type="submit" class="cf-save" id="cf-save">Save category</button>
+            <a class="cf-cancel" href="{% url 'admin_categories' %}">Cancel</a>
+        </section>
+
+    </aside>
+</form>
+
+</div>
+
+<script>
+(function () {
+    var form = document.getElementById('cf-form');
+    if (!form) return;
+
+    form.querySelectorAll('.has-error input, .has-error textarea').forEach(function (el) { el.setAttribute('aria-invalid', 'true'); });
+    var summary = document.getElementById('cf-summary');
+    if (summary) summary.focus();
+
+    /* live preview of name, description and image */
+    var name = form.querySelector('[name="name"]'), desc = form.querySelector('[name="description"]'), file = form.querySelector('input[type="file"]');
+    var pname = document.getElementById('cf-pname'), pdesc = document.getElementById('cf-pdesc');
+    var box = document.getElementById('cf-preview'), img = document.getElementById('cf-img'), url = null;
+
+    function syncText() {
+        var n = name ? name.value.trim() : '';
+        pname.textContent = n || 'Category name';
+        pname.classList.toggle('empty', !n);
+        pdesc.textContent = desc ? desc.value.trim() : '';
+    }
+    if (name) name.addEventListener('input', syncText);
+    if (desc) desc.addEventListener('input', syncText);
+    syncText();
+
+    if (file) file.addEventListener('change', function () {
+        if (url) { URL.revokeObjectURL(url); url = null; }
+        var f = file.files && file.files[0];
+        if (f && /^image\//.test(f.type)) { url = URL.createObjectURL(f); img.src = url; box.setAttribute('data-state', 'filled'); }
+        else { img.removeAttribute('src'); box.setAttribute('data-state', 'empty'); }
+    });
+
+    /* saving state */
+    var btn = document.getElementById('cf-save'), label = btn.textContent;
+    form.addEventListener('submit', function () {
+        btn.setAttribute('aria-busy', 'true'); btn.textContent = 'Saving…';
+        setTimeout(function () { btn.disabled = true; }, 0);
+    });
+    window.addEventListener('pageshow', function () { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = label; });
+})();
+</script>
+
 {% endblock %}

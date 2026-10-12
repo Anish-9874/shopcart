@@ -1,135 +1,139 @@
-
 {% extends "admin_base.html" %}
 
-{% block content %}
+{% block title %}Delete Category{% endblock %}
+
+{% block extra_css %}
 <style>
-    .delete-page {
-        max-width: 650px;
-        margin: 40px auto;
-        padding: 20px;
-        color: #e5e7eb;
-    }
+/* Delete category (ui-ux-pro-max: destructive actions)
+   Two states: blocked (category still has products) and ready to delete.
+   Safe default focus, names what is affected, tokens from admin_base.html. */
+.cd-page { max-width: 560px; margin: 0 auto; }
+.cd-page a:focus-visible, .cd-page button:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-    .delete-card {
-        background: #171b24;
-        border: 1px solid #303746;
-        border-radius: 14px;
-        padding: 30px;
-        text-align: center;
-    }
+.cd-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--muted); font-size: 14px; }
+.cd-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.cd-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-    .delete-icon {
-        width: 70px;
-        height: 70px;
-        margin: 0 auto 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        background: #49272d;
-        color: #fca5a5;
-        font-size: 32px;
-    }
+.cd-card { overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.cd-top { padding: 28px 28px 22px; }
+.cd-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 16px; border-radius: 14px; background: var(--danger-soft); color: var(--danger); }
+.cd-icon.warn { background: var(--warn-soft); color: var(--warn); }
+.cd-icon svg { width: 24px; height: 24px; }
+.cd-card h1 { color: var(--text); font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; }
+.cd-lead { margin-top: 8px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.cd-lead strong { color: var(--text); font-weight: 700; overflow-wrap: anywhere; }
 
-    .delete-card h2 {
-        font-size: 26px;
-        margin-bottom: 12px;
-    }
+.cd-summary { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.cd-thumb { display: grid; place-items: center; width: 64px; height: 52px; flex-shrink: 0; overflow: hidden; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: 1.4rem; font-weight: 800; }
+.cd-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cd-name { color: var(--text); font-size: 15px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.cd-meta { margin-top: 2px; color: var(--muted); font-size: 13.5px; }
+.cd-meta b { color: var(--text); font-weight: 600; }
 
-    .delete-card p {
-        color: #9ca3af;
-        line-height: 1.7;
-    }
+.cd-note { display: flex; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.55; }
+.cd-note svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+.cd-note.warn { border: 1px solid var(--warn-line); background: var(--warn-soft); color: var(--text); }
+.cd-note.warn svg { color: var(--warn); }
+.cd-note.plain { padding: 0; color: var(--muted); }
+.cd-note.plain svg { color: var(--danger); }
 
-    .category-name {
-        color: #f9fafb;
-        font-weight: 700;
-    }
+.cd-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 18px 28px; border-top: 1px solid var(--border); background: var(--surface-2); }
+.cd-actions form { display: contents; }
+.cd-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; min-width: 130px; padding: 0 22px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s; }
+.cd-btn:hover { background: var(--surface-2); border-color: var(--muted); }
+.cd-btn.primary { border-color: var(--btn); background: var(--btn); color: #fff; }
+.cd-btn.primary:hover { filter: brightness(1.1); }
+.cd-btn.danger { border-color: #DC2626; background: #DC2626; color: #fff; }
+.cd-btn.danger:hover { border-color: #B91C1C; background: #B91C1C; }
+.cd-btn[aria-busy="true"] { cursor: progress; opacity: .85; }
+.cd-btn[aria-busy="true"]::before { content: ""; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: cd-spin .7s linear infinite; }
+@keyframes cd-spin { to { transform: rotate(360deg); } }
 
-    .warning {
-        margin: 20px 0;
-        padding: 14px;
-        border-radius: 8px;
-        background: #422f1c;
-        color: #fcd34d;
-        text-align: left;
-    }
-
-    .delete-actions {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 25px;
-    }
-
-    .delete-btn,
-    .cancel-btn {
-        display: inline-block;
-        padding: 11px 20px;
-        border: none;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .delete-btn {
-        background: #dc2626;
-        color: white;
-    }
-
-    .delete-btn:hover {
-        background: #b91c1c;
-    }
-
-    .cancel-btn {
-        background: #303746;
-        color: #e5e7eb;
-    }
+@media (max-width: 520px) {
+    .cd-top { padding: 22px 18px 18px; }
+    .cd-actions { flex-direction: column; padding: 16px 18px; }
+    .cd-btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .cd-btn { transition: none; } .cd-btn[aria-busy="true"]::before { animation-duration: 2s; } }
 </style>
+{% endblock %}
 
-<div class="delete-page">
-    <div class="delete-card">
+{% block content %}
+{% with n=category.products.count %}
 
-        <div class="delete-icon">!</div>
+<div class="cd-page">
 
-        <h2>Delete Category</h2>
+<nav class="cd-crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'admin_categories' %}">Categories</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">Delete category</span>
+</nav>
 
-        <p>
-            Are you sure you want to delete the category
-            <span class="category-name">{{ category.name }}</span>?
-        </p>
+<section class="cd-card" aria-labelledby="cd-title">
 
-        {% if category.products.exists %}
-            <div class="warning">
-                <strong>Warning:</strong>
-                This category contains {{ category.products.count }}
-                product(s). You must move those products to another
-                category before deleting this category.
-            </div>
+    <div class="cd-top">
+        {% if n %}
+            <div class="cd-icon warn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg></div>
+            <h1 id="cd-title">This category can’t be deleted yet</h1>
+            <p class="cd-lead"><strong>{{ category.name }}</strong> still has products in it. Move them to another category first, then come back to delete it.</p>
         {% else %}
-            <p>
-                This action cannot be undone.
-            </p>
+            <div class="cd-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></svg></div>
+            <h1 id="cd-title">Delete this category?</h1>
+            <p class="cd-lead">You are about to permanently delete <strong>{{ category.name }}</strong>.</p>
         {% endif %}
 
-        <div class="delete-actions">
-            <a href="{% url 'admin_categories' %}" class="cancel-btn">
-                Cancel
-            </a>
-
-            {% if not category.products.exists %}
-                <form method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="delete-btn">
-                        Yes, Delete Category
-                    </button>
-                </form>
-            {% endif %}
+        <div class="cd-summary">
+            <span class="cd-thumb">
+                {% if category.image %}<img src="{{ category.image.url }}" alt="" width="64" height="52">{% else %}<span aria-hidden="true">{{ category.name|first|upper }}</span>{% endif %}
+            </span>
+            <div>
+                <div class="cd-name">{{ category.name }}</div>
+                <div class="cd-meta"><b>{{ n }}</b> product{{ n|pluralize }}</div>
+            </div>
         </div>
 
+        {% if n %}
+            <p class="cd-note warn" role="note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                <span>Open the product list, edit each product and choose a different category. When this category is empty, the delete button will appear here.</span>
+            </p>
+        {% else %}
+            <p class="cd-note plain">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg>
+                <span>This category is empty. Deleting it can’t be undone.</span>
+            </p>
+        {% endif %}
     </div>
+
+    <div class="cd-actions">
+        {% if n %}
+            <a class="cd-btn" href="{% url 'admin_categories' %}" autofocus>Back to categories</a>
+            <a class="cd-btn primary" href="{% url 'admin_category_products' category.id %}">View {{ n }} product{{ n|pluralize }}</a>
+        {% else %}
+            <a class="cd-btn" href="{% url 'admin_categories' %}" autofocus>Keep category</a>
+            <form method="POST" id="cd-form">
+                {% csrf_token %}
+                <button type="submit" class="cd-btn danger" id="cd-delete">Delete category</button>
+            </form>
+        {% endif %}
+    </div>
+
+</section>
+
 </div>
+
+<script>
+(function () {
+    var form = document.getElementById('cd-form'), btn = document.getElementById('cd-delete');
+    if (!form || !btn) return;
+    var label = btn.textContent;
+    form.addEventListener('submit', function () {
+        btn.setAttribute('aria-busy', 'true'); btn.textContent = 'Deleting…';
+        setTimeout(function () { btn.disabled = true; }, 0);
+    });
+    window.addEventListener('pageshow', function () { btn.disabled = false; btn.removeAttribute('aria-busy'); btn.textContent = label; });
+})();
+</script>
+
+{% endwith %}
 {% endblock %}

@@ -3,206 +3,264 @@
 {% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}{% endblock %}
 
 {% block extra_css %}
-
 <style>
+/* =========================================================
+   Product form  (ui-ux-pro-max: forms & feedback, accessibility)
+   - Uses the admin_base.html tokens, so light + dark both work
+   - Visible labels, inline errors + error summary, 44px+ targets,
+     16px inputs (no iOS zoom), loading state on submit
+   ========================================================= */
+.pf-page { max-width: 1040px; margin: 0 auto; }
+.pf-page .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pf-page a:focus-visible, .pf-page button:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
 
-/* ---- Palette (CSS variables so the whole form theme lives in one place) ---- */
-.form-container {
-    --accent: #1D4ED8;
-    --accent-dark: #0B0C10;
-    --accent-soft: #EFF4FF;
-    --accent-ring: rgba(29, 78, 216, .18);
-    --highlight: #3B82F6;
-    --ink: #0B0C10;
-    --muted: #64748B;
-    --border: #E2E8F0;
-    --danger: #DC2626;
+/* ---------- Header ---------- */
+.pf-crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--muted); font-size: 14px; }
+.pf-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.pf-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pf-head { margin-bottom: 22px; }
+.pf-head h1 { color: var(--text); font-size: clamp(1.4rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; }
+.pf-head p { margin-top: 6px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+/* ---------- Layout ---------- */
+.pf-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.pf-panel { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.pf-panel-head { padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.pf-panel-head h2 { color: var(--text); font-size: 1rem; font-weight: 700; }
+.pf-panel-head p { margin-top: 2px; color: var(--muted); font-size: 13.5px; }
+.pf-panel-body { padding: 22px; }
+
+.pf-side { position: sticky; top: 16px; display: grid; gap: 16px; }
+
+/* ---------- Fields ---------- */
+.pf-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 18px; }
+.pf-field { min-width: 0; }
+.pf-wide, .pf-textarea, .pf-file, .pf-clearablefile { grid-column: 1 / -1; }
+
+.pf-field > label { display: block; margin-bottom: 7px; color: var(--text); font-size: 14px; font-weight: 600; line-height: 1.4; }
+.pf-req { color: var(--danger); }
+
+.pf-field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.pf-field textarea,
+.pf-field select {
+    display: block; width: 100%; min-height: 46px; padding: 11px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); color: var(--text);
+    font: inherit; font-size: 16px; line-height: 1.4;
+    transition: border-color .15s, box-shadow .15s;
+}
+.pf-field input::placeholder, .pf-field textarea::placeholder { color: var(--muted); opacity: .8; }
+.pf-field textarea { min-height: 128px; resize: vertical; line-height: 1.55; }
+.pf-field select { appearance: auto; }
+.pf-field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover,
+.pf-field textarea:hover, .pf-field select:hover { border-color: var(--muted); }
+.pf-field input:focus-visible, .pf-field textarea:focus-visible, .pf-field select:focus-visible {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent);
 }
 
-.form-container {
-    max-width: 700px;
-    margin: 20px auto;
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 12px 30px rgba(91, 33, 182, .12);
-}
+/* file input (also the "Currently: … Clear" markup Django adds when editing) */
+.pf-field input[type="file"] { width: 100%; padding: 8px; border: 1.5px dashed var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+.pf-field input[type="file"]:hover { border-color: var(--accent); }
+.pf-field input[type="file"]:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.pf-field input[type="file"]::file-selector-button { min-height: 36px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pf-clearablefile { line-height: 1.9; color: var(--muted); font-size: 14px; }
+.pf-clearablefile a { color: var(--accent); font-weight: 600; word-break: break-all; }
+.pf-clearablefile input[type="checkbox"] { width: 18px; height: 18px; margin: 0 6px 0 10px; vertical-align: -3px; accent-color: var(--accent); }
 
-.form-header {
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    padding: 26px 34px;
-    color: #fff;
-}
+/* checkbox / radio rows */
+.pf-checkbox { display: flex; align-items: center; gap: 12px; grid-column: 1 / -1; min-height: 44px; }
+.pf-checkbox > label { order: 2; margin: 0; font-weight: 600; cursor: pointer; }
+.pf-checkbox input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 
-.form-header span {
-    display: block;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, .75);
-    margin-bottom: 6px;
-}
+.pf-help { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.pf-error { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; color: var(--danger); font-size: 13.5px; font-weight: 600; line-height: 1.45; }
+.pf-error::before { content: ""; flex-shrink: 0; width: 15px; height: 15px; margin-top: 2px; background: currentColor; -webkit-mask: var(--pf-i-alert) center / contain no-repeat; mask: var(--pf-i-alert) center / contain no-repeat; }
+.pf-page { --pf-i-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 7v6M12 16.5h.01'/%3E%3C/svg%3E"); }
+.has-error input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), .has-error textarea, .has-error select { border-color: var(--danger); background: var(--danger-soft); }
 
-.form-header h2 {
-    font-size: 22px;
-    font-weight: 800;
-}
+/* ---------- Error summary ---------- */
+.pf-summary { margin-bottom: 20px; padding: 16px 18px; border: 1px solid var(--danger-line); border-radius: 12px; background: var(--danger-soft); color: var(--text); }
+.pf-summary h2 { color: var(--danger); font-size: 15px; font-weight: 700; }
+.pf-summary ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.7; }
+.pf-summary a { color: var(--text); font-weight: 600; text-underline-offset: 3px; }
 
-form {
-    padding: 30px 34px 34px;
-}
+/* ---------- Side: preview + actions ---------- */
+.pf-preview { display: grid; place-items: center; aspect-ratio: 4 / 3; overflow: hidden; border: 1px dashed var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13.5px; text-align: center; }
+.pf-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.pf-preview[data-state="empty"] img { display: none; }
+.pf-preview[data-state="filled"] span { display: none; }
+.pf-preview span { display: grid; justify-items: center; gap: 8px; padding: 16px; }
+.pf-preview svg { width: 28px; height: 28px; }
+.pf-cat { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+.pf-cat strong { color: var(--text); font-weight: 600; text-align: right; }
 
-form p {
-    margin-bottom: 18px;
-}
+.pf-actions { display: grid; gap: 10px; padding: 18px; }
+.pf-save { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 20px; border: 0; border-radius: 10px; background: var(--btn); color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: filter .15s; }
+.pf-save:hover { filter: brightness(1.1); }
+.pf-save[aria-busy="true"] { cursor: progress; filter: none; opacity: .85; }
+.pf-save[aria-busy="true"]::before { content: ""; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: pf-spin .7s linear infinite; }
+.pf-cancel { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; text-decoration: none; transition: background-color .15s, border-color .15s; }
+.pf-cancel:hover { background: var(--surface-2); border-color: var(--muted); }
+@keyframes pf-spin { to { transform: rotate(360deg); } }
 
-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--ink);
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+    .pf-layout { grid-template-columns: 1fr; }
+    .pf-side { position: static; }
 }
-
-form input,
-form textarea,
-form select {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--ink);
-    background: var(--accent-soft);
-    outline: none;
-    transition: .2s ease;
-}
-
-form textarea {
-    resize: vertical;
-    min-height: 110px;
-}
-
-form input[type="file"] {
-    padding: 9px 10px;
-    background: var(--accent-soft);
-    cursor: pointer;
-}
-
-form input:focus,
-form textarea:focus,
-form select:focus {
-    border-color: var(--accent);
-    background: #fff;
-    box-shadow: 0 0 0 4px var(--accent-ring);
-}
-
-/* Django form errors */
-form .errorlist {
-    list-style: none;
-    margin: 6px 0 0;
-    padding: 0;
-}
-
-form .errorlist li {
-    color: var(--danger);
-    font-size: 12.5px;
-    font-weight: 700;
-}
-
-form p:has(.errorlist) input,
-form p:has(.errorlist) textarea,
-form p:has(.errorlist) select {
-    border-color: var(--danger);
-}
-
-.submit-btn {
-    width: 100%;
-    margin-top: 8px;
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    color: #fff;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: .3px;
-    cursor: pointer;
-    transition: .2s ease;
-}
-
-.submit-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px var(--accent-ring);
-}
-
-/* RESPONSIVE */
 @media (max-width: 600px) {
-    .form-container { margin: 12px auto; border-radius: 12px; }
-    .form-header { padding: 20px 22px; }
-    .form-header h2 { font-size: 19px; }
-    form { padding: 22px; }
-    form input, form textarea, form select { padding: 11px 12px; font-size: 14px; }
-    .submit-btn { padding: 14px; font-size: 14.5px; }
+    .pf-fields { grid-template-columns: 1fr; gap: 18px; }
+    .pf-panel-head, .pf-panel-body { padding-left: 16px; padding-right: 16px; }
+    .pf-preview { aspect-ratio: 16 / 10; }
 }
-
+@media (prefers-reduced-motion: reduce) {
+    .pf-save[aria-busy="true"]::before { animation-duration: 2s; }
+    .pf-page * { transition: none !important; }
+}
 </style>
-
 {% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>
-        {% if form.instance.pk %}
-            ✏️ Edit Product
-        {% else %}
-            📦 Add Product
-        {% endif %}
-    </h1>
+<div class="pf-page">
+
+<nav class="pf-crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'see_product' %}">Products</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{% if form.instance.pk %}Edit product{% else %}Add product{% endif %}</span>
+</nav>
+
+<header class="pf-head">
+    <h1>{% if form.instance.pk %}Edit product{% else %}Add product{% endif %}</h1>
+    <p>{% if form.instance.pk %}Update the details customers see in your store.{% else %}Fill in the details customers will see in your store.{% endif %}</p>
+</header>
+
+{% if form.errors %}
+<div class="pf-summary" role="alert" id="pf-summary" tabindex="-1">
+    <h2>Please fix the following before saving</h2>
+    <ul>
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        {% for field in form %}{% if field.errors %}
+            <li><a href="#{{ field.id_for_label }}">{{ field.label }}</a>: {{ field.errors|join:" " }}</li>
+        {% endif %}{% endfor %}
+    </ul>
 </div>
+{% endif %}
 
-<div class="form-container">
-
-    <div class="form-header">
-    <span>Inventory</span>
-    <h2>
-        {% if form.instance.pk %}
-            Edit Product Details
-        {% else %}
-            Add New Product
-        {% endif %}
-    </h2>
-</div>
-
-    <form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" class="pf-layout" id="pf-form">
     {% csrf_token %}
 
-    {% if next_url %}
-        <input type="hidden" name="next" value="{{ next_url }}">
-    {% endif %}
+    {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+    {% if selected_category %}<input type="hidden" name="category_id" value="{{ selected_category.id }}">{% endif %}
 
-    {% if selected_category %}
-        <input
-            type="hidden"
-            name="category_id"
-            value="{{ selected_category.id }}"
-        >
-    {% endif %}
+    <section class="pf-panel" aria-labelledby="pf-details-title">
+        <div class="pf-panel-head">
+            <h2 id="pf-details-title">Product details</h2>
+            <p>Fields marked <span class="pf-req" aria-hidden="true">*</span><span class="sr-only"> with an asterisk</span> are required.</p>
+        </div>
+        <div class="pf-panel-body">
+            <div class="pf-fields">
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% else %}
+                    <div class="pf-field pf-{{ field.widget_type }}{% if forloop.first %} pf-wide{% endif %}{% if field.errors %} has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="pf-req" aria-hidden="true">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="pf-help">{{ field.help_text|safe }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="pf-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 
-    {{ form.as_p }}
+    <aside class="pf-side">
 
-    <button type="submit" class="submit-btn">
-        {% if form.instance.pk %}
-            Save Changes
-        {% else %}
-            Add Product
-        {% endif %}
-    </button>
+        <section class="pf-panel" id="pf-preview-card" aria-labelledby="pf-preview-title" hidden>
+            <div class="pf-panel-head"><h2 id="pf-preview-title">Product image</h2></div>
+            <div class="pf-panel-body">
+                <div class="pf-preview" id="pf-preview" data-state="empty">
+                    <img alt="Preview of the selected product image" id="pf-preview-img">
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L6 21"/></svg>
+                        No image selected
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <section class="pf-panel pf-actions">
+            {% if selected_category %}<div class="pf-cat"><span>Category</span><strong>{{ selected_category }}</strong></div>{% endif %}
+            <button type="submit" class="pf-save" id="pf-save">{% if form.instance.pk %}Save changes{% else %}Add product{% endif %}</button>
+            <a class="pf-cancel" href="{% url 'see_product' %}">Cancel</a>
+        </section>
+
+    </aside>
 </form>
 
 </div>
+
+<script>
+/* Image preview, aria-invalid on errored fields, focus the error summary, and a saving state. */
+(function () {
+    var form = document.getElementById('pf-form');
+    if (!form) return;
+
+    /* mark errored controls for assistive tech */
+    form.querySelectorAll('.has-error input, .has-error textarea, .has-error select').forEach(function (el) {
+        el.setAttribute('aria-invalid', 'true');
+    });
+    var summary = document.getElementById('pf-summary');
+    if (summary) summary.focus({ preventScroll: false });
+
+    /* live image preview (only when the form has a file field) */
+    var file = form.querySelector('input[type="file"]');
+    var card = document.getElementById('pf-preview-card');
+    var box = document.getElementById('pf-preview');
+    var img = document.getElementById('pf-preview-img');
+    if (file && card && box && img) {
+        card.hidden = false;
+        var url = null;
+
+        // existing image when editing (Django renders a "Currently: <a>" link)
+        var current = file.parentNode.querySelector('a[href]');
+        if (current && /\.(png|jpe?g|gif|webp|avif|svg)(\?.*)?$/i.test(current.getAttribute('href'))) {
+            img.src = current.getAttribute('href');
+            box.setAttribute('data-state', 'filled');
+        }
+
+        file.addEventListener('change', function () {
+            if (url) { URL.revokeObjectURL(url); url = null; }
+            var f = file.files && file.files[0];
+            if (f && /^image\//.test(f.type)) {
+                url = URL.createObjectURL(f);
+                img.src = url;
+                box.setAttribute('data-state', 'filled');
+            } else {
+                img.removeAttribute('src');
+                box.setAttribute('data-state', 'empty');
+            }
+        });
+    }
+
+    /* saving feedback, blocks double submits */
+    var btn = document.getElementById('pf-save');
+    var label = btn ? btn.textContent : '';
+    form.addEventListener('submit', function () {
+        if (!btn) return;
+        btn.setAttribute('aria-busy', 'true');
+        btn.textContent = 'Saving…';
+        setTimeout(function () { btn.disabled = true; }, 0);
+    });
+    window.addEventListener('pageshow', function () {
+        if (!btn) return;
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
+        btn.textContent = label;
+    });
+})();
+</script>
 
 {% endblock %}

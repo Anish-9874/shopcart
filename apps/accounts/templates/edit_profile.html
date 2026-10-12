@@ -1,187 +1,192 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Edit Profile | ShopCart{% endblock %}
+
 {% block content %}
-
 <style>
-* { box-sizing: border-box; }
+/* =========================================================
+   ShopCart – Edit Profile page
+   Same warm palette + components as Home / Profile / Notifications.
+   EVERY selector below starts with .edit-page (or an ep-* class),
+   so nothing here can leak into the header, footer or base.
+   (The old global `* { box-sizing }` rule was removed for that reason.)
+   ========================================================= */
+.edit-page {
+  --p-cream: #fff7ed; --p-peach: #ffedd5; --p-line: #fde0c4; --p-line-soft: #ffedd5;
+  --p-ink: #1c1917; --p-text: #44403c; --p-muted: #57534e;
+  --p-orange: #f97316; --p-orange-d: #ea580c; --p-orange-dd: #c2410c; --p-orange-ddd: #9a3412; --p-orange-l: #fdba74;
+  --p-blue: #3b82f6;
+  --p-gutter: clamp(16px, 4vw, 32px);
+  --p-shadow: 0 1px 2px rgba(124,45,18,.06), 0 8px 24px rgba(124,45,18,.07);
+  --p-shadow-lg: 0 20px 44px rgba(124,45,18,.16);
+  --p-ease: cubic-bezier(.22, 1, .36, 1);
 
-.profile-container {
-    max-width: 560px;
-    margin: 40px auto;
-    padding: 0 20px;
+  width: 100%; max-width: 680px; margin: 0 auto;
+  padding: clamp(20px, 3.5vw, 40px) var(--p-gutter) 88px;
+  color: var(--p-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.edit-page, .edit-page *, .edit-page *::before, .edit-page *::after { box-sizing: border-box; }
+.edit-page :is(a, button, input, textarea):focus-visible { outline: 3px solid var(--p-blue); outline-offset: 3px; }
+.edit-page .ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.edit-page :is(h1, h2, p) { margin: 0; }
+@keyframes ep-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+.edit-page .eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--p-orange-dd); font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: .14em; }
+.edit-page .eyebrow::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--p-orange); }
+
+/* ---------- HEAD ---------- */
+.edit-page .ep-head {
+  position: relative; isolation: isolate; overflow: hidden;
+  padding: clamp(22px, 4vw, 36px); margin-bottom: 20px;
+  border: 1px solid var(--p-line); border-radius: 28px;
+  background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #fffdfa, #fff4e8 55%, #ffe3c7);
+  animation: ep-rise .6s var(--p-ease) backwards;
+}
+.edit-page .ep-head::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--p-orange-l); opacity: .45; filter: blur(60px); }
+.edit-page h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.edit-page .ep-sub { margin-top: 10px; max-width: 460px; color: var(--p-muted); font-size: 15px; line-height: 1.6; }
+
+/* ---------- CARD ---------- */
+.edit-page .ep-card { padding: clamp(22px, 4vw, 36px); background: #fff; border: 1px solid var(--p-line-soft); border-radius: 26px; box-shadow: var(--p-shadow); animation: ep-rise .6s .1s var(--p-ease) backwards; }
+
+/* avatar */
+.edit-page .ep-avatar-block { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 28px; text-align: center; }
+.edit-page .ep-avatar-wrap { padding: 5px; border-radius: 50%; background: conic-gradient(from 200deg, var(--p-orange), var(--p-orange-l), #fff, var(--p-orange)); box-shadow: 0 14px 34px rgba(124,45,18,.25); }
+.edit-page .ep-avatar { display: block; width: 116px; height: 116px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; background: var(--p-peach); }
+.edit-page .ep-avatar-hint { color: var(--p-muted); font-size: 13px; }
+
+/* fields */
+.edit-page .ep-field { margin-bottom: 20px; text-align: left; }
+.edit-page .ep-field label { display: block; margin-bottom: 8px; color: var(--p-muted); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.edit-page .ep-field input,
+.edit-page .ep-field textarea {
+  display: block; width: 100%; min-height: 50px; padding: 12px 16px;
+  border: 1.5px solid var(--p-line); border-radius: 14px;
+  background: var(--p-cream); color: var(--p-ink);
+  font-family: inherit; font-size: 15px; font-weight: 500; line-height: 1.5;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.edit-page .ep-field input:hover:not([readonly]),
+.edit-page .ep-field textarea:hover { border-color: var(--p-orange-l); }
+.edit-page .ep-field input:focus,
+.edit-page .ep-field textarea:focus { outline: none; border-color: var(--p-orange-dd); background: #fff; box-shadow: 0 0 0 4px rgba(194,65,12,.14); }
+.edit-page .ep-field input[readonly] { background: #f5f5f4; border-color: #e7e5e4; color: #78716c; cursor: not-allowed; }
+.edit-page .ep-field textarea { min-height: 110px; resize: vertical; }
+.edit-page .ep-note { margin-top: 6px; color: var(--p-muted); font-size: 13px; }
+
+.edit-page .ep-field input[type="file"] { padding: 8px; cursor: pointer; }
+.edit-page .ep-field input[type="file"]::file-selector-button {
+  min-height: 34px; margin-right: 12px; padding: 0 16px; border: 0; border-radius: 10px;
+  background: var(--p-peach); color: var(--p-orange-ddd);
+  font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .2s, color .2s;
+}
+.edit-page .ep-field input[type="file"]::file-selector-button:hover { background: var(--p-orange-dd); color: #fff; }
+
+/* buttons: scoped so they never touch the header's .btn */
+.edit-page .ep-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.edit-page .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; padding: 0 24px; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .25s var(--p-ease), box-shadow .25s; }
+.edit-page .btn .ico { font-size: 18px; }
+.edit-page .btn--primary { flex: 1 1 200px; border: 1.5px solid var(--p-orange-dd); background: var(--p-orange-dd); color: #fff; box-shadow: 0 10px 24px rgba(194,65,12,.28); }
+.edit-page .btn--primary:hover { background: var(--p-orange-ddd); border-color: var(--p-orange-ddd); transform: translateY(-2px); }
+.edit-page .btn--ghost { flex: 0 1 auto; border: 1.5px solid var(--p-orange-dd); background: #fff; color: var(--p-orange-dd); }
+.edit-page .btn--ghost:hover { background: var(--p-peach); }
+.edit-page .btn:active { transform: scale(.98); }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 600px) {
+  .edit-page .ep-head { border-radius: 22px; padding: 22px 20px; }
+  .edit-page .ep-card { border-radius: 22px; }
+  .edit-page .ep-avatar { width: 96px; height: 96px; }
+  .edit-page .btn { flex: 1 1 100%; }
 }
 
-.profile-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 15px 35px rgba(15, 23, 42, .06);
-    padding: 36px;
-    text-align: center;
-}
-
-.profile-card h2 {
-    color: #0b0c10;
-    font-size: 24px;
-    font-weight: 800;
-    margin-bottom: 24px;
-}
-
-.profile-image {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #eff6ff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, .15);
-    margin-bottom: 26px;
-}
-
-.form-group {
-    text-align: left;
-    margin-bottom: 18px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: .3px;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 8px;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    color: #0b0c10;
-    background: #f8fafc;
-    outline: none;
-    transition: .2s ease;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: #3b82f6;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, .15);
-}
-
-.form-group input[readonly] {
-    background: #f1f5f9;
-    color: #94a3b8;
-    cursor: not-allowed;
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 90px;
-}
-
-.form-group input[type="file"] {
-    padding: 9px 10px;
-    background: #f8fafc;
-    cursor: pointer;
-}
-
-.save-btn {
-    width: 100%;
-    margin-top: 6px;
-    padding: 13px;
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
-    background: linear-gradient(135deg, #0b0c10, #2563eb);
-    transition: .2s ease;
-}
-
-.save-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(37, 99, 235, .28);
-}
-
-/* RESPONSIVE */
-@media (max-width: 480px) {
-    .profile-container { margin: 24px auto; padding: 0 14px; }
-    .profile-card { padding: 26px 20px; border-radius: 12px; }
-    .profile-card h2 { font-size: 20px; margin-bottom: 18px; }
-    .profile-image { width: 90px; height: 90px; margin-bottom: 20px; }
-    .form-group { margin-bottom: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .edit-page *, .edit-page *::before, .edit-page *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 </style>
 
-<div class="profile-container">
+<div class="edit-page">
 
-    <div class="profile-card">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    </defs>
+  </svg>
 
-        <h2>Edit Profile</h2>
+  <header class="ep-head">
+    <span class="eyebrow">ACCOUNT</span>
+    <h1>Edit Profile</h1>
+    <p class="ep-sub">Keep your details up to date for faster checkout and smoother deliveries.</p>
+  </header>
 
-        <form method="POST" enctype="multipart/form-data">
+  <div class="ep-card">
 
-            {% csrf_token %}
+    <form method="POST" enctype="multipart/form-data">
 
-            {% if profile.profile_image %}
-                <img src="{{ profile.profile_image.url }}" class="profile-image" alt="{{ request.user.username }}">
-            {% else %}
-                <img src="{% static 'images/default-profile.png' %}" class="profile-image" alt="{{ request.user.username }}">
-            {% endif %}
+      {% csrf_token %}
 
-            <div class="form-group">
-                <label>Username</label>
-                <input
-                    type="text"
-                    value="{{ request.user.username }}"
-                    readonly>
-            </div>
+      <div class="ep-avatar-block">
+        <div class="ep-avatar-wrap">
+          {% if profile.profile_image %}
+            <img src="{{ profile.profile_image.url }}" class="ep-avatar" id="epAvatar" alt="Profile photo of {{ request.user.username }}">
+          {% else %}
+            <img src="{% static 'images/default-profile.png' %}" class="ep-avatar" id="epAvatar" alt="Profile photo of {{ request.user.username }}">
+          {% endif %}
+        </div>
+        <p class="ep-avatar-hint">Choose a new photo below to preview it here.</p>
+      </div>
 
-            <div class="form-group">
-                <label>Email</label>
-                <input
-                    type="email"
-                    name="email"
-                    value="{{ request.user.email }}">
-            </div>
+      <div class="ep-field">
+        <label for="epUsername">Username</label>
+        <input id="epUsername" type="text" value="{{ request.user.username }}" readonly>
+        <p class="ep-note">Your username can't be changed.</p>
+      </div>
 
-            <div class="form-group">
-                <label>Phone</label>
-                <input
-                    type="text"
-                    name="phone"
-                    value="{{ profile.phone }}">
-            </div>
+      <div class="ep-field">
+        <label for="epEmail">Email</label>
+        <input id="epEmail" type="email" name="email" value="{{ request.user.email }}" autocomplete="email">
+      </div>
 
-            <div class="form-group">
-                <label>Address</label>
-                <textarea
-                    name="address"
-                    rows="4">{{ profile.address }}</textarea>
-            </div>
+      <div class="ep-field">
+        <label for="epPhone">Phone</label>
+        <input id="epPhone" type="text" name="phone" value="{{ profile.phone }}" autocomplete="tel" inputmode="tel">
+      </div>
 
-            <div class="form-group">
-                <label>Profile Image</label>
-                <input
-                    type="file"
-                    name="profile_image">
-            </div>
+      <div class="ep-field">
+        <label for="epAddress">Address</label>
+        <textarea id="epAddress" name="address" rows="4" autocomplete="street-address">{{ profile.address }}</textarea>
+      </div>
 
-            <button type="submit" class="save-btn">
-                Save Changes
-            </button>
+      <div class="ep-field">
+        <label for="epImage">Profile Image</label>
+        <input id="epImage" type="file" name="profile_image" accept="image/*">
+      </div>
 
-        </form>
+      <div class="ep-actions">
+        <button type="submit" class="btn btn--primary"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Save Changes</button>
+        <a href="{% url 'profile' %}" class="btn btn--ghost"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg>Cancel</a>
+      </div>
 
-    </div>
+    </form>
+
+  </div>
 
 </div>
 
+<script>
+(function () {
+  /* live preview of the chosen profile image */
+  var input = document.getElementById('epImage');
+  var img = document.getElementById('epAvatar');
+  if (!input || !img) return;
+  input.addEventListener('change', function () {
+    var file = input.files && input.files[0];
+    if (file && file.type.indexOf('image/') === 0) img.src = URL.createObjectURL(file);
+  });
+})();
+</script>
 {% endblock %}

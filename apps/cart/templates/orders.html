@@ -1,177 +1,223 @@
-
 {% extends 'base.html' %}
 
 {% block content %}
 
 <style>
-:root{
-    --accent:#1D4ED8;
-    --dark:#0B0C10;
-    --soft:#EFF4FF;
-    --muted:#64748B;
-    --border:#E2E8F0;
-    --gradient:linear-gradient(135deg,#0B0C10,#1D4ED8);
+/* =========================================================
+   ShopCart – My Orders  (warm orange / cream palette)
+   Scoped to .mo-page / .mo-dialog with an "mo-" prefix. Your old version
+   defined :root { --accent, --dark, --border … } which leaked into the
+   header and other pages; this one touches nothing outside the page.
+   ========================================================= */
+.mo-page, .mo-dialog {
+  --c-primary: #C2410C;          /* 5.2:1 with white text */
+  --c-primary-hover: #9A3412;
+  --c-ink: #1C1917;
+  --c-text: #44403C;
+  --c-muted: #57534E;
+  --c-line: #FDE0C4;
+  --c-line-soft: #FFEDD5;
+  --c-cream: #FFF7ED;
+  --c-tint: #FFEDD5;
+  --c-orange: #F97316;
+  --c-orange-d: #EA580C;
+  --c-orange-l: #FDBA74;
+  --c-blue: #3B82F6;
+  --c-danger: #B91C1C; --c-danger-hover: #991B1B; --c-danger-soft: #FEF2F2; --c-danger-line: #FCA5A5;
+  --c-success: #166534; --c-success-soft: #F0FDF4; --c-success-line: #86EFAC;
+  --c-warn: #92400E; --c-warn-soft: #FFFBEB; --c-warn-line: #FCD34D;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  color: var(--c-ink);
+  -webkit-font-smoothing: antialiased;
 }
+.mo-page { width: 100%; max-width: 1100px; margin: 0 auto; padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 32px) 88px; }
+.mo-page *, .mo-page *::before, .mo-page *::after, .mo-dialog *, .mo-dialog *::before, .mo-dialog *::after { box-sizing: border-box; }
+.mo-page :is(h1, h2, h3, p) { margin: 0; padding: 0; }
+.mo-page :is(a, button):focus-visible, .mo-dialog :is(a, button):focus-visible { outline: 3px solid var(--c-blue); outline-offset: 3px; }
+.mo-ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes mo-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes mo-spin { to { transform: rotate(360deg); } }
 
-.orders-page{
-    max-width:1050px;
-    margin:45px auto;
-    padding:0 20px;
-    font-family:system-ui,sans-serif;
-    color:var(--dark);
+/* ---------- HEAD ---------- */
+.mo-head { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 18px 24px; margin-bottom: 28px; padding: clamp(22px, 4vw, 40px); border: 1px solid var(--c-line); border-radius: 28px; background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #FFFDFA, #FFF4E8 55%, #FFE3C7); animation: mo-rise .6s var(--ease) backwards; }
+.mo-head::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--c-orange-l); opacity: .45; filter: blur(60px); }
+.mo-eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--c-primary); font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: .14em; }
+.mo-eyebrow::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--c-orange); }
+.mo-head h1 { font-size: clamp(1.9rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.mo-sub { margin-top: 10px; color: var(--c-muted); font-size: 15px; }
+.mo-count { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; box-shadow: 0 2px 10px rgba(124,45,18,.08); color: var(--c-primary); font-size: 14px; font-weight: 700; }
+.mo-count .mo-ico { font-size: 16px; }
+
+/* ---------- MESSAGES ---------- */
+.mo-msgs { display: grid; gap: 10px; margin-bottom: 20px; }
+.mo-msg { display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px; border: 1px solid var(--c-line); border-radius: 14px; background: var(--c-cream); color: var(--c-primary-hover); font-size: 14px; font-weight: 600; }
+.mo-msg .mo-ico { margin-top: 3px; font-size: 17px; }
+.mo-msg.success { border-color: var(--c-success-line); background: var(--c-success-soft); color: var(--c-success); }
+.mo-msg.error { border-color: var(--c-danger-line); background: var(--c-danger-soft); color: var(--c-danger); }
+.mo-msg.warning { border-color: var(--c-warn-line); background: var(--c-warn-soft); color: var(--c-warn); }
+
+/* ---------- ORDER CARD ---------- */
+.mo-list { display: grid; gap: 22px; }
+.mo-order { overflow: hidden; background: #fff; border: 1px solid var(--c-line-soft); border-radius: 24px; box-shadow: 0 1px 2px rgba(124,45,18,.06), 0 10px 30px rgba(124,45,18,.08); animation: mo-rise .6s var(--ease) backwards; animation-delay: calc(min(var(--i, 0), 7) * 70ms + 100ms); transition: box-shadow .3s var(--ease), border-color .3s; }
+@media (hover: hover) { .mo-order:hover { border-color: var(--c-orange-l); box-shadow: 0 20px 44px rgba(124,45,18,.14); } }
+
+.mo-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px 20px; padding: 18px clamp(16px, 3vw, 28px); border-bottom: 1px solid var(--c-line); background: linear-gradient(135deg, #FFFDFA, #FFF4E8); }
+.mo-number { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.mo-order-icon { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; background: linear-gradient(135deg, var(--c-primary), var(--c-orange-d)); color: #fff; font-size: 22px; box-shadow: 0 8px 18px rgba(194,65,12,.28); }
+.mo-number h3 { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.mo-date { margin-top: 3px; color: var(--c-muted); font-size: 13px; }
+
+.mo-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.mo-status { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 14px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; color: var(--c-primary); font-size: 13px; font-weight: 700; text-transform: capitalize; }
+.mo-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.mo-status-pending { color: var(--c-warn); background: var(--c-warn-soft); border-color: var(--c-warn-line); }
+.mo-status-cancelled, .mo-status-canceled { color: var(--c-danger); background: var(--c-danger-soft); border-color: var(--c-danger-line); }
+.mo-status-delivered, .mo-status-completed, .mo-status-paid { color: var(--c-success); background: var(--c-success-soft); border-color: var(--c-success-line); }
+.mo-status-shipped, .mo-status-processing { color: #1D4ED8; background: #EFF6FF; border-color: #BFDBFE; }
+
+.mo-cancel-form { margin: 0; }
+.mo-cancel-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 1.5px solid var(--c-danger-line); border-radius: 12px; background: #fff; color: var(--c-danger); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+.mo-cancel-btn:hover { background: var(--c-danger); border-color: var(--c-danger); color: #fff; }
+
+/* products */
+.mo-products { padding: 4px clamp(16px, 3vw, 28px); }
+.mo-phead, .mo-prow { display: grid; grid-template-columns: minmax(0, 1fr) 120px 80px 130px; gap: 16px; align-items: center; }
+.mo-phead { padding: 16px 0 10px; color: var(--c-muted); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.mo-phead span:last-child, .mo-subtotal { text-align: right; }
+.mo-prow { padding: 16px 0; border-bottom: 1px dashed var(--c-line); font-size: 15px; }
+.mo-prow:last-child { border-bottom: 0; }
+.mo-pname { font-weight: 600; overflow-wrap: anywhere; }
+.mo-price, .mo-qty { color: var(--c-muted); }
+.mo-subtotal { font-weight: 800; }
+.mo-label { display: none; margin-bottom: 3px; color: var(--c-muted); font-size: 12px; font-weight: 700; }
+
+.mo-bottom { display: flex; justify-content: flex-end; align-items: baseline; gap: 18px; padding: 18px clamp(16px, 3vw, 28px); border-top: 2px solid var(--c-orange-l); background: var(--c-cream); }
+.mo-total-label { color: var(--c-muted); font-size: 14px; font-weight: 600; }
+.mo-total { color: var(--c-primary); font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+
+/* ---------- EMPTY ---------- */
+.mo-empty { padding: 64px 24px; text-align: center; background: var(--c-cream); border: 1.5px dashed var(--c-orange-l); border-radius: 24px; }
+.mo-empty-icon { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 6px; border-radius: 50%; background: var(--c-tint); color: var(--c-primary); font-size: 32px; }
+.mo-empty h2 { margin: 14px 0 6px; font-size: 21px; font-weight: 800; }
+.mo-empty p { margin: 0 0 22px; color: var(--c-muted); font-size: 14px; }
+.mo-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px; border: 1.5px solid transparent; border-radius: 14px; font-family: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background .2s, border-color .2s, color .2s, box-shadow .25s, transform .25s var(--ease); }
+.mo-btn--primary { background: var(--c-primary); border-color: var(--c-primary); color: #fff; box-shadow: 0 10px 24px rgba(194,65,12,.30); }
+.mo-btn--primary:hover { background: var(--c-primary-hover); border-color: var(--c-primary-hover); transform: translateY(-2px); }
+.mo-btn--ghost { background: #fff; border-color: var(--c-line); color: var(--c-ink); }
+.mo-btn--ghost:hover { border-color: var(--c-orange); background: var(--c-cream); color: var(--c-primary); }
+.mo-btn--danger { background: var(--c-danger); border-color: var(--c-danger); color: #fff; box-shadow: 0 10px 24px rgba(185,28,28,.26); }
+.mo-btn--danger:hover { background: var(--c-danger-hover); border-color: var(--c-danger-hover); }
+.mo-btn[disabled] { cursor: progress; opacity: .9; transform: none; }
+.mo-btn.is-loading::before { content: ""; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: mo-spin .7s linear infinite; }
+
+/* ---------- CONFIRM POPUP ---------- */
+.mo-dialog { width: calc(100% - 32px); max-width: 420px; margin: auto; padding: 0; border: 0; border-radius: 28px; background: #fff; box-shadow: 0 30px 80px rgba(28,25,23,.35); overflow: visible; }
+.mo-dialog[open] { animation: mo-dialog-in .3s var(--ease); }
+.mo-dialog::backdrop { background: rgba(28,25,23,.55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+@keyframes mo-dialog-in { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+.mo-dialog-body { position: relative; overflow: hidden; padding: 36px clamp(22px, 5vw, 34px) 28px; border-radius: 28px; text-align: center; }
+.mo-dialog-body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #B91C1C, #EF4444, #FCA5A5); }
+.mo-dialog-icon { display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto 18px; border-radius: 50%; background: var(--c-danger-soft); color: var(--c-danger); font-size: 30px; }
+.mo-dialog h3 { margin: 0 0 8px; font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; }
+.mo-dialog p { margin: 0 auto; max-width: 320px; color: var(--c-muted); font-size: 15px; line-height: 1.65; }
+.mo-dialog-actions { display: grid; gap: 10px; margin-top: 24px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 700px) {
+  .mo-head, .mo-order { border-radius: 22px; }
+  .mo-phead { display: none; }
+  .mo-prow { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font-size: 14px; }
+  .mo-prow > :first-child { grid-column: 1 / -1; }
+  .mo-label { display: block; }
+  .mo-bottom { justify-content: space-between; }
+  .mo-actions { width: 100%; justify-content: space-between; }
 }
-
-.orders-heading{margin-bottom:30px}
-.orders-heading h1{margin:0;font-size:30px}
-.orders-heading p{margin:6px 0;color:var(--muted);font-size:14px}
-
-.order-card{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:14px;
-    overflow:hidden;
-    margin-bottom:24px;
-    box-shadow:0 8px 30px rgba(11,12,16,.06);
-}
-
-.order-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:20px 24px;
-    background:var(--soft);
-    border-bottom:1px solid var(--border);
-}
-
-.order-number{display:flex;align-items:center;gap:12px}
-
-.order-icon,.empty-icon{
-    display:grid;
-    place-items:center;
-    border-radius:10px;
-    background:var(--gradient);
-    color:#fff;
-}
-
-.order-icon{width:42px;height:42px}
-.order-number h3{margin:0;font-size:16px}
-.order-date{color:var(--muted);font-size:12px;margin-top:3px}
-
-.order-status{
-    padding:6px 13px;
-    border-radius:20px;
-    background:#fff;
-    color:var(--accent);
-    border:1px solid #C7D7FE;
-    font-size:12px;
-    font-weight:700;
-}
-
-.order-products{padding:5px 24px}
-
-.product-head,.product-row{
-    display:grid;
-    grid-template-columns:1fr 100px 80px 110px;
-    gap:15px;
-    align-items:center;
-}
-
-.product-head{
-    padding:14px 0 8px;
-    color:var(--muted);
-    font-size:11px;
-    font-weight:700;
-    text-transform:uppercase;
-}
-
-.product-row{
-    padding:16px 0;
-    border-bottom:1px solid var(--border);
-    font-size:13px;
-}
-
-.product-name{font-weight:600}
-.product-price,.product-qty{color:var(--muted)}
-.product-subtotal{text-align:right;font-weight:700}
-
-.product-label{display:none}
-
-.order-bottom{
-    display:flex;
-    justify-content:flex-end;
-    gap:18px;
-    padding:18px 24px;
-    background:#FAFBFF;
-}
-
-.total-label{color:var(--muted);font-size:13px}
-.total-price{color:var(--accent);font-size:21px;font-weight:750}
-
-.empty-orders{
-    padding:60px 20px;
-    text-align:center;
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:14px;
-}
-
-.empty-icon{
-    width:60px;
-    height:60px;
-    margin:0 auto 15px;
-    border-radius:50%;
-    font-size:25px;
-}
-
-.empty-orders h2{margin:0 0 7px;font-size:21px}
-.empty-orders p{margin:0;color:var(--muted);font-size:14px}
-
-@media(max-width:700px){
-    .orders-page{margin:30px auto;padding:0 14px}
-    .orders-heading h1{font-size:25px}
-    .order-top{padding:17px}
-    .product-head{display:none}
-    .order-products{padding:5px 17px}
-    .product-row{grid-template-columns:1fr auto}
-    .product-subtotal{text-align:right}
-    .product-label{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}
-    .order-bottom{padding:17px}
+@media (prefers-reduced-motion: reduce) {
+  .mo-page *, .mo-page *::before, .mo-page *::after, .mo-dialog, .mo-dialog *, .mo-dialog *::before { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
 }
 </style>
 
 
-<div class="orders-page">
+<div class="mo-page">
 
-    <div class="orders-heading">
-        <h1>My Orders</h1>
-        <p>View and track all your recent orders.</p>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="mo-i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+        <symbol id="mo-i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="mo-i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+        <symbol id="mo-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="mo-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      </defs>
+    </svg>
+
+    <header class="mo-head">
+        <div>
+            <span class="mo-eyebrow">ORDERS</span>
+            <h1>My Orders</h1>
+            <p class="mo-sub">View and track all your recent orders.</p>
+        </div>
+        {% if orders %}
+        <span class="mo-count"><svg class="mo-ico" aria-hidden="true"><use href="#mo-i-box"/></svg>{{ orders|length }} order{{ orders|length|pluralize }}</span>
+        {% endif %}
+    </header>
+
+    {% if messages %}
+    <div class="mo-msgs" role="status">
+        {% for message in messages %}
+            <div class="mo-msg {{ message.tags }}">
+                <svg class="mo-ico" aria-hidden="true"><use href="{% if 'success' in message.tags %}#mo-i-ok{% else %}#mo-i-alert{% endif %}"/></svg>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
     </div>
+    {% endif %}
+
+    <div class="mo-list">
 
     {% for order in orders %}
 
-    <div class="order-card">
+    <article class="mo-order" style="--i: {{ forloop.counter0 }}" aria-labelledby="mo-order-{{ order.id }}">
 
-        <div class="order-top">
+        <div class="mo-top">
 
-            <div class="order-number">
-                <div class="order-icon">&#128230;</div>
+            <div class="mo-number">
+                <div class="mo-order-icon" aria-hidden="true"><svg class="mo-ico"><use href="#mo-i-box"/></svg></div>
 
                 <div>
-                    <h3>Order #{{ order.id }}</h3>
-                    <div class="order-date">{{ order.created_at }}</div>
+                    <h3 id="mo-order-{{ order.id }}">Order #{{ order.id }}</h3>
+                    <div class="mo-date">{{ order.created_at }}</div>
                 </div>
             </div>
 
-            <div class="order-status">
-                {{ order.status }}
+            <div class="mo-actions">
+                <span class="mo-status mo-status-{{ order.status|lower|slugify }}">
+                    {{ order.status }}
+                </span>
+
+                {% if order.status|lower == "pending" %}
+                    <form method="POST"
+                          action="{% url 'cancel_order' order.id %}"
+                          class="mo-cancel-form"
+                          data-order-id="{{ order.id }}"
+                          onsubmit="return confirm('Are you sure you want to cancel Order #{{ order.id }}? This action cannot be undone.');">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="mo-cancel-btn">
+                            <svg class="mo-ico" aria-hidden="true"><use href="#mo-i-x"/></svg>Cancel Order
+                        </button>
+                    </form>
+                {% endif %}
             </div>
 
         </div>
 
 
-        <div class="order-products">
+        <div class="mo-products">
 
-            <div class="product-head">
+            <div class="mo-phead" aria-hidden="true">
                 <span>Product</span>
                 <span>Price</span>
                 <span>Qty</span>
@@ -180,25 +226,25 @@
 
             {% for item in order.items.all %}
 
-            <div class="product-row">
+            <div class="mo-prow">
 
                 <div>
-                    <span class="product-label">Product</span>
-                    <span class="product-name">{{ item.product_name }}</span>
+                    <span class="mo-label">Product</span>
+                    <span class="mo-pname">{{ item.product_name }}</span>
                 </div>
 
                 <div>
-                    <span class="product-label">Price</span>
-                    <span class="product-price">Rs. {{ item.price }}</span>
+                    <span class="mo-label">Price</span>
+                    <span class="mo-price">Rs. {{ item.price }}</span>
                 </div>
 
                 <div>
-                    <span class="product-label">Qty</span>
-                    <span class="product-qty">{{ item.quantity }}</span>
+                    <span class="mo-label">Qty</span>
+                    <span class="mo-qty">{{ item.quantity }}</span>
                 </div>
 
-                <div class="product-subtotal">
-                    <span class="product-label">Subtotal</span>
+                <div class="mo-subtotal">
+                    <span class="mo-label">Subtotal</span>
                     Rs. {{ item.subtotal }}
                 </div>
 
@@ -209,28 +255,92 @@
         </div>
 
 
-        <div class="order-bottom">
-            <span class="total-label">Order Total</span>
-            <span class="total-price">Rs. {{ order.total }}</span>
+        <div class="mo-bottom">
+            <span class="mo-total-label">Order Total</span>
+            <span class="mo-total">Rs. {{ order.total }}</span>
         </div>
 
-    </div>
+    </article>
 
     {% empty %}
 
-    <div class="empty-orders">
+    <div class="mo-empty">
 
-        <div class="empty-icon">&#128230;</div>
+        <div class="mo-empty-icon" aria-hidden="true"><svg class="mo-ico"><use href="#mo-i-box"/></svg></div>
 
         <h2>No Orders Yet</h2>
 
         <p>You haven't placed any orders yet.</p>
 
+        <a href="{% url 'product_list' %}" class="mo-btn mo-btn--primary">Start shopping <svg class="mo-ico" aria-hidden="true"><use href="#mo-i-arrow"/></svg></a>
+
     </div>
 
     {% endfor %}
 
+    </div>
+
+    <!-- ===== CANCEL CONFIRMATION POPUP ===== -->
+    <dialog class="mo-dialog" id="moDialog" aria-labelledby="moDialogTitle" aria-describedby="moDialogText">
+        <div class="mo-dialog-body">
+            <div class="mo-dialog-icon" aria-hidden="true"><svg class="mo-ico"><use href="#mo-i-alert"/></svg></div>
+            <h3 id="moDialogTitle">Cancel this order?</h3>
+            <p id="moDialogText">Are you sure you want to cancel this order? This action cannot be undone.</p>
+            <div class="mo-dialog-actions">
+                <button type="button" class="mo-btn mo-btn--danger" id="moConfirm">Yes, cancel order</button>
+                <button type="button" class="mo-btn mo-btn--ghost" id="moKeep">Keep my order</button>
+            </div>
+        </div>
+    </dialog>
+
 </div>
 
-{% endblock %}
+<script>
+/* Replaces the browser's plain confirm() box with a styled popup.
+   Without JavaScript the original confirm() on each form still protects against accidental cancels. */
+(function () {
+    var dialog = document.getElementById('moDialog');
+    var forms = document.querySelectorAll('.mo-cancel-form');
+    if (!dialog || !forms.length || typeof dialog.showModal !== 'function') return;
 
+    var title = document.getElementById('moDialogTitle');
+    var text = document.getElementById('moDialogText');
+    var confirmBtn = document.getElementById('moConfirm');
+    var keepBtn = document.getElementById('moKeep');
+    var pending = null, opener = null;
+
+    [].forEach.call(forms, function (form) {
+        form.removeAttribute('onsubmit');                    // drop the native confirm()
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            pending = form;
+            opener = form.querySelector('button');
+            var id = form.getAttribute('data-order-id');
+            title.textContent = 'Cancel Order #' + id + '?';
+            text.textContent = 'Are you sure you want to cancel Order #' + id + '? This action cannot be undone.';
+            dialog.showModal();
+            keepBtn.focus();                                  // safe default: keep the order
+        });
+    });
+
+    confirmBtn.addEventListener('click', function () {
+        if (!pending) return;
+        confirmBtn.disabled = true; keepBtn.disabled = true;
+        confirmBtn.classList.add('is-loading');
+        confirmBtn.textContent = 'Cancelling…';
+        pending.submit();                                     // normal POST with the CSRF token
+    });
+    keepBtn.addEventListener('click', function () { dialog.close(); });
+    dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', function () { pending = null; if (opener) opener.focus(); });
+
+    window.addEventListener('pageshow', function () {         // back button: reset the popup
+        confirmBtn.disabled = false; keepBtn.disabled = false;
+        confirmBtn.classList.remove('is-loading');
+        confirmBtn.textContent = 'Yes, cancel order';
+        if (dialog.open) dialog.close();
+    });
+})();
+</script>
+
+{% endblock %}

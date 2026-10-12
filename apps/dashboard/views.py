@@ -303,6 +303,37 @@ def admin_orders(request):
 
         order = get_object_or_404(Order, pk=order_id)
 
+        # Store previous values before updating.
+        old_status = order.status
+        old_payment_status = order.payment_status
+
+        # Validate payment status.
+        if payment_value not in {"paid", "unpaid"}:
+            messages.error(request, "Invalid payment status.")
+            return redirect("admin_orders")
+
+        # Once payment is Paid, it cannot be changed back to Unpaid.
+        if old_payment_status and payment_value == "unpaid":
+            messages.error(
+                request,
+                f"Order #{order.id} is already paid. "
+                "Payment status cannot be changed back to Unpaid.",
+            )
+            return redirect("admin_orders")
+
+        # A cancelled and unpaid order cannot be marked as Paid.
+        if (
+            old_status == "Cancelled"
+            and not old_payment_status
+            and payment_value == "paid"
+        ):
+            messages.error(
+                request,
+                f"Order #{order.id} is cancelled and unpaid. "
+                "Its payment status cannot be changed to Paid.",
+            )
+            return redirect("admin_orders")
+
         # Validate delivery status.
         valid_statuses = {value for value, label in Order.STATUS}
 
@@ -310,22 +341,23 @@ def admin_orders(request):
             messages.error(request, "Invalid order status.")
             return redirect("admin_orders")
 
-        # Validate payment status.
-        if payment_value not in {"paid", "unpaid"}:
-            messages.error(request, "Invalid payment status.")
-            return redirect("admin_orders")
+        # Cancelled and Delivered orders cannot change delivery status.
+        if old_status in {"Cancelled", "Delivered"}:
+            if new_status != old_status:
+                messages.error(
+                    request,
+                    f"Order #{order.id} is {old_status}. "
+                    "Its delivery status cannot be changed.",
+                )
+                return redirect("admin_orders")
 
-        # Prevent cancelled orders from being marked as paid.
-        if new_status == "Cancelled" and payment_value == "paid":
-            messages.error(request, "A cancelled order cannot be marked as paid here.")
-            return redirect("admin_orders")
+        # Update delivery status only if it is not locked.
+        # Admin can cancel an order that is not already Cancelled
+        # or Delivered.
+        if old_status not in {"Cancelled", "Delivered"}:
+            order.status = new_status
 
-        # Store previous values before updating.
-        old_status = order.status
-        old_payment_status = order.payment_status
-
-        # Update order.
-        order.status = new_status
+        # Update payment status.
         order.payment_status = payment_value == "paid"
 
         order.save(
@@ -387,14 +419,19 @@ def admin_orders(request):
             | Q(id__icontains=search_query)
         )
 
-    if status_filter in {value for value, label in Order.STATUS}:
+    # Filter by delivery status.
+    valid_statuses = {value for value, label in Order.STATUS}
+
+    if status_filter in valid_statuses:
         orders = orders.filter(status=status_filter)
 
+    # Filter by payment status.
     if payment_filter == "paid":
         orders = orders.filter(payment_status=True)
     elif payment_filter == "unpaid":
         orders = orders.filter(payment_status=False)
 
+    # Template context.
     context = {
         "orders": orders,
         "search_query": search_query,

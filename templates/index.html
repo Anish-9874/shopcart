@@ -73,7 +73,9 @@
     <div class="product-grid">
       {% for product in featured_products %}
       <article class="product-card reveal" style="--i: {{ forloop.counter0 }}">
-        <a href="{% url 'product_list' %}" class="product-image" tabindex="-1" aria-hidden="true">
+        
+          <a href="{% url 'product_review' product.id %}" class="product-image">
+
           {% if product.image %}
           <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
           {% else %}
@@ -85,7 +87,7 @@
           <h3 title="{{ product.name }}">{{ product.name }}</h3>
           <div class="product-footer">
             <strong>${{ product.price }}</strong>
-            <a href="{% url 'product_list' %}" class="product-view" aria-label="View {{ product.name }}">View <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a href="{% url 'product_review' product.id %}" class="product-view" aria-label="View {{ product.name }}">View <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></a>
           </div>
         </div>
       </article>
@@ -111,7 +113,11 @@
     {% if categories %}
     <div class="category-grid">
       {% for category in categories %}
-      <a href="{% url 'category_list' %}" class="category-card reveal" style="--i: {{ forloop.counter0 }}">
+      
+<a href="{% url 'category' category.id %}"
+   class="category-card reveal"
+   style="--i: {{ forloop.counter0 }}">
+
         <div class="category-image">
           {% if category.image %}
           <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy" decoding="async">

@@ -6,49 +6,118 @@
 
 {% block content %}
 <style>
-    .products-page { width: 100%; max-width: 1400px; margin: auto; padding: 40px 30px; }
+/* =========================================================
+   ShopCart – Categories page
+   Same warm palette + components as home / products pages.
+   Scoped to .categories-page.
+   ========================================================= */
+.categories-page {
+  --p-cream: #fff7ed; --p-peach: #ffedd5; --p-line: #fde0c4; --p-line-soft: #ffedd5;
+  --p-ink: #1c1917; --p-muted: #57534e;
+  --p-orange: #f97316; --p-orange-d: #ea580c; --p-orange-dd: #c2410c; --p-orange-ddd: #9a3412; --p-orange-l: #fdba74;
+  --p-blue: #3b82f6;
+  --p-gutter: clamp(16px, 4vw, 32px);
+  --p-shadow: 0 1px 2px rgba(124,45,18,.06), 0 8px 24px rgba(124,45,18,.07);
+  --p-shadow-lg: 0 20px 44px rgba(124,45,18,.16);
+  --p-ease: cubic-bezier(.22, 1, .36, 1);
 
-.products-page h2 { font-size: 30px; font-weight: 800; color: #0b0c10; margin-bottom: 24px; text-align: center; }
+  width: 100%; max-width: 1400px; margin: 0 auto;
+  padding: clamp(24px, 4vw, 44px) var(--p-gutter) 88px;
+  color: var(--p-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.categories-page .ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes c-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-/* GRID */
-.product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+/* ---------- PAGE HEAD ---------- */
+.cat-head {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+  padding: clamp(24px, 4vw, 40px); margin-bottom: 32px;
+  border: 1px solid var(--p-line); border-radius: 28px;
+  background: radial-gradient(rgba(194,65,12,.10) 1px, transparent 1.5px) 0 0 / 22px 22px, linear-gradient(135deg, #fffdfa, #fff4e8 55%, #ffe3c7);
+  animation: c-rise .6s var(--p-ease) backwards;
+}
+.cat-head::before { content: ""; position: absolute; z-index: -1; right: -80px; top: -110px; width: 300px; height: 300px; border-radius: 50%; background: var(--p-orange-l); opacity: .45; filter: blur(60px); }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--p-orange-dd); font-size: 12px; font-weight: 800; line-height: 1; letter-spacing: .14em; }
+.eyebrow::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--p-orange); }
+.categories-page h1 { margin: 0; font-size: clamp(1.9rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.cat-sub { margin: 10px 0 0; color: var(--p-muted); font-size: 15px; }
+.cat-count { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid var(--p-line); border-radius: 999px; background: #fff; box-shadow: var(--p-shadow); color: var(--p-orange-dd); font-size: 14px; font-weight: 700; }
+.cat-count .ico { font-size: 16px; }
 
-.product-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: .25s ease; text-decoration: none; }
-.product-card:hover, .product-card:focus-visible { transform: translateY(-5px); border-color: #93c5fd; box-shadow: 0 15px 30px rgba(37,99,235,.12); }
-.product-card:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+/* ---------- GRID ---------- */
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; }
 
-.product-thumb { position: relative; width: 100%; height: 230px; background: linear-gradient(135deg, #0b0c10, #2563eb); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.no-image { color: #fff; font-size: 40px; }
+.product-card {
+  position: relative; display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 1px solid var(--p-line-soft); border-radius: 22px; box-shadow: var(--p-shadow);
+  color: inherit; text-decoration: none;
+  transition: transform .3s var(--p-ease), box-shadow .3s var(--p-ease), border-color .3s;
+  animation: c-rise .6s var(--p-ease) backwards; animation-delay: calc(min(var(--i, 0), 11) * 50ms + 100ms);
+}
+.product-card:focus-visible { outline: 3px solid var(--p-blue); outline-offset: 3px; }
+.product-thumb { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--p-cream); }
+.product-thumb::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(154,52,18,.32), transparent 55%); opacity: 0; transition: opacity .3s; }
+.product-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--p-ease); }
+.no-image { width: 100%; height: 100%; display: grid; place-items: center; font-size: 52px; color: var(--p-orange-d); background: linear-gradient(135deg, var(--p-peach), var(--p-cream)); }
 
-.product-body { padding: 18px; display: flex; flex-direction: column; flex: 1; align-items: center; text-align: center; }
+.product-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 20px; }
+.product-name { min-width: 0; color: var(--p-ink); font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.product-body small { display: block; margin-top: 4px; color: var(--p-orange-dd); font-size: 13px; font-weight: 700; }
+.go { flex-shrink: 0; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--p-peach); color: var(--p-orange-dd); font-size: 18px; transition: background .25s, color .25s, transform .3s var(--p-ease); }
 
-.product-name { font-size: 17px; font-weight: 700; color: #0b0c10; word-wrap: break-word; }
-
-.empty-state { text-align: center; font-size: 18px; color: #64748b; margin-top: 60px; }
-
-/* RESPONSIVE */
-@media (max-width: 992px) {
-  .product-grid { grid-template-columns: repeat(3, 1fr); }
+@media (hover: hover) {
+  .product-card:hover { transform: translateY(-6px); border-color: var(--p-orange-l); box-shadow: var(--p-shadow-lg); }
+  .product-card:hover .product-thumb img { transform: scale(1.06); }
+  .product-card:hover .product-thumb::after { opacity: 1; }
+  .product-card:hover .go { background: var(--p-orange-dd); color: #fff; transform: translateX(3px); }
 }
 
+/* ---------- EMPTY ---------- */
+.empty-state { padding: 64px 24px; text-align: center; background: var(--p-cream); border: 1.5px dashed var(--p-orange-l); border-radius: 24px; }
+.empty-icon { width: 72px; height: 72px; margin: 0 auto 6px; display: grid; place-items: center; border-radius: 50%; background: var(--p-peach); color: var(--p-orange-dd); font-size: 32px; }
+.empty-state h3 { margin: 14px 0 6px; font-size: 20px; font-weight: 700; }
+.empty-state p { margin: 0; color: var(--p-muted); font-size: 14px; }
+
+/* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-  .product-thumb { height: 130px; }
-  .product-body { padding: 12px; }
+  .cat-head { border-radius: 22px; padding: 20px; margin-bottom: 24px; }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .product-card { border-radius: 16px; }
+  .no-image { font-size: 36px; }
+  .product-body { padding: 12px 14px 14px; }
   .product-name { font-size: 14px; }
-  .no-image { font-size: 26px; }
+  .product-body small { font-size: 12px; }
+  .go { width: 32px; height: 32px; font-size: 15px; }
 }
+@media (max-width: 340px) { .product-grid { grid-template-columns: 1fr; } }
 
-@media (max-width: 380px) {
-  .product-grid { grid-template-columns: 1fr; }
-  .product-thumb { height: 180px; }
+@media (prefers-reduced-motion: reduce) {
+  .categories-page *, .categories-page *::before, .categories-page *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 </style>
 
-<div class="products-page">
+<div class="categories-page">
 
-    <h2>All Categories</h2>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      </defs>
+    </svg>
+
+    <header class="cat-head">
+        <div>
+            <span class="eyebrow">EXPLORE</span>
+            <h1>All Categories</h1>
+            <p class="cat-sub">Find products faster.</p>
+        </div>
+        {% if categories %}
+        <span class="cat-count"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg>{{ categories|length }} categor{{ categories|length|pluralize:"y,ies" }}</span>
+        {% endif %}
+    </header>
 
     {% if categories %}
 
@@ -56,18 +125,22 @@
 
         {% for category in categories %}
 
-        <a href="{% url 'category' category.id %}" class="product-card">
+        <a href="{% url 'category' category.id %}" class="product-card" style="--i: {{ forloop.counter0 }}">
 
             <div class="product-thumb">
                 {% if category.image %}
-                    <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+                    <img src="{{ category.image.url }}" alt="" loading="lazy" decoding="async">
                 {% else %}
-                    <span class="no-image">🛍️</span>
+                    <span class="no-image"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></span>
                 {% endif %}
             </div>
 
             <div class="product-body">
-                <div class="product-name">{{ category.name }}</div>
+                <div>
+                    <div class="product-name">{{ category.name }}</div>
+                    <small>Shop now</small>
+                </div>
+                <span class="go" aria-hidden="true"><svg class="ico"><use href="#i-arrow"/></svg></span>
             </div>
 
         </a>
@@ -78,7 +151,11 @@
 
     {% else %}
 
-    <div class="empty-state">No Categories Available</div>
+    <div class="empty-state">
+        <div class="empty-icon"><svg class="ico" aria-hidden="true"><use href="#i-bag"/></svg></div>
+        <h3>No Categories Available</h3>
+        <p>Categories will appear here once they are added.</p>
+    </div>
 
     {% endif %}
 
