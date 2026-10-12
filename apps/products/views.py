@@ -117,6 +117,7 @@ def product_list(request):
 # ============================================================
 
 
+@cache_page(60 * 15)
 def see_product(request):
     # Read filter values from the query string.
     q = request.GET.get("q", "").strip()

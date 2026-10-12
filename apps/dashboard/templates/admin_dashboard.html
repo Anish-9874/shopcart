@@ -5,144 +5,193 @@
 {% block extra_css %}
 <style>
 /* =========================================================
-   Admin dashboard – data-first layout on the "Midnight" tokens from
-   admin_base.html (--surface, --border, --text, --muted, --accent …),
-   so light and dark mode both work. Classes use the "db-" prefix.
-   Design rules: hairline borders, small radii, tabular numbers,
-   colour only where it carries meaning (status, alerts, accent).
+   Admin dashboard – hero banner + data-first layout.
+   Built on the tokens from admin_base.html (--surface, --border, --text,
+   --muted, --accent …). Every token has a fallback so the page still
+   renders if one is missing. Classes use the "db-" prefix.
+   The banner uses fixed dark/blue colours so white text stays readable
+   in both light and dark mode.
    ========================================================= */
-.db-page { font-feature-settings: "tnum" 1, "cv11" 1; }
-.db-page :is(a, button):focus-visible { outline: 3px solid var(--accent-2); outline-offset: 2px; }
+.db-page {
+  --c-warn: var(--warn, #B45309);
+  --c-warn-soft: var(--warn-soft, rgba(245,158,11,.14));
+  --c-success: var(--success, #047857);
+  --c-danger: var(--danger, #B91C1C);
+  --c-ease: var(--ease, cubic-bezier(.22, 1, .36, 1));
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+.db-page :is(a, button):focus-visible { outline: 3px solid var(--accent-2, #3B82F6); outline-offset: 2px; }
 .db-page .ico { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.db-page :is(h1, h2, h3, p, ul) { margin: 0; padding: 0; }
+@keyframes db-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes db-float { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(18px,-14px); } }
 
-/* ---------- Slim page header ---------- */
-.db-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px 24px; margin-bottom: 22px; }
-.db-head h1 { font-size: clamp(1.25rem, 2.4vw, 1.5rem); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; color: var(--text); }
-.db-head p { margin-top: 2px; color: var(--muted); font-size: 13.5px; }
-.db-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.db-head-actions a { min-height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; box-shadow: none; }
-.db-head-actions a:hover { box-shadow: none; transform: none; }
-.db-head-actions .ico { font-size: 15px; }
-.db-link-plain { display: inline-flex; align-items: center; min-height: 38px; padding: 0 10px; border-radius: 10px; color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; transition: color .15s, background .15s; }
-.db-link-plain:hover { color: var(--accent); background: var(--accent-soft); }
+/* ---------- HERO BANNER ---------- */
+.db-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  margin-bottom: 20px; padding: clamp(20px, 3vw, 32px);
+  border-radius: 22px; color: #fff;
+  background: radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.5px) 0 0 / 20px 20px, linear-gradient(135deg, #0B0C10 0%, #14213D 45%, #1D4ED8 100%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, .22);
+  animation: db-rise .5s var(--c-ease) backwards;
+}
+.db-hero::before, .db-hero::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; filter: blur(60px); animation: db-float 10s ease-in-out infinite; }
+.db-hero::before { width: 340px; height: 340px; right: -90px; top: -150px; background: #3B82F6; opacity: .5; }
+.db-hero::after { width: 260px; height: 260px; left: 30%; bottom: -170px; background: #6366F1; opacity: .35; animation-delay: -5s; }
 
-/* ---------- KPI strip (one card, four cells) ---------- */
-.db-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-bottom: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--border); }
+.db-hero-top { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px 28px; margin-bottom: 22px; }
+.db-hero h1 { font-size: clamp(1.5rem, 3.4vw, 2.25rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.15; color: #fff; }
+.db-hero h1 span.name { color: #93C5FD; overflow-wrap: anywhere; }
+.db-hero-sub { margin-top: 6px; color: #CBD5E1; font-size: 14px; }
+.db-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.db-hbtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid rgba(255,255,255,.28); border-radius: 12px; background: rgba(255,255,255,.1); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .15s, border-color .15s, transform .2s var(--c-ease); }
+.db-hbtn .ico { font-size: 17px; }
+.db-hbtn:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); }
+.db-hbtn.primary { border-color: #fff; background: #fff; color: #1D4ED8; }
+.db-hbtn.primary:hover { background: #EFF6FF; transform: translateY(-1px); }
+.db-hero :is(a, button):focus-visible { outline-color: #fff; }
+
+/* glass cards inside the banner */
+.db-glass-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.db-glass { display: flex; flex-direction: column; padding: 18px; border: 1px solid rgba(255,255,255,.16); border-radius: 16px; background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: db-rise .6s var(--c-ease) backwards; }
+.db-glass:nth-child(2) { animation-delay: .08s; }
+.db-glass:nth-child(3) { animation-delay: .16s; }
+.db-glass h2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .01em; }
+.db-glass h2 small { color: #CBD5E1; font-size: 12px; font-weight: 500; }
+
+/* needs attention */
+.db-att { display: grid; gap: 8px; }
+.db-att-row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: rgba(255,255,255,.08); color: #fff; font-size: 13.5px; font-weight: 500; text-decoration: none; transition: background-color .15s; }
+.db-att-row:hover { background: rgba(255,255,255,.16); }
+.db-att-row[hidden] { display: none; }
+.db-att-row b { margin-left: auto; padding: 2px 10px; border-radius: 99px; background: rgba(255,255,255,.16); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.db-att-row .ico { flex-shrink: 0; font-size: 14px; color: #CBD5E1; transition: transform .2s var(--c-ease); }
+.db-att-row:hover .ico { transform: translateX(3px); color: #fff; }
+.db-dot { width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; }
+.db-dot.amber { background: #FBBF24; box-shadow: 0 0 0 4px rgba(251,191,36,.22); }
+.db-dot.red { background: #F87171; box-shadow: 0 0 0 4px rgba(248,113,113,.22); }
+.db-dot.indigo { background: #A5B4FC; box-shadow: 0 0 0 4px rgba(165,180,252,.22); }
+.db-att-clear { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: rgba(16,185,129,.16); color: #A7F3D0; font-size: 13.5px; font-weight: 600; }
+.db-att-clear[hidden] { display: none; }
+.db-att-clear .ico { font-size: 18px; }
+
+/* order status */
+.db-seg { display: flex; height: 10px; gap: 3px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.14); }
+.db-seg i { display: block; height: 100%; border-radius: 99px; transition: flex-grow .9s var(--c-ease) .2s; }
+.db-seg .p { flex: 0 0 0; background: #FBBF24; }
+.db-seg .o { flex: 1 1 0; background: #60A5FA; }
+.db-seg.empty .o { background: transparent; }
+.db-legend { display: grid; gap: 10px; margin-top: 14px; color: #E2E8F0; font-size: 13.5px; }
+.db-legend div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.db-legend span { display: inline-flex; align-items: center; gap: 9px; color: #CBD5E1; }
+.db-legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: #60A5FA; }
+.db-legend div:first-child span::before { background: #FBBF24; }
+.db-legend strong { color: #fff; font-weight: 700; font-variant-numeric: tabular-nums; }
+.db-legend em { margin-left: 6px; color: #CBD5E1; font-size: 12px; font-style: normal; font-weight: 500; }
+.db-ratio { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,.22); color: #CBD5E1; font-size: 13px; }
+.db-legend + .db-ratio { margin-top: 14px; }
+.db-ratio strong { color: #fff; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+/* shortcuts */
+.db-short { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.db-short a { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px; border-radius: 12px; background: rgba(255,255,255,.08); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; transition: background-color .15s, transform .2s var(--c-ease); }
+.db-short a .ico { display: grid; place-items: center; box-sizing: content-box; width: 16px; height: 16px; padding: 6px; border-radius: 9px; background: rgba(255,255,255,.14); color: #fff; transition: background-color .15s, color .15s; }
+.db-short a:hover { background: rgba(255,255,255,.18); transform: translateY(-1px); }
+.db-short a:hover .ico { background: #fff; color: #1D4ED8; }
+
+/* ---------- KPI strip ---------- */
+.db-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-bottom: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--border); animation: db-rise .6s .1s var(--c-ease) backwards; }
 .db-kpi { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 16px; background: var(--surface); color: inherit; text-decoration: none; transition: background .15s ease; }
 .db-kpi:hover { background: var(--surface-2); }
 .db-kpi-label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
 .db-kpi-label .ico { font-size: 15px; }
 .db-kpi strong { color: var(--text); font-size: clamp(1.7rem, 2.8vw, 2.15rem); font-weight: 700; letter-spacing: -.045em; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .db-kpi-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; color: var(--muted); font-size: 12.5px; }
-.db-kpi-foot .ico { font-size: 14px; transition: transform .2s var(--ease), color .15s; }
+.db-kpi-foot .ico { font-size: 14px; transition: transform .2s var(--c-ease), color .15s; }
 .db-kpi:hover .db-kpi-foot .ico { color: var(--accent); transform: translateX(3px); }
-.db-kpi.pending .db-kpi-label::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, .2); }
+.db-kpi.pending .db-kpi-label::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
 .db-meter { height: 4px; overflow: hidden; border-radius: 4px; background: var(--border); }
-.db-meter i { display: block; width: 0; height: 100%; border-radius: inherit; background: #F59E0B; transition: width .9s var(--ease) .2s; }
+.db-meter i { display: block; width: 0; height: 100%; border-radius: inherit; background: #F59E0B; transition: width .9s var(--c-ease) .2s; }
 
-/* ---------- Main grid ---------- */
-.db-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
-.db-rail { display: grid; gap: 20px; }
-.db-panel { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.db-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-.db-panel-head h2 { color: var(--text); font-size: 14px; font-weight: 700; letter-spacing: -.005em; }
-.db-panel-head h2 small { margin-left: 8px; color: var(--muted); font-size: 12px; font-weight: 500; }
-.db-panel-head a { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-size: 13px; font-weight: 600; text-decoration: none; }
-.db-panel-head a:hover { text-decoration: underline; }
+/* ---------- Orders panel ---------- */
+.db-panel { overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); animation: db-rise .6s .16s var(--c-ease) backwards; }
+.db-panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; padding: 16px 20px 12px; }
+.db-panel-head h2 { color: var(--text); font-size: 15px; font-weight: 700; letter-spacing: -.005em; }
+.db-panel-head p { margin-top: 2px; color: var(--muted); font-size: 13px; }
+.db-panel-head a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; color: var(--accent); font-size: 13.5px; font-weight: 600; text-decoration: none; }
+.db-panel-head a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .db-panel-head a .ico { font-size: 14px; }
 
-/* ---------- Orders table ---------- */
-.db-panel .table-scroll { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
-.db-panel .table { font-size: 13.5px; }
-.db-panel .table th { padding: 11px 18px; background: transparent; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; letter-spacing: .09em; }
-.db-panel .table td { padding: 13px 18px; }
+.db-chips { display: flex; gap: 8px; padding: 0 20px 14px; overflow-x: auto; scrollbar-width: none; }
+.db-chips::-webkit-scrollbar { display: none; }
+.db-chips[hidden] { display: none; }
+.db-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background-color .15s, color .15s, border-color .15s; }
+.db-chip[hidden] { display: none; }
+.db-chip b { min-width: 22px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.db-chip:hover { border-color: var(--muted); color: var(--text); }
+.db-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.db-chip[aria-pressed="true"] b { background: var(--accent); color: #fff; }
+
+.db-panel .table-scroll { border: 0; border-top: 1px solid var(--border); border-radius: 0; box-shadow: none; background: transparent; }
+.db-panel .table { font-size: 14px; }
+.db-panel .table th { padding: 11px 20px; background: var(--surface-2); color: var(--muted); font-size: 12px; letter-spacing: .08em; white-space: nowrap; }
+.db-panel .table td { padding: 13px 20px; vertical-align: middle; }
+.db-panel .table tbody tr { transition: background-color .15s; }
+.db-panel .table tbody tr:hover { background: var(--surface-2); }
+.db-panel .table tr[hidden] { display: none !important; }
 .db-panel .table th:nth-child(4), .db-panel .table td:nth-child(4) { text-align: right; }
-.db-oid { color: var(--text); font-weight: 700; }
+.db-oid { color: var(--text); font-weight: 700; white-space: nowrap; }
 .db-oid span { color: var(--muted); font-weight: 500; }
-.db-customer { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.db-avatar { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 700; }
-.db-customer span:last-child { overflow: hidden; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.db-customer { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.db-avatar { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; }
+.db-customer-name { overflow: hidden; max-width: 220px; color: var(--text); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .db-muted { color: var(--muted); white-space: nowrap; }
-.db-money { font-weight: 700; white-space: nowrap; }
+.db-money { color: var(--text); font-weight: 700; white-space: nowrap; }
 
-.db-status { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 500; text-transform: capitalize; white-space: nowrap; }
-.db-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.db-st-pending::before { background: #F59E0B; }
-.db-st-delivered::before, .db-st-completed::before, .db-st-paid::before { background: #10B981; }
-.db-st-cancelled::before, .db-st-canceled::before { background: #EF4444; }
-.db-st-shipped::before, .db-st-processing::before { background: #06B6D4; }
-.db-pay { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
-.db-pay .ico { font-size: 14px; }
-.db-pay.paid { color: var(--success); }
-.db-pay.unpaid { color: var(--muted); font-weight: 500; }
+.db-badge { display: inline-flex; align-items: center; gap: 7px; min-height: 26px; padding: 0 10px; border-radius: 8px; background: var(--surface-2); color: var(--muted); font-size: 12.5px; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+.db-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.db-st-pending { background: var(--c-warn-soft); color: var(--c-warn); }
+.db-st-delivered, .db-st-completed, .db-st-paid, .db-pay-paid { background: var(--success-soft, rgba(16,185,129,.14)); color: var(--c-success); }
+.db-st-cancelled, .db-st-canceled { background: var(--danger-soft, rgba(239,68,68,.12)); color: var(--c-danger); }
+.db-st-shipped, .db-st-processing { background: var(--accent-soft); color: var(--accent); }
+.db-pay-unpaid { background: var(--surface-2); color: var(--muted); }
 
-.db-empty td { padding: 48px 18px !important; text-align: center; }
-.db-empty .ico { display: block; margin: 0 auto 10px; font-size: 28px; color: var(--muted); }
+.db-empty td { padding: 52px 20px !important; text-align: center; }
+.db-empty-icon { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 24px; }
 .db-empty strong { display: block; color: var(--text); font-size: 15px; }
-.db-empty span { color: var(--muted); font-size: 13.5px; }
-
-/* ---------- Rail: rows ---------- */
-.db-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--border); color: var(--text); font-size: 13.5px; font-weight: 500; text-decoration: none; transition: background .15s; }
-.db-panel-head + .db-row, .db-row:first-child { border-top: 0; }
-.db-row:hover { background: var(--surface-2); }
-.db-row > .ico:first-child { font-size: 16px; color: var(--muted); }
-.db-row b { margin-left: auto; color: var(--text); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.db-row > .ico:last-child { margin-left: auto; font-size: 14px; color: var(--muted); transition: transform .2s var(--ease), color .15s; }
-.db-row b + .ico { margin-left: 0 !important; }
-.db-row:hover > .ico:last-child { color: var(--accent); transform: translateX(3px); }
-.db-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; }
-.db-dot.amber { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, .2); }
-.db-dot.red { background: #EF4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, .2); }
-.db-dot.indigo { background: #6366F1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .2); }
-.db-row[hidden] { display: none; }
-.db-clear { display: flex; align-items: center; gap: 10px; padding: 16px 18px; color: var(--success); font-size: 13.5px; font-weight: 600; }
-.db-clear[hidden] { display: none; }
-.db-clear .ico { font-size: 18px; }
-
-/* ---------- Rail: status breakdown ---------- */
-.db-breakdown { padding: 16px 18px 18px; }
-.db-seg { display: flex; height: 8px; gap: 3px; overflow: hidden; border-radius: 999px; }
-.db-seg i { display: block; min-width: 0; border-radius: 999px; transition: flex-grow .9s var(--ease) .2s; }
-.db-seg .p { flex: 0 0 0; background: #F59E0B; }
-.db-seg .o { flex: 1 1 0; background: var(--accent); }
-.db-seg.empty .o { background: var(--border); }
-.db-legend { display: grid; gap: 10px; margin-top: 16px; font-size: 13.5px; }
-.db-legend div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.db-legend span { display: inline-flex; align-items: center; gap: 9px; color: var(--muted); }
-.db-legend span::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--accent); }
-.db-legend div:first-child span::before { background: #F59E0B; }
-.db-legend strong { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
-.db-legend em { margin-left: 8px; color: var(--muted); font-size: 12px; font-style: normal; font-weight: 500; }
-.db-ratio { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); color: var(--muted); font-size: 13px; }
-.db-ratio strong { color: var(--text); font-size: 14px; font-variant-numeric: tabular-nums; }
+.db-empty span { color: var(--muted); font-size: 14px; }
+.db-empty[hidden] { display: none; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1280px) {
-    .db-grid { grid-template-columns: 1fr; }
-    .db-rail { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
-}
+@media (max-width: 1180px) { .db-glass-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .db-glass-grid .db-glass:first-child { grid-column: 1 / -1; } }
 @media (max-width: 900px) { .db-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 760px) {
-    .db-head-actions { width: 100%; }
-    .db-head-actions .btn-primary { flex: 1 1 auto; }
+@media (max-width: 700px) {
+  .db-hero { border-radius: 18px; }
+  .db-glass-grid { grid-template-columns: 1fr; }
+  .db-hero-actions { width: 100%; }
+  .db-hero-actions .db-hbtn { flex: 1 1 auto; }
+  .db-panel-head, .db-chips { padding-left: 16px; padding-right: 16px; }
 
-    /* orders table → compact stacked rows */
-    .db-panel .table { min-width: 0; }
-    .db-panel .table thead { display: none; }
-    .db-panel .table, .db-panel .table tbody { display: block; }
-    .db-panel .table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
-    .db-panel .table tr:last-child { border-bottom: 0; }
-    .db-panel .table td { display: block; padding: 0; border: 0; }
-    .db-panel .table td:nth-child(1) { grid-column: 1; grid-row: 1; }
-    .db-panel .table td:nth-child(4) { grid-column: 2; grid-row: 1; text-align: right; }
-    .db-panel .table td:nth-child(2) { grid-column: 1; grid-row: 2; }
-    .db-panel .table td:nth-child(3) { grid-column: 2; grid-row: 2; text-align: right; font-size: 12.5px; }
-    .db-panel .table td:nth-child(5) { grid-column: 1; grid-row: 3; }
-    .db-panel .table td:nth-child(6) { grid-column: 2; grid-row: 3; text-align: right; }
-    .db-panel .table tr.db-empty { display: block; }
+  .db-panel .table { min-width: 0; }
+  .db-panel .table thead { display: none; }
+  .db-panel .table, .db-panel .table tbody { display: block; }
+  .db-panel .table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .db-panel .table tr:last-child { border-bottom: 0; }
+  .db-panel .table td { display: block; padding: 0; border: 0; }
+  .db-panel .table td:nth-child(1) { grid-column: 2; grid-row: 1; text-align: right; }
+  .db-panel .table td:nth-child(2) { grid-column: 1; grid-row: 1; }
+  .db-panel .table td:nth-child(3) { grid-column: 1; grid-row: 2; font-size: 13px; }
+  .db-panel .table td:nth-child(4) { grid-column: 2; grid-row: 2; text-align: right; }
+  .db-panel .table td:nth-child(5) { grid-column: 1; grid-row: 3; }
+  .db-panel .table td:nth-child(6) { grid-column: 2; grid-row: 3; text-align: right; }
+  .db-panel .table tr.db-empty { display: block; }
+  .db-customer-name { max-width: none; }
 }
 @media (max-width: 480px) { .db-kpi { padding: 14px 14px 12px; } }
-@media (prefers-reduced-motion: reduce) { .db-meter i, .db-seg i { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .db-hero, .db-hero::before, .db-hero::after, .db-glass, .db-kpis, .db-panel { animation: none !important; }
+  .db-meter i, .db-seg i { transition: none !important; }
+}
 </style>
 {% endblock %}
 
@@ -154,26 +203,92 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
         <symbol id="db-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-        <symbol id="db-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
         <symbol id="db-i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
         <symbol id="db-i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
         <symbol id="db-i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
     </defs>
 </svg>
 
-<!-- ===== Slim header ===== -->
-<header class="db-head">
-    <div>
-        <h1><span id="db-greet">Welcome back</span>, {{ request.user.first_name|default:request.user.username }}</h1>
-        <p><span id="db-today"></span>Here's a quick overview of your ShopCart store.</p>
+<!-- ===== HERO BANNER ===== -->
+<section class="db-hero" aria-label="Welcome and store overview">
+
+    <div class="db-hero-top">
+        <div>
+            <h1><span id="db-greet">Welcome back</span>, <span class="name">{{ request.user.first_name|default:request.user.username }}</span></h1>
+            <p class="db-hero-sub"><span id="db-today"></span>Here's a quick overview of your ShopCart store.</p>
+        </div>
+
+        <div class="db-hero-actions">
+            <a href="{% url 'add_product' %}" class="db-hbtn primary"><svg class="ico" aria-hidden="true"><use href="#db-i-plus"/></svg>Add Product</a>
+            <a href="{% url 'reports_analytics' %}" class="db-hbtn"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg>Reports &amp; Analytics</a>
+            <a href="{% url 'see_product' %}" class="db-hbtn">Manage Products</a>
+        </div>
     </div>
 
-    <div class="db-head-actions">
-        <a href="{% url 'see_product' %}" class="db-link-plain">Manage Products</a>
-        <a href="{% url 'add_product' %}" class="btn-outline"><svg class="ico" aria-hidden="true"><use href="#db-i-plus"/></svg>Add Product</a>
-        <a href="{% url 'reports_analytics' %}" class="btn-primary"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg>Reports &amp; Analytics</a>
+    <div class="db-glass-grid">
+
+        <!-- Needs attention -->
+        <section class="db-glass" aria-labelledby="db-attn-title">
+            <h2 id="db-attn-title">Needs attention</h2>
+            <div class="db-att">
+
+                {% if pending_orders_count %}
+                <a class="db-att-row" href="{% url 'admin_orders' %}">
+                    <span class="db-dot amber" aria-hidden="true"></span>
+                    <span>Orders waiting to be processed</span>
+                    <b>{{ pending_orders_count }}</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
+                </a>
+                {% endif %}
+
+                {% if low_stock_count %}
+                <a class="db-att-row" href="{% url 'see_product' %}">
+                    <span class="db-dot red" aria-hidden="true"></span>
+                    <span>Products low or out of stock</span>
+                    <b>{{ low_stock_count }}</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
+                </a>
+                {% endif %}
+
+                <a class="db-att-row" href="{% url 'admin_orders' %}" id="db-unpaid-row" hidden>
+                    <span class="db-dot indigo" aria-hidden="true"></span>
+                    <span>Unpaid among recent orders</span>
+                    <b id="db-unpaid-count">0</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
+                </a>
+
+                <div class="db-att-clear" id="db-clear"{% if pending_orders_count or low_stock_count %} hidden{% endif %}>
+                    <svg class="ico" aria-hidden="true"><use href="#db-i-check"/></svg>Nothing needs your attention right now.
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Order status -->
+        <section class="db-glass" id="db-health" aria-labelledby="db-health-title" data-total="{{ orders_count }}" data-pending="{{ pending_orders_count }}" data-customers="{{ customers_count }}">
+            <h2 id="db-health-title">Order status <small id="db-health-note"></small></h2>
+            <div class="db-seg empty" id="db-seg" role="img" aria-label="Share of pending orders compared with all other orders">
+                <i class="p" id="db-seg-p"></i><i class="o" id="db-seg-o"></i>
+            </div>
+            <div class="db-legend">
+                <div><span>Pending</span><strong>{{ pending_orders_count }}<em id="db-pct-p"></em></strong></div>
+                <div><span>Other statuses</span><strong><b id="db-other" style="font-weight:700">–</b><em id="db-pct-o"></em></strong></div>
+            </div>
+            <div class="db-ratio"><span>Orders per customer</span><strong id="db-ratio">–</strong></div>
+        </section>
+
+        <!-- Shortcuts -->
+        <section class="db-glass" aria-labelledby="db-short-title">
+            <h2 id="db-short-title">Shortcuts</h2>
+            <div class="db-short">
+                <a href="{% url 'add_product' %}"><svg class="ico" aria-hidden="true"><use href="#i-package-plus"/></svg>Add product</a>
+                <a href="{% url 'admin_categories' %}"><svg class="ico" aria-hidden="true"><use href="#i-layers"/></svg>Categories</a>
+                <a href="{% url 'customer_list' %}"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg>Customers</a>
+                <a href="{% url 'inbox' %}"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>Chats</a>
+                <a href="{% url 'admin_reviews' %}"><svg class="ico" aria-hidden="true"><use href="#i-star"/></svg>Reviews</a>
+                <a href="{% url 'admin_orders' %}"><svg class="ico" aria-hidden="true"><use href="#i-orders"/></svg>Orders</a>
+            </div>
+        </section>
+
     </div>
-</header>
+</section>
 
 <!-- ===== KPI strip ===== -->
 <section class="db-kpis" aria-label="Store statistics">
@@ -205,129 +320,87 @@
 
 </section>
 
-<!-- ===== Orders + rail ===== -->
-<div class="db-grid">
-
-    <section class="db-panel" aria-labelledby="db-orders-title">
-        <div class="db-panel-head">
+<!-- ===== Recent orders ===== -->
+<section class="db-panel" aria-labelledby="db-orders-title">
+    <div class="db-panel-head">
+        <div>
             <h2 id="db-orders-title">Recent Orders</h2>
-            <a href="{% url 'reports_analytics' %}">View Analytics <svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
+            <p>Latest orders placed in your store.</p>
         </div>
+        <a href="{% url 'reports_analytics' %}">View Analytics <svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
+    </div>
 
-        <div class="table-scroll">
-            <table class="table" id="db-orders">
-                <thead>
-                    <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Payment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in recent_orders %}
-                    <tr data-paid="{% if order.payment_status %}1{% else %}0{% endif %}">
-                        <td class="db-oid"><span>#</span>{{ order.id }}</td>
-                        <td>
-                            <div class="db-customer">
-                                <span class="db-avatar" aria-hidden="true">{{ order.full_name|first|upper|default:"?" }}</span>
-                                <span>{{ order.full_name }}</span>
-                            </div>
-                        </td>
-                        <td class="db-muted">{{ order.created_at|date:"d M Y" }}</td>
-                        <td class="db-money">Rs. {{ order.total|floatformat:2 }}</td>
-                        <td><span class="db-status db-st-{{ order.status|lower|slugify }}">{{ order.status }}</span></td>
-                        <td>
-                            {% if order.payment_status %}
-                                <span class="db-pay paid"><svg class="ico" aria-hidden="true"><use href="#db-i-check"/></svg>Paid</span>
-                            {% else %}
-                                <span class="db-pay unpaid">Unpaid</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr class="db-empty">
-                        <td colspan="6">
-                            <svg class="ico" aria-hidden="true"><use href="#db-i-inbox"/></svg>
-                            <strong>No orders yet</strong>
-                            <span>No orders have been placed yet.</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
+    <div class="db-chips" id="db-chips" role="group" aria-label="Filter recent orders by status" hidden>
+        <button type="button" class="db-chip" data-filter="all" aria-pressed="true">All <b>0</b></button>
+        <button type="button" class="db-chip" data-filter="pending" aria-pressed="false">Pending <b>0</b></button>
+        <button type="button" class="db-chip" data-filter="other" aria-pressed="false">In progress <b>0</b></button>
+        <button type="button" class="db-chip" data-filter="done" aria-pressed="false">Delivered <b>0</b></button>
+        <button type="button" class="db-chip" data-filter="cancelled" aria-pressed="false">Cancelled <b>0</b></button>
+    </div>
 
-    <aside class="db-rail">
-
-        <section class="db-panel" aria-labelledby="db-attn-title">
-            <div class="db-panel-head"><h2 id="db-attn-title">Needs attention</h2></div>
-
-            {% if pending_orders_count %}
-            <a class="db-row" href="{% url 'admin_orders' %}">
-                <span class="db-dot amber" aria-hidden="true"></span>
-                <span>Orders waiting to be processed</span>
-                <b>{{ pending_orders_count }}</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
-            </a>
-            {% endif %}
-
-            {% if low_stock_count %}
-            <a class="db-row" href="{% url 'see_product' %}">
-                <span class="db-dot red" aria-hidden="true"></span>
-                <span>Products low or out of stock</span>
-                <b>{{ low_stock_count }}</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
-            </a>
-            {% endif %}
-
-            <a class="db-row" href="{% url 'admin_orders' %}" id="db-unpaid-row" hidden>
-                <span class="db-dot indigo" aria-hidden="true"></span>
-                <span>Unpaid among recent orders</span>
-                <b id="db-unpaid-count">0</b><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg>
-            </a>
-
-            <div class="db-clear" id="db-clear"{% if pending_orders_count or low_stock_count %} hidden{% endif %}>
-                <svg class="ico" aria-hidden="true"><use href="#db-i-check"/></svg>Nothing needs your attention right now.
-            </div>
-        </section>
-
-        <section class="db-panel" id="db-health" aria-labelledby="db-health-title" data-total="{{ orders_count }}" data-pending="{{ pending_orders_count }}" data-customers="{{ customers_count }}">
-            <div class="db-panel-head"><h2 id="db-health-title">Order status</h2></div>
-            <div class="db-breakdown">
-                <div class="db-seg empty" id="db-seg" role="img" aria-label="Share of pending orders compared with all other orders">
-                    <i class="p" id="db-seg-p"></i><i class="o" id="db-seg-o"></i>
-                </div>
-                <div class="db-legend">
-                    <div><span>Pending</span><strong>{{ pending_orders_count }}<em id="db-pct-p"></em></strong></div>
-                    <div><span>Other statuses</span><strong><b id="db-other" style="font-weight:700">–</b><em id="db-pct-o"></em></strong></div>
-                </div>
-                <div class="db-ratio"><span>Orders per customer</span><strong id="db-ratio">–</strong></div>
-            </div>
-        </section>
-
-        <section class="db-panel" aria-labelledby="db-short-title">
-            <div class="db-panel-head"><h2 id="db-short-title">Shortcuts</h2></div>
-            <a class="db-row" href="{% url 'add_product' %}"><svg class="ico" aria-hidden="true"><use href="#i-package-plus"/></svg><span>Add a product</span><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
-            <a class="db-row" href="{% url 'admin_categories' %}"><svg class="ico" aria-hidden="true"><use href="#i-layers"/></svg><span>Categories</span><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
-            <a class="db-row" href="{% url 'customer_list' %}"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg><span>Customers</span><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
-            <a class="db-row" href="{% url 'inbox' %}"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg><span>Customer chats</span><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
-            <a class="db-row" href="{% url 'admin_reviews' %}"><svg class="ico" aria-hidden="true"><use href="#i-star"/></svg><span>Reviews</span><svg class="ico" aria-hidden="true"><use href="#db-i-arrow"/></svg></a>
-        </section>
-
-    </aside>
-
-</div>
+    <div class="table-scroll">
+        <table class="table" id="db-orders">
+            <thead>
+                <tr>
+                    <th scope="col">Order</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr data-order data-paid="{% if order.payment_status %}1{% else %}0{% endif %}" data-status="{{ order.status|lower|slugify }}">
+                    <td class="db-oid"><span>#</span>{{ order.id }}</td>
+                    <td>
+                        <div class="db-customer">
+                            <span class="db-avatar" aria-hidden="true">{{ order.full_name|first|upper|default:"?" }}</span>
+                            <span class="db-customer-name">{{ order.full_name }}</span>
+                        </div>
+                    </td>
+                    <td class="db-muted">{{ order.created_at|date:"d M Y" }}</td>
+                    <td class="db-money">Rs. {{ order.total|floatformat:2 }}</td>
+                    <td><span class="db-badge db-st-{{ order.status|lower|slugify }}">{{ order.status }}</span></td>
+                    <td>
+                        {% if order.payment_status %}
+                            <span class="db-badge db-pay-paid">Paid</span>
+                        {% else %}
+                            <span class="db-badge db-pay-unpaid">Unpaid</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="db-empty">
+                    <td colspan="6">
+                        <div class="db-empty-icon" aria-hidden="true"><svg class="ico"><use href="#db-i-inbox"/></svg></div>
+                        <strong>No orders yet</strong>
+                        <span>New orders will appear here as soon as customers place them.</span>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr class="db-empty" id="db-filter-empty" hidden>
+                    <td colspan="6"><strong>No orders with this status</strong><span>Try another filter.</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
 
 </div>
 
 <script>
-/* Dashboard extras: greeting + date, pending-share meter / bar, unpaid count.
-   Everything is computed from numbers already on the page; with JavaScript off all figures still show. */
+/* Greeting + date, pending share, order-status bar, unpaid count and status filter chips.
+   All headline numbers are already in the HTML, so the page still reads correctly without JavaScript. */
 (function () {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
+    function group(s) {
+        if (s === 'pending') return 'pending';
+        if (/deliver|complet|paid/.test(s)) return 'done';
+        if (/cancel/.test(s)) return 'cancelled';
+        return 'other';
+    }
 
     /* greeting + date */
     var now = new Date(), h = now.getHours();
@@ -345,7 +418,7 @@
     if (bar) requestAnimationFrame(function () { bar.style.width = pct + '%'; });
     if (note) note.textContent = total > 0 ? pct + '% of all orders' : 'No orders yet';
 
-    /* order status bar + legend */
+    /* order status bar + legend (in the banner) */
     var seg = document.getElementById('db-seg'), sp = document.getElementById('db-seg-p'), so = document.getElementById('db-seg-o');
     var other = Math.max(total - pending, 0);
     if (seg && sp && so && total > 0) {
@@ -359,6 +432,8 @@
     if (otherEl) otherEl.textContent = other.toLocaleString();
     var pp = document.getElementById('db-pct-p'), po = document.getElementById('db-pct-o');
     if (total > 0) { if (pp) pp.textContent = pct + '%'; if (po) po.textContent = (100 - pct) + '%'; }
+    var hn = document.getElementById('db-health-note');
+    if (hn) hn.textContent = total > 0 ? total + ' total' : 'No orders yet';
 
     var health = document.getElementById('db-health'), ratio = document.getElementById('db-ratio');
     if (health && ratio) {
@@ -366,10 +441,38 @@
         ratio.textContent = customers > 0 ? (total / customers).toFixed(1) : '–';
     }
 
-    /* unpaid among the recent orders shown in the table */
-    var unpaid = document.querySelectorAll('#db-orders tbody tr[data-paid="0"]').length;
-    var row = document.getElementById('db-unpaid-row'), cnt = document.getElementById('db-unpaid-count'), clear = document.getElementById('db-clear');
-    if (row && cnt && unpaid > 0) { cnt.textContent = unpaid; row.hidden = false; if (clear) clear.hidden = true; }
+    /* recent orders */
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#db-orders tr[data-order]'));
+    rows.forEach(function (r) { r.setAttribute('data-group', group(r.getAttribute('data-status'))); });
+
+    /* unpaid among the recent orders shown */
+    var unpaid = rows.filter(function (r) { return r.getAttribute('data-paid') === '0'; }).length;
+    var urow = document.getElementById('db-unpaid-row'), ucnt = document.getElementById('db-unpaid-count'), clear = document.getElementById('db-clear');
+    if (urow && ucnt && unpaid > 0) { ucnt.textContent = unpaid; urow.hidden = false; if (clear) clear.hidden = true; }
+
+    /* status filter chips */
+    var chipsWrap = document.getElementById('db-chips'), empty = document.getElementById('db-filter-empty');
+    if (rows.length && chipsWrap) {
+        var counts = { all: rows.length, pending: 0, other: 0, done: 0, cancelled: 0 };
+        rows.forEach(function (r) { counts[r.getAttribute('data-group')]++; });
+        var chips = Array.prototype.slice.call(chipsWrap.querySelectorAll('.db-chip'));
+        chips.forEach(function (c) {
+            var k = c.getAttribute('data-filter');
+            c.querySelector('b').textContent = counts[k];
+            if (k !== 'all' && counts[k] === 0) c.hidden = true;
+            c.addEventListener('click', function () {
+                chips.forEach(function (x) { x.setAttribute('aria-pressed', x === c ? 'true' : 'false'); });
+                var shown = 0;
+                rows.forEach(function (r) {
+                    var ok = k === 'all' || r.getAttribute('data-group') === k;
+                    r.hidden = !ok;
+                    if (ok) shown++;
+                });
+                if (empty) empty.hidden = shown !== 0;
+            });
+        });
+        chipsWrap.hidden = false;
+    }
 })();
 </script>
 
