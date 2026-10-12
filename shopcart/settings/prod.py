@@ -28,9 +28,11 @@ if RENDER_EXTERNAL_HOSTNAME:
 # DATABASE ROUTER
 # ---------------------------------------------------------
 
-DATABASE_ROUTERS = [
-    "shopcart.routers.ReplicaRouter",
-]
+DATABASE_ROUTERS: list[str] = []
+
+# DATABASE_ROUTERS = [
+#     "shopcart.routers.ReplicaRouter",
+# ]
 
 
 # ---------------------------------------------------------
@@ -46,14 +48,14 @@ DATABASES = {
         "HOST": config("PDB_HOST"),
         "PORT": config("PDB_PORT"),
     },
-    "replica": {
-        "ENGINE": config("RPDB_ENGINE"),
-        "NAME": config("RPDB_NAME"),
-        "USER": config("RPDB_USER"),
-        "PASSWORD": config("RPDB_PASSWORD"),
-        "HOST": config("RPDB_HOST"),
-        "PORT": config("RPDB_PORT"),
-    },
+    # "replica": {
+    #     "ENGINE": config("RPDB_ENGINE"),
+    #     "NAME": config("RPDB_NAME"),
+    #     "USER": config("RPDB_USER"),
+    #     "PASSWORD": config("RPDB_PASSWORD"),
+    #     "HOST": config("RPDB_HOST"),
+    #     "PORT": config("RPDB_PORT"),
+    # },
 }
 
 
