@@ -10,11 +10,26 @@ COPY requirements/ ./requirements/
 
 RUN pip install --no-cache-dir -r requirements/prod.txt
 
-COPY . .
+RUN groupadd --system shopcart && \
+    useradd --system --gid shopcart --home-dir /app --shell /usr/sbin/nologin shopcart
+
+COPY --chown=shopcart:shopcart . .
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint && \
+    chmod 755 /usr/local/bin/docker-entrypoint && \
+    mkdir -p staticfiles media logs && \
+    chown shopcart:shopcart staticfiles media logs
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
 RUN SECRET_KEY="build-only-not-for-production" \
     python manage.py collectstatic --noinput --settings=shopcart.settings.prod
     
 EXPOSE 8000
 
+<<<<<<< HEAD
 CMD ["sh", "-c", "uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
+=======
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && exec uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
+>>>>>>> 82030de (hehehelooo)

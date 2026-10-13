@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from .base import *
 
@@ -25,10 +26,15 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 
 # ---------------------------------------------------------
-# DATABASE ROUTER
+# MEDIA CONFIGURATION
 # ---------------------------------------------------------
 
-DATABASE_ROUTERS: list[str] = []
+SERVE_MEDIA = True
+
+
+# ---------------------------------------------------------
+# DATABASE ROUTER
+# ---------------------------------------------------------
 
 # DATABASE_ROUTERS = [
 #     "shopcart.routers.ReplicaRouter",
@@ -47,6 +53,7 @@ DATABASES = {
         "PASSWORD": config("PDB_PASSWORD"),
         "HOST": config("PDB_HOST"),
         "PORT": config("PDB_PORT"),
+        "CONN_MAX_AGE": 60,
     },
     # "replica": {
     #     "ENGINE": config("RPDB_ENGINE"),
@@ -55,6 +62,7 @@ DATABASES = {
     #     "PASSWORD": config("RPDB_PASSWORD"),
     #     "HOST": config("RPDB_HOST"),
     #     "PORT": config("RPDB_PORT"),
+    #     "CONN_MAX_AGE": 60,
     # },
 }
 
@@ -63,7 +71,7 @@ DATABASES = {
 # LOG DIRECTORY
 # ---------------------------------------------------------
 
-LOG_DIR = BASE_DIR / "logs"
+LOG_DIR = Path(BASE_DIR) / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -92,7 +100,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "json",
-            "level": "ERROR",
+            "level": "INFO",
         },
         "rotating_file": {
             "class": "logging.handlers.TimedRotatingFileHandler",
@@ -102,6 +110,7 @@ LOGGING = {
             "backupCount": 3,
             "formatter": "json",
             "encoding": "utf-8",
+            "level": "INFO",
         },
         "error_file": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -110,6 +119,7 @@ LOGGING = {
             "backupCount": 3,
             "formatter": "json",
             "encoding": "utf-8",
+            "level": "ERROR",
         },
     },
     "root": {
@@ -120,6 +130,14 @@ LOGGING = {
         "level": "INFO",
     },
     "loggers": {
+        "django": {
+            "handlers": [
+                "console",
+                "rotating_file",
+            ],
+            "level": "INFO",
+            "propagate": False,
+        },
         "django.request": {
             "handlers": [
                 "console",

@@ -124,7 +124,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(config("MEDIA_ROOT", default=str(BASE_DIR / "media")))
 
 
 STORAGES = {
@@ -150,19 +150,14 @@ LOGIN_URL = "/login/"  # Redirect to login page if user is not authenticated usu
 # Redis configuration
 # -------------------------
 
-REDIS_URL = config("REDIS_URL", default="")
+REDIS_URL = config("REDIS_URL", default="", cast=str).strip()
 
 if REDIS_URL:
-    REDIS_CONNECTION = REDIS_URL
+    REDIS_CONNECTION = REDIS_URL if "://" in REDIS_URL else f"redis://{REDIS_URL}"
 else:
-    REDIS_HOST = config("REDIS_HOST", default="redis")
+    REDIS_HOST = config("REDIS_HOST", default="127.0.0.1")
     REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
     REDIS_CONNECTION = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
-
-
-# -------------------------
-# Django Channels
-# -------------------------
 
 CHANNEL_LAYERS = {
     "default": {
@@ -172,11 +167,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
-
-# -------------------------
-# Celery
-# -------------------------
 
 CELERY_BROKER_URL = REDIS_CONNECTION
 CELERY_RESULT_BACKEND = REDIS_CONNECTION
