@@ -25,4 +25,4 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && exec uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
