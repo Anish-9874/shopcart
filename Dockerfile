@@ -23,13 +23,6 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint && \
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
-RUN SECRET_KEY="build-only-not-for-production" \
-    python manage.py collectstatic --noinput --settings=shopcart.settings.prod
-    
 EXPOSE 8000
 
-<<<<<<< HEAD
-CMD ["sh", "-c", "uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
-=======
 CMD ["sh", "-c", "python manage.py collectstatic --noinput && exec uvicorn shopcart.asgi:application --host 0.0.0.0 --port ${PORT:-8000}"]
->>>>>>> 82030de (hehehelooo)
