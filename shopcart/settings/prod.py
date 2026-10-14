@@ -46,6 +46,9 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": config("CLOUDINARY_API_SECRET"),
 }
 
+# Compatibility for django-cloudinary-storage on Django 6
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 # ---------------------------------------------------------
 # DATABASE CONFIGURATION
 # ---------------------------------------------------------
